@@ -1,0 +1,25 @@
+{
+  "name": "@deepseek-ai/neiwang-dingtalk-ui",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.mjs",
+  "description": "内网小智钉钉官方连接器：本机配置引导与脱敏诊断入口",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-connection",
+        "@deepseek-ai/dsh-client-ui-plugin-manager",
+        "@deepseek-ai/dsh-client-ui-slots"
+      ],
+      "platform": "web"
+    }
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    "./client": "./client.js",
+    ".": "./index.mjs"
+  }
+}

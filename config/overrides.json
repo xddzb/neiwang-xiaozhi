@@ -1,0 +1,37 @@
+[
+  {
+    "id": "tools",
+    "config": {
+      "mode": "ptc"
+    }
+  },
+  {
+    "id": "ui-brand-official",
+    "disabled": true
+  },
+  {
+    "id": "llm-deepseek",
+    "disabled": true
+  },
+  {
+    "id": "llm-deepseek-account",
+    "disabled": true
+  },
+  {
+    "id": "ui-settings-models",
+    "disabled": true
+  },
+  {
+    "id": "compaction-basic",
+    "disabled": true,
+    "config": {
+      "auto": true,
+      "thresholdRatio": 0.9,
+      "headroomTokens": 16384,
+      "retainRatio": 0.2,
+      "maxTokens": 8192,
+      "compactionRetries": 1,
+      "maxOverflowRetries": 1
+    }
+  }
+]

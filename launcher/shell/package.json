@@ -1,0 +1,6 @@
+{
+  "name": "dsh-desktop",
+  "version": "1.0.0",
+  "description": "DeepSeek Harness desktop shell",
+  "main": "main.js"
+}
