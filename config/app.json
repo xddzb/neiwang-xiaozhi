@@ -1,23 +1,15 @@
 {
   "name": "内网小智",
-  "version": "R10",
+  "version": "R10-dev",
   "coreVersion": "0.2.0-rc.2",
   "port": 3080,
   "contextWindow": 128000,
   "maxOutputTokens": 8192,
   "bundles": [
     "@neiwang/deployment",
-    "@deepseek-ai/neiwang-tool-catalog",
-    "@neiwang/brand",
-    "@anionex/dsh-turn-rewind",
-    "@dsh-plugin/dsh-code-review",
-    "@deepseek-ai/neiwang-business",
-    "@dingtalk-real-ai/dsh-dingtalk",
-    "@deepseek-ai/neiwang-dingtalk-ui",
-    "@neiwang/dws-aitable",
-    "@neiwang/feature-defaults"
+    "@neiwang/brand"
   ],
   "businessBrowser": false,
-  "platform": "Win10-x64",
-  "edition": "full"
+  "platform": "auto",
+  "edition": "development"
 }

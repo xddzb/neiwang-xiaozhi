@@ -17,5 +17,3 @@
   config: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"agent-default-model\").config"
 - id: llm-pi-ai
   config: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"llm-pi-ai\").config"
-- id: turn-rewind
-  config: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"turn-rewind\").config"

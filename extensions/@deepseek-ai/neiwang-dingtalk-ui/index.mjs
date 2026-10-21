@@ -1,5 +1,6 @@
 import {join} from 'node:path';
 import {spawn} from 'node:child_process';
+import {existsSync} from 'node:fs';
 import {collectDoctorReport} from '../../@dingtalk-real-ai/dsh-dingtalk/lib/doctor-report.js';
 import {loadWebProfileConfig} from '../../@dingtalk-real-ai/dsh-dingtalk/lib/setup-state.js';
 import {OwnerBinding,issueBindingChallenge} from '../../@dingtalk-real-ai/dsh-dingtalk/lib/owner.js';
@@ -27,7 +28,11 @@ export function apply(ctx){
     if(endpoint==='setup'){
       if(Date.now()-lastLaunch<5000)return {ok:true,value:{opened:true}};
       const root=process.env.NEIWANG_APP_ROOT;
-      const child=spawn(process.env.ComSpec||'cmd.exe',['/d','/c','start','"钉钉官方连接器配置"','cmd.exe','/d','/k','配置钉钉.cmd'],{cwd:root,windowsHide:true,stdio:'ignore'});
+      const terminal=process.platform==='win32'?null:['/usr/bin/x-terminal-emulator','/usr/bin/xterm'].find(existsSync);
+      if(process.platform!=='win32'&&!terminal)return {ok:false,error:{code:'terminal-missing',message:'请在 APP 目录的本机终端执行 sh 配置钉钉.sh'}};
+      const child=process.platform==='win32'
+        ?spawn(process.env.ComSpec||'cmd.exe',['/d','/c','start','"钉钉官方连接器配置"','cmd.exe','/d','/k','配置钉钉.cmd'],{cwd:root,windowsHide:true,stdio:'ignore'})
+        :spawn(terminal,['-e',process.execPath,join(root,'tools/configure-official-dingtalk.mjs')],{cwd:root,detached:true,stdio:'ignore'});
       child.on('error',()=>{});child.unref();lastLaunch=Date.now();
       return {ok:true,value:{opened:true}};
     }

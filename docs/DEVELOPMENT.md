@@ -20,40 +20,30 @@
 - 钉钉官方连接器：`@dingtalk-real-ai/dsh-dingtalk` `0.10.2`。
 - DWS CLI：现有发布基线为 `1.0.65`，按目标平台提供官方二进制和许可证，放入 `extensions/dws/`。
 - Python：现有发布基线 Windows 为 3.12，ARM64 为 3.11；PyInstaller 为 6.22.3。平台依赖必须分别准备。
-- Electron、Node 和其他插件版本以经验证的发布基线为准；当前仓库尚无涵盖全部离线材料的可复现依赖锁文件，不要自行假定跨平台二进制可互换。
+- 开发构建使用 Node 24.x（至少 24.9.0）、Electron 33.2.0 和仓库中的 package-lock.json。锁文件固定 npm 依赖，但不涵盖历史完整离线版的 DWS/Python/Office 材料；平台二进制不能互换。
 
-## 内网接口文档的位置
+## 内网接口文档与模型配置
 
-接口文档由维护者通过企业内部受控渠道另行分发。原开发工程中对应 `offline-api-tool/内网接口文档.html`；同目录的 `presets.json` 等业务定义也不入库。此处只记录路径，不包含接口正文、真实服务地址或认证信息。
+具体目录树、模型配置位置及从 GitHub 下载后的操作步骤统一见 [构建运行指南](BUILD_AND_RUN.md)，避免两份说明不一致。
 
-GitHub 克隆目录不自带上述文件，也没有把文档放进 APP 默认安装目录。需要这些材料时向项目维护者申请，在本机独立保存；不要上传至 GitHub Issue、PR 或仓库附件。接口文档位置不等于模型配置位置。
+接口文档是独立本机材料，开发约定位置为仓库根目录的 `private-docs/内网接口文档.html`，不在 `tools/` 或 `extensions/`。原维护工程的旧位置为 `offline-api-tool/内网接口文档.html`。文档正文及业务接口定义继续排除出仓库。
 
-## 模型密钥的配置位置
-
-以下路径中的“APP 根目录”指解压后含 `launcher/`、`config/`、`data/` 的内网小智目录，而非 GitHub 源码目录。
-
-| 使用方式 | 配置位置 | 说明 |
-| --- | --- | --- |
-| 已交付 R10 APP | `<APP根目录>/data/config/model.enc` | 本机模型地址、模型列表、默认模型和 API Key 的加密配置；用配套配置流程生成，不作为明文编辑 |
-| 发布基线的首次初始化种子（如存在） | `<APP根目录>/config/defaults/model.enc` | 仅在用户配置不存在时复制；不是日常修改已有用户配置的位置，也不入库 |
-| 本仓库开发版 | 启动进程环境变量 | `NEIWANG_MODEL_KEY`、`NEIWANG_MODEL_URL`、`NEIWANG_MODEL_ID`；`.env.example` 只列字段 |
-
-本仓库的 `launcher/bootstrap.cjs` 优先读取非空 `NEIWANG_MODEL_KEY` 对应的环境配置；否则读取 `<NEIWANG_DATA_DIR>/config/model.enc`。未设置 `NEIWANG_DATA_DIR` 时使用 `<APP根目录>/data`。已有发布版和开发副本的启动逻辑有差异，不能只把源码启动器覆盖进已安装 APP。
-
-开发副本使用环境变量 `NEIWANG_MODEL_KEY`、`NEIWANG_MODEL_URL`、`NEIWANG_MODEL_ID` 提供模型连接。`.env.example` 仅是字段说明，启动器不会自动读取 `.env`。必须通过启动环境设置；不应在终端记录、截图和提交中暴露值。
-
-源码中的原固定解密常量已移除。如果需要兼容本机已有 `model.enc`，由本机安全配置提供 `NEIWANG_CONFIG_KEY`；不提交加密配置文件或解密密钥。生产配置迁移须单独测试。原已安装 APP 不受本仓库整理影响。
-
-钉钉在本地完成应用创建、Stream 模式、凭据配置和管理员绑定；绑定口令由设置页生成。DWS 通过本机授权登录，先查询，再按明确授权写入并读回校验。登录凭据及接口文档不属于仓库材料。
+开发版恢复官方模型设置和凭据存储，不再要求加密 model.enc。`config/overrides.json` 不再禁用模型页、模型提供方及自动压缩；用户 profile 配置后加载，用户设置可覆盖部署默认值。只有品牌替换仍关闭官方品牌插件。
 
 ## DWS Schema
 
 AI 表格适配器所需 `contracts.json` 不入库。使用固定版本官方 DWS CLI，按 runner 中的命令清单运行 `dws schema --cli-path "aitable <command>" --compact --format json`，在本机聚合生成 contracts；参数来自官方 schema，不手写猜测。可使用 `node scripts/generate_dws_contracts.mjs <dws路径>`。生成文件只用于本地构建。
 
-## 打包与测试
+## 历史离线 R10 打包脚本
 
 `scripts/build_modular_r10.py` 依赖 `builds/Neiwang-Xiaozhi-<platform>-R9` 已准备好的干净发布基线，以及 `downloads/` 下的平台材料。基线必须不含 data、用户工作区和凭据。原历史脚本中部分 R8/R9 路径用于迁移参考，不应直接在生产 APP 上执行。
 
 现有集成脚本还需要发布包、浏览器/平台环境或 `TEST_APP_ROOT`，不会在源码 CI 中自动运行。尤其 `test_feature_install.py` 会修改测试副本文件以验证拒绝行为，必须使用可丢弃副本。
 
-首次协作提交仅完成源码整理、语法/泄漏规则检查；没有重新构建或重新验证 Windows/麒麟安装包。后续应补齐受控基线获取、依赖锁定、构建流水线和各平台验收。
+新的开发构建入口为 `scripts/build-dev.cjs`，依赖由 package-lock.json 锁定，按构建主机平台生成 APP。Windows 和麒麟的目标系统验收仍需分别完成；不要把本机 Windows 测试等同于麒麟实机测试。
+
+## 本次验证结果
+
+在维护者 Windows 电脑使用 Node 24.9.0 完成锁文件依赖安装（635 个 npm 包），Electron 下载未完成，改用已验证的同平台 33.2.0 目录。已实际生成开发 APP 并打开模型设置页，以合成测试值验证本机凭据写入及下次初始化保留；未进行真实模型推理或钉钉消息收发。`npm test` 验证无密钥初始化、用户配置保留、不完整环境配置拒绝和完整环境默认模型。麒麟和 Windows 10 实机尚未验收，当前 Windows 主机的验证不代表所有目标系统兼容。
+
+另已验证全新开发构建的 ZIP 打包及压缩包完整性（约 300 MB），包内无 data、workspace 或默认凭据种子；打包器对含测试用户状态的构建目录会拒绝打包。安装包本身不提交到 GitHub。

@@ -68,3 +68,5 @@ offline-api-tool/
 Thumbs.db
 .idea/
 .vscode/
+private-docs/*
+!private-docs/README.md

@@ -1,6 +1,6 @@
 # 内网小智
 
-内网小智的协作源码仓库。当前主线为 R10：官方 DeepSeek Harness 内核、部署配置、自有扩展和用户数据分离；Windows x64 / 麒麟 ARM64 交付采用 Core 核心包与 Plugins 可选插件包。
+内网小智的协作源码仓库。当前开发主线为 R10-dev：官方 DeepSeek Harness 内核、部署配置、自有扩展和用户数据分离；Windows x64 / 麒麟 ARM64 交付采用 Core 核心包与 Plugins 可选插件包。
 
 ## 源码目录
 
@@ -17,20 +17,18 @@
 
 ## 开发与验证
 
-先阅读 [开发说明](docs/DEVELOPMENT.md) 和 [协作约定](CONTRIBUTING.md)。运行源码检查：
+同事从 GitHub 下载后，请先按 [从源码生成并运行 APP](docs/BUILD_AND_RUN.md) 操作；该文档包含依赖安装、构建命令、模型配置、钉钉和分发打包步骤。另见 [开发说明](docs/DEVELOPMENT.md) 和 [协作约定](CONTRIBUTING.md)。运行源码检查：
 
 ```sh
 python scripts/check_source.py
 ```
 
-本仓库不包含官方内核依赖、Electron/Node/Python 平台运行库、安装包、真实业务接口实现和接口文档。现有 R10 打包脚本依赖已准备好的 R9 基线及离线依赖，因此首次克隆不能直接产出完整安装包。构建前提与待完善项见开发说明；不能将本仓库当作现有发布包的无差别备份。
-
-所有模型密钥、钉钉凭据、绑定信息、DWS 登录状态和聊天数据仅在本机配置。不要提交这些数据，即使仓库之后改为私有。配置示例见 `.env.example`；该文件不含真实值。
+开发版通过 `npm ci` 下载锁定依赖、`npm run build` 生成桌面 APP、`npm start` 启动，不再要求本机 R9 基线或预先配置模型密钥。首次启动在设置 → 模型中填写自己的服务和 API Key，可继续修改。完整命令及平台前提见构建运行指南。历史 R10 离线核心/插件包的脚本仍需发行基线，与新开发构建不同。
 
 ## 接口文档与模型密钥在哪里
 
-- **内网接口文档**：由维护者通过企业内部受控渠道另行提供。原开发工程中的位置是 `offline-api-tool/内网接口文档.html`，该目录及文档不在 GitHub 仓库内；克隆仓库后找不到此文件是正常的。它不是 APP 安装目录中的默认文件。
-- **已交付 R10 APP 的模型配置**：位于 APP 安装根目录的 `data/config/model.enc`。这是包含模型地址、模型名及 API Key 的本机加密配置，不要上传、发给同事或直接作为文本编辑。`config/defaults/model.enc` 如存在，是首次初始化使用的配置种子，也不能提交。
-- **本仓库开发版的模型配置**：在启动进程的环境变量中设置 `NEIWANG_MODEL_KEY`、`NEIWANG_MODEL_URL`、`NEIWANG_MODEL_ID`。字段模板在 `.env.example`，启动器不会自动加载 `.env`。具体读取顺序见 [开发说明](docs/DEVELOPMENT.md#模型密钥的配置位置)。
+- **接口文档不在 tools 或 extensions 中**。原开发工程位置为工程根目录 `offline-api-tool/内网接口文档.html`，该目录未上传。合作开发统一将另行取得的内部文档放在克隆目录根部的 `private-docs/内网接口文档.html`，与 `tools/`、`extensions/` 平级，文档正文不入库，也不会自动启用业务接口。
+- **开发版模型配置**：设置 → 模型。凭据保存在 `<APP根目录>/data/dsh/.credentials.yaml`，用户配置在 `<APP根目录>/data/dsh/profiles/web/cordis.patch.yml`。不提交这些文件。高级环境配置字段见 `.env.example`，但该模板不会自动加载。
+- **原已交付 R10 发布版**仍使用 `<APP根目录>/data/config/model.enc`，与新开发版不同；不要把旧文件或启动器直接覆盖到开发版。
 
 第三方组件保留其原有许可证。此仓库尚未为项目自有代码指定开源许可证；上传源码不代表授予第三方组件以外的额外许可。

@@ -1,0 +1,19 @@
+{
+  "name": "neiwang-xiaozhi-development",
+  "version": "0.1.0",
+  "private": true,
+  "description": "内网小智开发版构建入口",
+  "engines": {"node": ">=24.9.0 <25"},
+  "scripts": {
+    "build": "node scripts/build-dev.cjs",
+    "start": "node scripts/start-dev.cjs",
+    "package": "python scripts/package-dev.py",
+    "check": "python scripts/check_source.py",
+    "test": "node --test scripts/test-dev.cjs"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh": "0.2.0-rc.2",
+    "@dingtalk-real-ai/dsh-dingtalk": "0.10.2"
+  },
+  "devDependencies": {"electron": "33.2.0"}
+}
