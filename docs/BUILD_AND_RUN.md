@@ -78,7 +78,7 @@ Linux 需有 x-terminal-emulator 或 xterm；没有图形终端时在 APP 目录
 
 ### DWS AI 表格
 
-默认已包含官方 DWS CLI 1.0.65。进入“设置 → 钉钉AI表格”打开登录；在本机终端确认目标组织并授权。回到页面刷新，保存 profile list 返回的明确 corpId:userId。授权数据隔离在 `<APP根目录>/data/dws/`，不入库、不分发。
+默认已包含官方 DWS CLI 1.0.65。当前 Agent 接口仅开放查询，新增、修改和删除已禁用。Windows 先在 APP 目录运行 `powershell -NoProfile -File tools/dws-readonly-app.ps1 -Mode Configure`，使用已核对权限的专用只读应用；再在“设置 → 钉钉AI表格”登录并刷新。凭据采用当前 Windows 用户加密保存在 data/config/dws-readonly-app.xml，授权状态在 data/dws-readonly/。麒麟目前只完成 CLI/Schema 与工具自检，专用应用的图形授权配置尚未适配，不能视为已完成真实表格接入。不要复用机器人密钥，也不要提交本机授权数据。
 
 先做 Base/表/字段/记录查询，确认目标后再授权写入，并读回校验。工具默认对未确认写入执行 dry-run；超时或未知结果先查询，不自动重试写操作。本功能是 AI 表格，不是普通电子表格或宜搭。
 

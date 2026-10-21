@@ -60,7 +60,7 @@ function build({dependencies=path.join(source,'node_modules'),output,coreOnly=fa
   copy(path.join(materials,'python'),path.join(dest,'runtime/python'));
   if(process.platform==='linux')copy(path.join(materials,'sandbox'),path.join(dest,'runtime/sandbox'));
   copy(path.join(materials,'dws'),path.join(dest,'extensions/dws'));
-  for(const name of ['python_tool.py','package_tool.py','dws-login.cjs'])copy(path.join(source,'tools',name),path.join(dest,'tools',name));
+  for(const name of ['python_tool.py','package_tool.py','dws-login.cjs','dws-readonly-app.ps1'])copy(path.join(source,'tools',name),path.join(dest,'tools',name));
   fs.writeFileSync(path.join(dest,'登录AI表格.cmd'),'@echo off\r\ncd /d "%~dp0"\r\n"runtime\\node\\node.exe" "tools\\dws-login.cjs"\r\n');
   fs.writeFileSync(path.join(dest,'登录AI表格.sh'),'#!/bin/sh\nset -eu\ncd "$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"\nexec ./runtime/node/bin/node ./tools/dws-login.cjs\n',{mode:0o755});
   const dws=path.join(dest,'extensions/dws',process.platform==='win32'?'dws.exe':'dws');
