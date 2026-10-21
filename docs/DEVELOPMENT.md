@@ -1,49 +1,49 @@
-# 开发与构建前提
+# 开发、维护与验证说明
 
-## 当前整理范围
+## 结构与职责
 
-主线源码从 R10 提取，第三方 npm 内核不随仓库复制。业务专用适配包和具体接口说明尚未进入此仓库；工具目录可能显示对应入口，但需要由企业侧另行提供受控实现后才能执行这些业务。不要把缺少业务包的源码目录冒充完整交付包。
+官方内核固定于 core/<version>，不直接修改；自有插件在源码 extensions/<scope>/<name>，构建后放入 extensions/node_modules；桌面启动、会话存储和 UI 稳定性适配在 launcher；用户数据在 data 与 workspace。早期 Python harness/工作台已删除，tools 下的 Python 是当前执行/打包能力的一部分。
 
-早期 Python harness/工作台已从当前源码树删除。R10 的桌面入口为 `launcher/supervisor.cjs`；`launcher/bootstrap.cjs` 组装内核、扩展和数据路径。部署后的扩展位于 `extensions/node_modules/<scope>/<name>`，本仓库将自有扩展放在 `extensions/<scope>/<name>`，构建时复制到该运行布局。`tools/` 下的 Python 文档处理和 PyInstaller 入口仍为当前功能的一部分。
+extensions 负责注册 Agent 工具、设置页、参数与授权处理；tools 是实际执行脚本。典型链路为用户指令 → 插件 → 执行程序 → 结果；AI 表格插件也会直接调用 extensions/dws 中的官方 CLI。
 
-## 依赖基线
+## 当前默认完整开发构建
 
-### extensions 与 tools 的分工
+- Node 24.x（至少 24.9.0）、DSH 0.2.0-rc.2、Electron 33.2.0。
+- 官方钉钉 dsh-dingtalk 0.10.2，以及本机配置、绑定设置页。
+- 官方 DWS CLI 1.0.65、AI 表格设置和工具。contracts.json 在构建时由固定 CLI 的本机 Schema 生成，不含真实企业接口。
+- Python 3.12.14 独立发行包、PyInstaller 6.22.3 和锁定的 wheel 依赖；Linux 另含 bubblewrap 0.4.0-1ubuntu4.1、版权和对应源代码。
+- 空白接口文档模板。真实接口和企业业务实现继续排除出仓库。
 
-`extensions/` 是 Agent 与界面的插件层：包含插件清单、Cordis 注册、设置页、工具定义和请求处理，负责把能力接入内核。例如 `@deepseek-ai/neiwang-dingtalk-ui` 提供钉钉设置和绑定页面，`@neiwang/dws-aitable` 注册 AI 表格工具并校验参数、授权及结果。
+npm 依赖由 package-lock.json 固定。Python/DWS/沙箱的来源、文件名和 SHA256 固定于 manifests/dev-runtime-assets.json。下载后校验再解压，不从构建者系统 Python 复制整个环境。源码检查、构建和分发打包都会核对空白模板哈希；真实接口应复制到被忽略的文档后填写。
 
-`tools/` 是具体执行程序：例如 `configure-official-dingtalk.mjs` 执行本机配置流程，`dws-login.cjs` 启动 DWS 登录，`package_tool.py` 调用 PyInstaller。它们通常由插件或本机入口启动，不会仅因放在此目录就自动注册为 Agent 工具。
+模型配置、钉钉和 DWS 登录状态只在本机保存。模型页保持可编辑，无密钥也能启动。环境变量仅作为显式高级默认值；用户 profile 最后加载。接口与模型配置的准确目录、完整命令见 [构建运行指南](BUILD_AND_RUN.md)。
 
-典型链路是“用户指令 → extensions 插件 → tools 执行程序 → 插件返回结果”。两者不要求一一对应：有些插件直接调用官方 CLI，例如 AI 表格的 runner 直接调用 `extensions/dws/` 中的 DWS 二进制。运行布局中的 `extensions/` 也承载可选依赖，不代表里面所有文件都是自有插件源码。
+## 验证方法
 
-- DeepSeek Harness：`0.2.0-rc.2`，独立安装到 `core/<version>/node_modules`，保留上游许可证。
-- 钉钉官方连接器：`@dingtalk-real-ai/dsh-dingtalk` `0.10.2`。
-- DWS CLI：现有发布基线为 `1.0.65`，按目标平台提供官方二进制和许可证，放入 `extensions/dws/`。
-- Python：现有发布基线 Windows 为 3.12，ARM64 为 3.11；PyInstaller 为 6.22.3。平台依赖必须分别准备。
-- 开发构建使用 Node 24.x（至少 24.9.0）、Electron 33.2.0 和仓库中的 package-lock.json。锁文件固定 npm 依赖，但不涵盖历史完整离线版的 DWS/Python/Office 材料；平台二进制不能互换。
+```sh
+npm run check
+npm test
+npm run test:runtime
+npm run verify:app -- builds/<完整开发APP目录>
+```
 
-## 内网接口文档与模型配置
+verify:app 不只是检查文件：它实际执行 Python 脚本、打包并运行 PyInstaller 产物、拒绝覆盖已有输出、运行官方 DWS Schema/mock，随后在可丢弃组合目录中启动真实 DSH Agent，调用 Python/PyInstaller/DWS 工具，并验证钉钉一次性绑定。没有使用真实模型或组织账号，不发送真实表格写入和机器人消息。
 
-具体目录树、模型配置位置及从 GitHub 下载后的操作步骤统一见 [构建运行指南](BUILD_AND_RUN.md)，避免两份说明不一致。
+源码 CI 运行轻量语法/排除、启动配置和归档边界测试。完整平台自检由构建者在目标环境执行，不将真实密钥放入 CI。
 
-接口文档是独立本机材料，开发约定位置为仓库根目录的 `private-docs/内网接口文档.html`，不在 `tools/` 或 `extensions/`。原维护工程的旧位置为 `offline-api-tool/内网接口文档.html`。文档正文及业务接口定义继续排除出仓库。
+## 平台验证记录
 
-开发版恢复官方模型设置和凭据存储，不再要求加密 model.enc。`config/overrides.json` 不再禁用模型页、模型提供方及自动压缩；用户 profile 配置后加载，用户设置可覆盖部署默认值。只有品牌替换仍关闭官方品牌插件。
+- Windows 维护机：干净 npm ci（635 包）、官方资产 SHA256 校验、完整开发 APP 构建、Python/PyInstaller/DWS 自检、真实 Agent 工具链及隔离绑定通过。隐藏窗口中模型、钉钉、AI 表格设置页可打开，模型合成凭据可保存，原生菜单为空。
+- Ubuntu 20.04 ARM64 / QEMU：干净 npm ci（640 包）、完整 Linux ARM64 构建和独立自检通过。补入受限 bubblewrap 后，真实 Agent 的 Python、PyInstaller、DWS 和隔离绑定链路通过；该缺失依赖已纳入新运行材料和构建默认路径。
+- npm 的 Electron 二进制下载未完成时，使用已有同平台 33.2.0 完整目录；这条离线材料路径也写入指南。其余独立运行材料来自公开固定资产并校验。
+- 没有把 Ubuntu 模拟环境当作麒麟实机，也没有完成 Windows 10 每个补丁版本的实机验收。麒麟需进一步验证系统库、用户命名空间和图形桌面；真实模型、Stream 消息及 AI 表格组织读写由使用者用自己的账号验收。
 
-## DWS Schema
+## 界面维护
 
-AI 表格适配器所需 `contracts.json` 不入库。使用固定版本官方 DWS CLI，按 runner 中的命令清单运行 `dws schema --cli-path "aitable <command>" --compact --format json`，在本机聚合生成 contracts；参数来自官方 schema，不手写猜测。可使用 `node scripts/generate_dws_contracts.mjs <dws路径>`。生成文件只用于本地构建。
+原生菜单和持久会话由 launcher/shell/main.js 管理；布局边界样式在 launcher/shell/layout.css，通过品牌扩展注入。样式中的 frame 选择器对应固定内核 0.2.0-rc.2，内核升级时必须重新核对并测试。没有修改内核 npm 文件。
 
-## 历史离线 R10 打包脚本
+静置采样未发现持续几何抖动，不据此声称用户现场问题已彻底解决。详情见 [界面排查](UI_TROUBLESHOOTING.md)。
 
-`scripts/build_modular_r10.py` 依赖 `builds/Neiwang-Xiaozhi-<platform>-R9` 已准备好的干净发布基线，以及 `downloads/` 下的平台材料。基线必须不含 data、用户工作区和凭据。原历史脚本中部分 R8/R9 路径用于迁移参考，不应直接在生产 APP 上执行。
+## 历史发行脚本
 
-现有集成脚本还需要发布包、浏览器/平台环境或 `TEST_APP_ROOT`，不会在源码 CI 中自动运行。尤其 `test_feature_install.py` 会修改测试副本文件以验证拒绝行为，必须使用可丢弃副本。
-
-新的开发构建入口为 `scripts/build-dev.cjs`，依赖由 package-lock.json 锁定，按构建主机平台生成 APP。Windows 和麒麟的目标系统验收仍需分别完成；不要把本机 Windows 测试等同于麒麟实机测试。
-
-## 本次验证结果
-
-在维护者 Windows 电脑使用 Node 24.9.0 完成锁文件依赖安装（635 个 npm 包），Electron 下载未完成，改用已验证的同平台 33.2.0 目录。已实际生成开发 APP 并打开模型设置页，以合成测试值验证本机凭据写入及下次初始化保留；未进行真实模型推理或钉钉消息收发。`npm test` 验证无密钥初始化、用户配置保留、不完整环境配置拒绝和完整环境默认模型。麒麟和 Windows 10 实机尚未验收，当前 Windows 主机的验证不代表所有目标系统兼容。
-
-另已验证全新开发构建的 ZIP 打包及压缩包完整性（约 300 MB），包内无 data、workspace 或默认凭据种子；打包器对含测试用户状态的构建目录会拒绝打包。安装包本身不提交到 GitHub。
+build_modular_r10.py 等保留用于历史离线核心/插件拆包，仍依赖干净 R9 基线及历史材料。当前从 GitHub 构建使用 build-dev.cjs，不要求 R9 基线。不要在生产 APP 上运行历史破坏性夹具，也不要将包含 data、聊天、真实接口和登录状态的目录作为发布材料。

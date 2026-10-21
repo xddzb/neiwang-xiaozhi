@@ -1,0 +1,26 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),{spawnSync}=require('node:child_process');
+const repo=path.resolve(__dirname,'..');
+const input=process.argv[2];if(!input)throw Error('Usage: npm run verify:app -- builds/<full-app-directory>');
+const root=path.resolve(input),metadata=JSON.parse(fs.readFileSync(path.join(root,'manifests/development.json'),'utf8'));
+for(const name of ['dingtalk','dws-aitable','python','pyinstaller'])assert(metadata.features?.includes(name),'Full app feature missing: '+name);
+const tmp=path.join(repo,'tmp');fs.mkdirSync(tmp,{recursive:true});const work=fs.mkdtempSync(path.join(tmp,'verify-full-'));
+const environment={...process.env,NEIWANG_APP_ROOT:root,NEIWANG_DATA_DIR:work,DWS_CONFIG_DIR:path.join(work,'dws/config'),DWS_KEYCHAIN_DIR:path.join(work,'dws/keychain'),DWS_NO_UPDATE_CHECK:'1'};
+for(const key of Object.keys(environment))if(key.startsWith('DWS_')&&!['DWS_CONFIG_DIR','DWS_KEYCHAIN_DIR','DWS_NO_UPDATE_CHECK'].includes(key))delete environment[key];
+function run(exe,args,timeout=330000,allowFailure=false){const r=spawnSync(exe,args,{cwd:work,env:environment,encoding:'utf8',windowsHide:true,timeout,maxBuffer:4*1024*1024});assert(!r.error&&(r.status===0||allowFailure),'Verification subprocess failed; inspect local fixture '+work);return r.stdout;}
+const python=path.join(root,process.platform==='win32'?'runtime/python/python.exe':'runtime/python/bin/python3');
+assert(run(python,['-I','-m','PyInstaller','--version']).includes('6.22.3'));
+fs.writeFileSync(path.join(work,'sample.py'),'import json,math\nprint(json.dumps({"value":math.sqrt(81)}))\n');
+const local=JSON.parse(run(python,['-I',path.join(root,'tools/python_tool.py'),'--workspace',work,'--script','sample.py']));assert(local.ok&&JSON.parse(local.stdout).value===9);
+const packed=JSON.parse(run(python,['-I',path.join(root,'tools/package_tool.py'),'--workspace',work,'--script','sample.py','--name','VerifyApp']));assert(packed.ok,'PyInstaller did not build successfully');
+const binary=path.join(work,'python-dist/VerifyApp',process.platform==='win32'?'VerifyApp.exe':'VerifyApp');assert.equal(JSON.parse(run(binary,[])).value,9);
+const duplicate=JSON.parse(run(python,['-I',path.join(root,'tools/package_tool.py'),'--workspace',work,'--script','sample.py','--name','VerifyApp'],30000,true));assert.equal(duplicate.ok,false);
+const dws=path.join(root,'extensions/dws',process.platform==='win32'?'dws.exe':'dws');assert(run(dws,['--version']).includes('1.0.65'));
+const schema=JSON.parse(run(dws,['schema','--cli-path','aitable record query','--compact','--format','json']));assert.equal(schema.cli_path,'aitable record query');
+const contracts=JSON.parse(fs.readFileSync(path.join(root,'extensions/node_modules/@neiwang/dws-aitable/contracts.json'),'utf8'));assert(contracts['record query'].parameters);
+const mocked=JSON.parse(run(dws,['aitable','base','list','--mock','--format','json']));assert(mocked);
+assert(fs.existsSync(path.join(root,'core',metadata.core,'node_modules/@dingtalk-real-ai/dsh-dingtalk/lib/owner.js')));
+assert(fs.existsSync(path.join(root,'private-docs/内网接口文档.template.html')));
+const integration=spawnSync(process.execPath,[path.join(repo,'scripts/test-full-integration.cjs'),root],{cwd:repo,env:environment,encoding:'utf8',windowsHide:true,timeout:600000,maxBuffer:4*1024*1024});
+assert(integration.status===0,'Agent integration failed: '+integration.stdout+integration.stderr);
+console.log('PASS: bundled Python runs; PyInstaller builds a runnable executable and protects existing output; official DWS schema/mock runs; DingTalk and blank template exist. No remote account or model was used.');
+console.log(integration.stdout.trim());

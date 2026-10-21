@@ -2,17 +2,22 @@ import {spawn} from 'node:child_process';
 import {readFileSync,mkdirSync,writeFileSync,renameSync,existsSync} from 'node:fs';
 import {join} from 'node:path';
 const entries={
- 'base list':false,'base search':false,'base get':false,'base create':true,'base update':true,'base delete':true,
- 'table get':false,'table create':true,'table update':true,'table delete':true,
- 'field get':false,'field create':true,'field update':true,'field delete':true,
- 'record query':false,'record ids':false,'record stats':false,'record group-stats':false,'record create':true,'record update':true,'record delete':true,
- '+view-get':false,'view create':true,'+view-update':true,'view delete':true,'entity search':false,'+record-write-result':false
+ "base list": false,
+ "base search": false,
+ "base get": false,
+ "table get": false,
+ "field get": false,
+ "record query": false,
+ "record ids": false,
+ "record stats": false,
+ "record group-stats": false,
+ "+view-get": false
 };
 export const commands=Object.keys(entries);
 export function environment(root=process.env.NEIWANG_APP_ROOT){
  const data=process.env.NEIWANG_DATA_DIR||join(root,'data'),env={...process.env};
  for(const key of Object.keys(env))if(key.startsWith('DWS_'))delete env[key];
- return {...env,DWS_CONFIG_DIR:join(data,'dws/config'),DWS_KEYCHAIN_DIR:join(data,'dws/keychain'),DWS_NO_UPDATE_CHECK:'1',DWS_LANG:'zh'};
+ return {...env,DWS_CONFIG_DIR:join(data,'dws-readonly/config'),DWS_KEYCHAIN_DIR:join(data,'dws-readonly/keychain'),DWS_NO_UPDATE_CHECK:'1',DWS_LANG:'zh'};
 }
 export function settings(root=process.env.NEIWANG_APP_ROOT){try{return JSON.parse(readFileSync(join(process.env.NEIWANG_DATA_DIR||join(root,'data'),'config/dws.json'),'utf8'));}catch{return {profile:''};}}
 export function saveSettings(value,root=process.env.NEIWANG_APP_ROOT){
@@ -22,6 +27,7 @@ export function saveSettings(value,root=process.env.NEIWANG_APP_ROOT){
 const contracts=JSON.parse(readFileSync(new URL('./contracts.json',import.meta.url),'utf8'));
 export function invocation(input,profile){
  const command=String(input.command||'').trim();if(!Object.hasOwn(entries,command))throw Error('不支持的AI表格命令，请先查看工具说明。');
+ if(!['describe','run'].includes(input.operation))throw Error('Unsupported read-only operation');
  if(input.operation==='describe')return {args:['schema','--cli-path','aitable '+command,'--compact','--format','json'],write:false,preview:false};
  if(!/^[A-Za-z0-9_.@-]+:[A-Za-z0-9_.@-]+$/.test(profile||''))throw Error('请先在设置 → 钉钉AI表格登录并保存明确的 corpId:userId。');
  const options=JSON.parse(input.options_json||'{}');if(!options||typeof options!=='object'||Array.isArray(options))throw Error('options_json必须是JSON对象。');
@@ -40,6 +46,11 @@ export function invocation(input,profile){
 }
 function scrub(value){if(Array.isArray(value))return value.map(scrub);if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).filter(([k])=>!/(^|_)(access.?token|refresh.?token|app.?secret|client.?secret|authorization|password|dek)(_|$)/i.test(k)).map(([k,v])=>[k,scrub(v)]));return value;}
 export function execute(args,{signal,root=process.env.NEIWANG_APP_ROOT,timeout=65000}={}){
+ const isStatus=args[0]==='auth'&&args[1]==='status'&&args.includes('--readonly');
+ const isProfile=args[0]==='profile'&&args[1]==='list';
+ const isSchema=args[0]==='schema'&&commands.some(c=>args.includes('aitable '+c));
+ const isRead=args[0]==='aitable'&&commands.includes(args.slice(1,args[1]?.startsWith('+')?2:3).join(' '));
+ if(!(isStatus||isProfile||isSchema||isRead))return Promise.resolve({ok:false,status:'readonly_denied'});
  const executable=join(root,'extensions/dws',process.platform==='win32'?'dws.exe':'dws');
  if(!existsSync(executable))return Promise.resolve({ok:false,status:'dws_binary_missing'});
  return new Promise(resolve=>{
@@ -56,5 +67,5 @@ export function execute(args,{signal,root=process.env.NEIWANG_APP_ROOT,timeout=6
   child.on('close',code=>{try{const value=scrub(JSON.parse(stdout));finish({ok:code===0,exit_code:code,result:value});}catch{finish({ok:false,exit_code:code,status:'dws_non_json_response',message:'请先 describe 核对参数，或在设置中检查登录与组织授权。'});}});
  });
 }
-export async function status(){const profile=settings().profile;const [auth,profiles]=await Promise.all([execute(['auth','status','--readonly','--format','json',...(profile?['--profile',profile]:[])]),execute(['profile','list','--format','json'])]);return {version:'1.0.65',profile:settings().profile,auth,profiles};}
+export async function status(){const profile=settings().profile;const [auth,profiles]=await Promise.all([execute(['auth','status','--readonly','--format','json',...(profile?['--profile',profile]:[])]),execute(['profile','list','--format','json'])]);return {readOnly:true,authMode:'dedicated-app',version:'1.0.65',profile:settings().profile,auth,profiles};}
 export async function run(input,exec={}){if(input.operation==='status')return status();if(input.operation==='list')return {ok:true,commands:entries};const call=invocation(input,settings().profile);const result=await execute(call.args,{signal:exec.signal});return {...result,preview:call.preview,command:input.command,...(call.preview?{message:'这是写入预览；用户已明确授权对应目标和变更后，confirmed=true才能执行。'}:{})};}

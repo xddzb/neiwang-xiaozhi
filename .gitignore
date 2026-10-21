@@ -2,6 +2,10 @@
 .env
 .env.*
 !.env.example
+.npmrc
+.pypirc
+.netrc
+.credentials*
 config.yaml
 config.json
 *.enc
@@ -70,3 +74,5 @@ Thumbs.db
 .vscode/
 private-docs/*
 !private-docs/README.md
+!private-docs/内网接口文档.template.html
+build-materials/

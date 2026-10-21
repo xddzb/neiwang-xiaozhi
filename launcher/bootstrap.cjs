@@ -37,12 +37,12 @@ function prepare(){
   model={api_key:process.env.NEIWANG_MODEL_KEY,base_url:process.env.NEIWANG_MODEL_URL,default_model:process.env.NEIWANG_MODEL_ID,models:[process.env.NEIWANG_MODEL_ID]};
  }
  const env={...process.env,NEIWANG_APP_ROOT:root,NEIWANG_DATA_DIR:data,NEIWANG_CONFIG_DIR:path.join(data,'config'),DSH_HOME:home,DSH_DINGTALK_STATE_DIR:path.join(data,'dingtalk-official'),DSH_TELEMETRY_DISABLED:'1'};
- env.PATH=[process.platform==='win32'?path.join(root,'runtime/python'):path.join(root,'runtime/python/bin'),process.platform==='win32'?path.join(root,'runtime/node'):path.join(root,'runtime/node/bin'),env.PATH||''].join(path.delimiter);
+ env.PATH=[...(process.platform==='linux'?[path.join(root,'runtime/sandbox')]:[]),process.platform==='win32'?path.join(root,'runtime/python'):path.join(root,'runtime/python/bin'),process.platform==='win32'?path.join(root,'runtime/node'):path.join(root,'runtime/node/bin'),env.PATH||''].join(path.delimiter);
  delete env.ELECTRON_RUN_AS_NODE;
  const overrides=read(path.join(root,'config/overrides.json'));
  const patches=[...overrides,
   {id:'workspace-controller',config:{documentsDirectory:process.env.NEIWANG_WORKSPACE_DIR||path.join(root,'workspace')}},
-  {id:'agent-default-model',config:model?{provider:'neiwang',model:model.default_model}:{}},
+  {id:'agent-default-model',config:model?{provider:'neiwang',model:model.default_model}:{provider:'deepseek-official',model:'deepseek-flash'}},
   {id:'llm-pi-ai',config:model?{providers:{neiwang:{api:'openai-completions',baseURL:model.base_url,apiKeyEnv:'NEIWANG_MODEL_KEY',models:model.models.map(id=>({id,name:id,contextWindow:deployment.contextWindow,maxTokens:deployment.maxOutputTokens}))}}}:{}} ,
   ...(deployment.bundles.includes('@anionex/dsh-turn-rewind')?[{id:'turn-rewind',config:{storageDir:path.join(home,'change-ledger'),maxFileBytes:209715200,maxSnapshotBytes:1073741824,turnCheckpointMaxNewBytes:1073741824,turnCheckpointMode:'legacy'}}]:[]),
   {id:'dingtalk-channel',config:{workspace:path.join(root,'workspace/dingtalk'),markdownTitle:deployment.name}},

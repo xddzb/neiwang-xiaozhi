@@ -1,0 +1,21 @@
+/* DSH 0.2.0-rc.2 layout adapter; review the frame selector when upgrading the core.
+   Keep intrinsic child sizes and outer scrollbar changes out of viewport measurement. */
+html, body {
+  margin: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  min-inline-size: 0;
+  overflow: hidden;
+  overscroll-behavior-x: none;
+}
+#root, #app {
+  inline-size: 100%;
+  block-size: 100%;
+  min-inline-size: 0;
+}
+.pI_x6G_frame {
+  inline-size: 100%;
+  min-inline-size: 0;
+  contain: inline-size;
+  transition: none !important;
+}

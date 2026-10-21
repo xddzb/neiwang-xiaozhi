@@ -1,6 +1,6 @@
 # 内网小智
 
-内网小智的协作源码仓库。当前开发主线为 R10-dev：官方 DeepSeek Harness 内核、部署配置、自有扩展和用户数据分离；Windows x64 / 麒麟 ARM64 交付采用 Core 核心包与 Plugins 可选插件包。
+内网小智的协作源码仓库。当前开发主线为完整 R10-dev：官方 DeepSeek Harness 内核、部署配置、自有扩展和用户数据分离；Windows x64 / 麒麟 ARM64 交付采用 Core 核心包与 Plugins 可选插件包。
 
 ## 源码目录
 
@@ -23,11 +23,25 @@
 python scripts/check_source.py
 ```
 
-开发版通过 `npm ci` 下载锁定依赖、`npm run build` 生成桌面 APP、`npm start` 启动，不再要求本机 R9 基线或预先配置模型密钥。首次启动在设置 → 模型中填写自己的服务和 API Key，可继续修改。完整命令及平台前提见构建运行指南。历史 R10 离线核心/插件包的脚本仍需发行基线，与新开发构建不同。
+开发版通过 `npm ci` 下载锁定依赖、`npm run prepare:runtime` 准备已校验的独立运行库、`npm run build` 生成桌面 APP、`npm start` 启动，不再要求本机 R9 基线或预先配置模型密钥。首次启动在设置 → 模型中填写自己的服务和 API Key，可继续修改。完整命令及平台前提见构建运行指南。历史 R10 离线核心/插件包的脚本仍需发行基线，与新开发构建不同。
+
+## 从源码生成完整 APP
+
+安装 Node 24.x（至少 24.9.0）、Git 和用于构建准备的 Python 3.10+，在目标操作系统/架构执行：
+
+```sh
+npm ci
+npm run prepare:runtime
+npm run build
+# 用构建指南中对应平台的目录执行 npm run verify:app -- builds/<目录>
+npm start
+```
+
+默认构建已包含钉钉、DWS AI 表格、独立 Python/PyInstaller；不再需要 --with-dingtalk。Windows 与麒麟必须分别在对应平台构建。完整步骤、离线材料缓存、分发打包和首次登录见 [构建运行指南](docs/BUILD_AND_RUN.md)。
 
 ## 接口文档与模型密钥在哪里
 
-- **接口文档不在 tools 或 extensions 中**。原开发工程位置为工程根目录 `offline-api-tool/内网接口文档.html`，该目录未上传。合作开发统一将另行取得的内部文档放在克隆目录根部的 `private-docs/内网接口文档.html`，与 `tools/`、`extensions/` 平级，文档正文不入库，也不会自动启用业务接口。
+- **接口文档不在 tools 或 extensions 中**。原开发工程位置为工程根目录 `offline-api-tool/内网接口文档.html`，该真实文档未上传。现在提供 `private-docs/内网接口文档.template.html` 空白模板，复制为同目录的 `内网接口文档.html` 后内部填写，与 `tools/`、`extensions/` 平级，文档正文不入库，也不会自动启用业务接口。
 - **开发版模型配置**：设置 → 模型。凭据保存在 `<APP根目录>/data/dsh/.credentials.yaml`，用户配置在 `<APP根目录>/data/dsh/profiles/web/cordis.patch.yml`。不提交这些文件。高级环境配置字段见 `.env.example`，但该模板不会自动加载。
 - **原已交付 R10 发布版**仍使用 `<APP根目录>/data/config/model.enc`，与新开发版不同；不要把旧文件或启动器直接覆盖到开发版。
 

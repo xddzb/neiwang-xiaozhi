@@ -16,5 +16,5 @@ for(const command of commands){
  result[command]=value;
 }
 if(!commands.length)throw Error('No commands found');
-writeFileSync(new URL('../extensions/@neiwang/dws-aitable/contracts.json',import.meta.url),JSON.stringify(result,null,2));
+writeFileSync(process.argv[3]||new URL('../extensions/@neiwang/dws-aitable/contracts.json',import.meta.url),JSON.stringify(result,null,2));
 console.log('Generated schemas for '+commands.length+' commands');

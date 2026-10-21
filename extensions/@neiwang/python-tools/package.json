@@ -1,0 +1,1 @@
+{"name":"@neiwang/python-tools","version":"1.0.0","type":"module","main":"index.mjs","exports":{".":"./index.mjs","./package.json":"./package.json"},"dsh":{"bundle":{"patch":"./cordis.patch.yml"}}}

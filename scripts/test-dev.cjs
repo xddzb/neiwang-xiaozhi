@@ -20,6 +20,7 @@ test('first boot needs no model seed and enables model settings',()=>withoutMode
  const patches=JSON.parse(fs.readFileSync(p.patchFile));
  for(const id of ['ui-settings-models','llm-deepseek','llm-deepseek-account','compaction-basic'])assert.equal(patches.find(v=>v.id===id).disabled,false);
  assert.deepEqual(patches.find(v=>v.id==='llm-pi-ai').config,{});
+ assert.equal(patches.find(v=>v.id==='agent-default-model').config.provider,'deepseek-official');
  assert.equal(fs.existsSync(path.join(root,'data/config/model.enc')),false);
  const user=path.join(p.profile,'cordis.patch.yml'),content='# user-owned settings\n[]\n';fs.writeFileSync(user,content);bootstrap.prepare();assert.equal(fs.readFileSync(user,'utf8'),content);
 }));

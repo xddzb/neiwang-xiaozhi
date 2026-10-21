@@ -1,0 +1,179 @@
+{
+  "schema": 1,
+  "python_version": "3.12.14",
+  "pyinstaller_version": "6.22.3",
+  "dws_version": "1.0.65",
+  "platforms": {
+    "win32-x64": {
+      "python": {
+        "name": "cpython-3.12.14+20260924-x86_64-pc-windows-msvc-install_only.tar.gz",
+        "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260924/cpython-3.12.14%2B20260924-x86_64-pc-windows-msvc-install_only.tar.gz",
+        "sha256": "c5303174bc29f5205decf6721ac549d4eb41c448f9b8c46cbc562d00348865bb"
+      },
+      "dws": {
+        "name": "dws-windows-amd64.zip",
+        "url": "https://github.com/DingTalk-Real-AI/dingtalk-workspace-cli/releases/download/v1.0.65/dws-windows-amd64.zip",
+        "sha256": "db7cd21655ede7375676a349f44f5d9116fe28a8836276244341e109314407b7"
+      },
+      "wheels": [
+        {
+          "name": "altgraph-0.17.5-py2.py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/a9/ba/000a1996d4308bc65120167c21241a3b205464a2e0b58deda26ae8ac21d1/altgraph-0.17.5-py2.py3-none-any.whl",
+          "sha256": "f3a22400bce1b0c701683820ac4f3b159cd301acab067c51c653e06961600597"
+        },
+        {
+          "name": "packaging-26.3-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/63/34/ba1c580383c9eada3711951fef0795c80b829a078d72188184bcab9dd527/packaging-26.3-py3-none-any.whl",
+          "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c"
+        },
+        {
+          "name": "pyinstaller_hooks_contrib-2026.9-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/93/fe/ded0e20de0580257d97dbabb4db7ab4d96ad8ade7d41149e66308057cf52/pyinstaller_hooks_contrib-2026.9-py3-none-any.whl",
+          "sha256": "fb3e67dd64122561724c48ad0366ac9e8c16e638b63bf7d85de03bf3fdbf06c3"
+        },
+        {
+          "name": "setuptools-84.2.1-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/ef/55/6dc6d6bb953bdfc52519a0059592c52b6e3b8ad51cf8256dffceb55b0610/setuptools-84.2.1-py3-none-any.whl",
+          "sha256": "ca140b45d5325a9478f880e351484f62fef15f336462e449ca0c03c873d589c2"
+        },
+        {
+          "name": "pyinstaller-6.22.3-py3-none-win_amd64.whl",
+          "url": "https://files.pythonhosted.org/packages/24/83/c5422204772a27aef643280fdc887b7ef55679989096b21dceb1b9625fc4/pyinstaller-6.22.3-py3-none-win_amd64.whl",
+          "sha256": "500bd58c7bf7e584a8435adccbd763a0b918d5c12b08d74ff50fd79b2915458b"
+        },
+        {
+          "name": "pefile-2024.8.26-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/54/16/12b82f791c7f50ddec566873d5bdd245baa1491bac11d15ffb98aecc8f8b/pefile-2024.8.26-py3-none-any.whl",
+          "sha256": "76f8b485dcd3b1bb8166f1128d395fa3d87af26360c2358fb75b80019b957c6f"
+        },
+        {
+          "name": "pywin32_ctypes-0.2.3-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/de/3d/8161f7711c017e01ac9f008dfddd9410dff3674334c233bde66e7ba65bbf/pywin32_ctypes-0.2.3-py3-none-any.whl",
+          "sha256": "8a1513379d709975552d202d942d9837758905c8d01eb82b8bcc30918929e7b8"
+        }
+      ]
+    },
+    "linux-arm64": {
+      "python": {
+        "name": "cpython-3.12.14+20260924-aarch64-unknown-linux-gnu-install_only.tar.gz",
+        "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260924/cpython-3.12.14%2B20260924-aarch64-unknown-linux-gnu-install_only.tar.gz",
+        "sha256": "c0574c9c9fec561eb192ad510e4e79aaad039929b3531b3bb873e2f630fb14a9"
+      },
+      "dws": {
+        "name": "dws-linux-arm64.tar.gz",
+        "url": "https://github.com/DingTalk-Real-AI/dingtalk-workspace-cli/releases/download/v1.0.65/dws-linux-arm64.tar.gz",
+        "sha256": "8858dbaaa9552c4028aaa23c621d4ab960e1eda8d5078e238e7ec216ac2a00d7"
+      },
+      "wheels": [
+        {
+          "name": "altgraph-0.17.5-py2.py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/a9/ba/000a1996d4308bc65120167c21241a3b205464a2e0b58deda26ae8ac21d1/altgraph-0.17.5-py2.py3-none-any.whl",
+          "sha256": "f3a22400bce1b0c701683820ac4f3b159cd301acab067c51c653e06961600597"
+        },
+        {
+          "name": "packaging-26.3-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/63/34/ba1c580383c9eada3711951fef0795c80b829a078d72188184bcab9dd527/packaging-26.3-py3-none-any.whl",
+          "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c"
+        },
+        {
+          "name": "pyinstaller_hooks_contrib-2026.9-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/93/fe/ded0e20de0580257d97dbabb4db7ab4d96ad8ade7d41149e66308057cf52/pyinstaller_hooks_contrib-2026.9-py3-none-any.whl",
+          "sha256": "fb3e67dd64122561724c48ad0366ac9e8c16e638b63bf7d85de03bf3fdbf06c3"
+        },
+        {
+          "name": "setuptools-84.2.1-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/ef/55/6dc6d6bb953bdfc52519a0059592c52b6e3b8ad51cf8256dffceb55b0610/setuptools-84.2.1-py3-none-any.whl",
+          "sha256": "ca140b45d5325a9478f880e351484f62fef15f336462e449ca0c03c873d589c2"
+        },
+        {
+          "name": "pyinstaller-6.22.3-py3-none-manylinux2014_aarch64.whl",
+          "url": "https://files.pythonhosted.org/packages/c4/96/99f5184985141c2b024bfa61335e9142ae444555224f303186e59b7bb438/pyinstaller-6.22.3-py3-none-manylinux2014_aarch64.whl",
+          "sha256": "312da84b4b31ab9750066a823734c11b7c68757fdd67c9f038bf19c330a954e4"
+        }
+      ],
+      "sandbox": {
+        "name": "bubblewrap_0.4.0-1ubuntu4.1_arm64.deb",
+        "url": "https://ports.ubuntu.com/ubuntu-ports/pool/main/b/bubblewrap/bubblewrap_0.4.0-1ubuntu4.1_arm64.deb",
+        "sha256": "e07d12fb737b080b300c716f24a649e2daf24ad90b988fc04387c58ec96418dc"
+      },
+      "sandbox_sources": [
+        {
+          "name": "bubblewrap_0.4.0.orig.tar.xz",
+          "url": "https://ports.ubuntu.com/ubuntu-ports/pool/main/b/bubblewrap/bubblewrap_0.4.0.orig.tar.xz",
+          "sha256": "e5fe7d2f74bd7029b5306b0b70587cec31f74357739295e5276b4a3718712023"
+        },
+        {
+          "name": "bubblewrap_0.4.0-1ubuntu4.1.debian.tar.xz",
+          "url": "https://ports.ubuntu.com/ubuntu-ports/pool/main/b/bubblewrap/bubblewrap_0.4.0-1ubuntu4.1.debian.tar.xz",
+          "sha256": "ca0baa168eb4ff81d19936a1b4b262e4692912e2a7ee2722be40b57f737525f0"
+        },
+        {
+          "name": "bubblewrap_0.4.0-1ubuntu4.1.dsc",
+          "url": "https://ports.ubuntu.com/ubuntu-ports/pool/main/b/bubblewrap/bubblewrap_0.4.0-1ubuntu4.1.dsc",
+          "sha256": "08affdd4cd288ebb41487cd7e04d1d972e0292fa63d49d60ef400698b0866679"
+        }
+      ]
+    },
+    "linux-x64": {
+      "python": {
+        "name": "cpython-3.12.14+20260924-x86_64-unknown-linux-gnu-install_only.tar.gz",
+        "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260924/cpython-3.12.14%2B20260924-x86_64-unknown-linux-gnu-install_only.tar.gz",
+        "sha256": "5eae8cf79dd47fc2496a4fccc892936be831ce7a84d984b2299dfb1cdb592682"
+      },
+      "dws": {
+        "name": "dws-linux-amd64.tar.gz",
+        "url": "https://github.com/DingTalk-Real-AI/dingtalk-workspace-cli/releases/download/v1.0.65/dws-linux-amd64.tar.gz",
+        "sha256": "e712e01924935070ef0d313ef898bf90e5124c6c4ad9ef197c3647180b4be9cb"
+      },
+      "wheels": [
+        {
+          "name": "altgraph-0.17.5-py2.py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/a9/ba/000a1996d4308bc65120167c21241a3b205464a2e0b58deda26ae8ac21d1/altgraph-0.17.5-py2.py3-none-any.whl",
+          "sha256": "f3a22400bce1b0c701683820ac4f3b159cd301acab067c51c653e06961600597"
+        },
+        {
+          "name": "packaging-26.3-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/63/34/ba1c580383c9eada3711951fef0795c80b829a078d72188184bcab9dd527/packaging-26.3-py3-none-any.whl",
+          "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c"
+        },
+        {
+          "name": "pyinstaller_hooks_contrib-2026.9-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/93/fe/ded0e20de0580257d97dbabb4db7ab4d96ad8ade7d41149e66308057cf52/pyinstaller_hooks_contrib-2026.9-py3-none-any.whl",
+          "sha256": "fb3e67dd64122561724c48ad0366ac9e8c16e638b63bf7d85de03bf3fdbf06c3"
+        },
+        {
+          "name": "setuptools-84.2.1-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/ef/55/6dc6d6bb953bdfc52519a0059592c52b6e3b8ad51cf8256dffceb55b0610/setuptools-84.2.1-py3-none-any.whl",
+          "sha256": "ca140b45d5325a9478f880e351484f62fef15f336462e449ca0c03c873d589c2"
+        },
+        {
+          "name": "pyinstaller-6.22.3-py3-none-manylinux2014_x86_64.whl",
+          "url": "https://files.pythonhosted.org/packages/7b/b6/dd21d61fc5e25377be24eabf13e99e4e46548a5abe2bf7b15d8b3d9cc74a/pyinstaller-6.22.3-py3-none-manylinux2014_x86_64.whl",
+          "sha256": "451a4ae14b719365bf1a2f0a99dae7b3463060061c3a394c70d5264cfb439528"
+        }
+      ],
+      "sandbox": {
+        "name": "bubblewrap_0.4.0-1ubuntu4.1_amd64.deb",
+        "url": "https://archive.ubuntu.com/ubuntu/pool/main/b/bubblewrap/bubblewrap_0.4.0-1ubuntu4.1_amd64.deb",
+        "sha256": "c8393a164df5850e65eae06c8c0e837c6752911e3720623dfe59d04024f38a17"
+      },
+      "sandbox_sources": [
+        {
+          "name": "bubblewrap_0.4.0.orig.tar.xz",
+          "url": "https://ports.ubuntu.com/ubuntu-ports/pool/main/b/bubblewrap/bubblewrap_0.4.0.orig.tar.xz",
+          "sha256": "e5fe7d2f74bd7029b5306b0b70587cec31f74357739295e5276b4a3718712023"
+        },
+        {
+          "name": "bubblewrap_0.4.0-1ubuntu4.1.debian.tar.xz",
+          "url": "https://ports.ubuntu.com/ubuntu-ports/pool/main/b/bubblewrap/bubblewrap_0.4.0-1ubuntu4.1.debian.tar.xz",
+          "sha256": "ca0baa168eb4ff81d19936a1b4b262e4692912e2a7ee2722be40b57f737525f0"
+        },
+        {
+          "name": "bubblewrap_0.4.0-1ubuntu4.1.dsc",
+          "url": "https://ports.ubuntu.com/ubuntu-ports/pool/main/b/bubblewrap/bubblewrap_0.4.0-1ubuntu4.1.dsc",
+          "sha256": "08affdd4cd288ebb41487cd7e04d1d972e0292fa63d49d60ef400698b0866679"
+        }
+      ]
+    }
+  }
+}

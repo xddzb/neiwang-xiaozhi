@@ -7,6 +7,9 @@ const path = require('node:path');
 const ragPolicy=require('./rag-policy.cjs');
 const fullFeatures=JSON.parse(fs.readFileSync(path.join(process.env.NEIWANG_APP_ROOT,"config/app.json"),"utf8")).bundles.includes("@deepseek-ai/neiwang-business");
 const deploymentBrand=JSON.parse(fs.readFileSync(path.join(process.env.NEIWANG_APP_ROOT,'config/brand.json'),'utf8'));
+const desktopData=path.join(process.env.NEIWANG_DATA_DIR||path.join(process.env.NEIWANG_APP_ROOT,'data'),'desktop');
+fs.mkdirSync(desktopData,{recursive:true});
+app.setPath('userData',desktopData);
 
 if(process.platform==='win32')app.setAppUserModelId(deploymentBrand.appId);
 let mainWindow;
@@ -19,15 +22,16 @@ const DSH_URL = process.env.DSH_URL || 'http://127.0.0.1:3080/';
 
 function createWindow() {
   const win = new BrowserWindow({
+    useContentSize: true,
     width: 1440,
     height: 900,
     minWidth: 900,
     minHeight: 600,
     title: deploymentBrand.name,
     icon: path.join(__dirname,'assets/cgn-egret.ico'),
-    autoHideMenuBar: false,
+    autoHideMenuBar: true,
     webPreferences: {
-      partition: 'neiwang-' + process.pid + '-' + require('node:crypto').randomUUID(),
+      partition: 'persist:neiwang-desktop',
       preload: path.join(__dirname,'rag-control-preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false
@@ -35,6 +39,8 @@ function createWindow() {
   });
 
   mainWindow = win;
+  win.setMenu(null);
+  win.setMenuBarVisibility(false);
   const localOrigin = new URL(DSH_URL).origin;
   let reconnecting = false, lastReconnect = 0;
   async function reconnect() {
@@ -77,7 +83,7 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-  Menu.setApplicationMenu(Menu.buildFromTemplate([{label:'编辑',submenu:[{role:'copy'},{role:'paste'},{role:'selectAll'}]}]));
+  Menu.setApplicationMenu(null);
   createWindow();
 });
 
