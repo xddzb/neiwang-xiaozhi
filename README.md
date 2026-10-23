@@ -1,5 +1,7 @@
 # 内网小智
 
+2026-10-23 补充：[麒麟 R11.2 开发交接文档](docs/HANDOVER_R11_2.html)及[发布源码快照](release-source/kylin-r11.2/source-manifest.json)。包含本次 RAG 漏配修复、Shell 换行修复、机器人/AI 表格适配和交付验证范围。根目录独立开发构建流程继续保留；快照需发行基线及运行时，不能直接启动。组织凭据、加密默认配置和内部发行包不上传。
+
 内网小智的协作源码仓库。当前开发主线为完整 R10-dev：官方 DeepSeek Harness 内核、部署配置、自有扩展和用户数据分离；Windows x64 / 麒麟 ARM64 交付采用 Core 核心包与 Plugins 可选插件包。
 
 ## 源码目录

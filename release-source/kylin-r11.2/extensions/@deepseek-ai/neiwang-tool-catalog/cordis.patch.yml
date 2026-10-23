@@ -1,0 +1,3 @@
+- insert:
+    - id: neiwang-tool-catalog
+      name: '@deepseek-ai/neiwang-tool-catalog'

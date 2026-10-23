@@ -1,0 +1,306 @@
+{
+  "origin": "R11.2 ARM64 RAG full 2026-10-23",
+  "sourceArchiveSha256": "2be4d50fc49b3581cc459653bf017745c3eb5cc37a64e4dc6947dd767bae9ffc",
+  "notes": [
+    "Source snapshot, not an installable application",
+    "Deployment encryption key replaced with NEIWANG_CONFIG_KEY",
+    "Encrypted seeds, user data, enterprise API definitions, contracts and third-party runtimes excluded",
+    "Historical release scripts require private release baselines; use root developer build for clean checkout"
+  ],
+  "files": [
+    {
+      "path": "install-desktop.sh",
+      "sourceSha256": "4aac86c5466baa4f04c1179a00764eb188d44187c50a299a6350372a922da626",
+      "publishedSha256": "4aac86c5466baa4f04c1179a00764eb188d44187c50a299a6350372a922da626",
+      "sanitized": false
+    },
+    {
+      "path": "start.sh",
+      "sourceSha256": "12619ea738d0248c2cd493f2bc7f16e6d9db05acd78926f2002ae86f5425248b",
+      "publishedSha256": "12619ea738d0248c2cd493f2bc7f16e6d9db05acd78926f2002ae86f5425248b",
+      "sanitized": false
+    },
+    {
+      "path": "config/app.json",
+      "sourceSha256": "ab0356b0edbf9a453f707a5a54abfca9d7f5d598644cb8ccb6e2be9cf6fa6b2a",
+      "publishedSha256": "ab0356b0edbf9a453f707a5a54abfca9d7f5d598644cb8ccb6e2be9cf6fa6b2a",
+      "sanitized": false
+    },
+    {
+      "path": "config/brand.json",
+      "sourceSha256": "08a654c15d6e3bbdbfec240c2357123173827d736599b83817913dd4b60fedac",
+      "publishedSha256": "001c62f8570cea7abe5ef4e8b3ce401da2218190da89883debe86701d9dd3c1d",
+      "sanitized": true
+    },
+    {
+      "path": "config/deployment.yml",
+      "sourceSha256": "dc413bbc9ccefd3d31f4efbf653e4e3aa4145ac9ff7addd9fe0e3304cd813edd",
+      "publishedSha256": "916e4c69b67ac89a959ff1a824294b79252a80bfdbdae91f7b8bd72e68bfde7d",
+      "sanitized": true
+    },
+    {
+      "path": "config/overrides.json",
+      "sourceSha256": "eb287b9a0d3d5baabadc2a0e123d38a61bfddf9e179faee4e3c3c1516e2cf1ab",
+      "publishedSha256": "573bd5a9e44b2acdf43e4f178a7c12691f7f59c8930dfdc8356432a9c97506c9",
+      "sanitized": true
+    },
+    {
+      "path": "extensions/@deepseek-ai/neiwang-tool-catalog/cordis.patch.yml",
+      "sourceSha256": "b5ace2224ac9ec0050e67b5faff7810a01d442bb18b746d0c0ced5085bff45d2",
+      "publishedSha256": "e19c57f018abce96b8aea292c28795885c948057e82145b3175dc220b0ce838f",
+      "sanitized": true
+    },
+    {
+      "path": "extensions/@deepseek-ai/neiwang-tool-catalog/index.mjs",
+      "sourceSha256": "24f539adf40130e0e9e3a393436e86f63c5f9f04fcdd6522c406be0be5ea0aa7",
+      "publishedSha256": "24f539adf40130e0e9e3a393436e86f63c5f9f04fcdd6522c406be0be5ea0aa7",
+      "sanitized": false
+    },
+    {
+      "path": "extensions/@deepseek-ai/neiwang-tool-catalog/package.json",
+      "sourceSha256": "1fd6aa7008bf4b6e896098d01f2ef145aac28cf930c952a92c09c327fb26b210",
+      "publishedSha256": "8fa15c9788b7672ed22afe346c76227e951975dbef60bb446ef199a641eef9f2",
+      "sanitized": true
+    },
+    {
+      "path": "extensions/@neiwang/brand/client.js",
+      "sourceSha256": "f37107fa441849f3eebff4c8c6285ae8d95b5a4b825c8c85ebb29acf3e2bbbde",
+      "publishedSha256": "f37107fa441849f3eebff4c8c6285ae8d95b5a4b825c8c85ebb29acf3e2bbbde",
+      "sanitized": false
+    },
+    {
+      "path": "extensions/@neiwang/brand/cordis.patch.yml",
+      "sourceSha256": "228958d23b598146462ea9b1bd3397238dc8c91d60dcdabe239f1d2457176561",
+      "publishedSha256": "028047129c6d5d582cec4f18b3fc973837162e81dd06b6b11ea36a04af196488",
+      "sanitized": true
+    },
+    {
+      "path": "extensions/@neiwang/brand/index.mjs",
+      "sourceSha256": "c7a403039f85415ea6daf4eb5561108517abe5c1128ee87e5ecb603282bdc4b6",
+      "publishedSha256": "c7a403039f85415ea6daf4eb5561108517abe5c1128ee87e5ecb603282bdc4b6",
+      "sanitized": false
+    },
+    {
+      "path": "extensions/@neiwang/brand/package.json",
+      "sourceSha256": "acdb01797f6cb3040a4d921857e933d0a30588cce04de4f2af5e79f30076de21",
+      "publishedSha256": "b55e5dfc884211333864d906bfc982b6ca278f1aab04e01fb680c9ca3d4d2d22",
+      "sanitized": true
+    },
+    {
+      "path": "extensions/@neiwang/deployment/cordis.patch.yml",
+      "sourceSha256": "f7a10ca6a413a75b17364c3ce7e5d0a81e2e59539aa636538af1752b7db6af43",
+      "publishedSha256": "2e9018be35d8656ff8b4e521e8f762269489b835d4e88d07e402d50e84af03e5",
+      "sanitized": true
+    },
+    {
+      "path": "extensions/@neiwang/deployment/index.mjs",
+      "sourceSha256": "30a5901a64c93f95eda19c717af7d6445aec7a73b7418b70a96d2f484d3f512c",
+      "publishedSha256": "30a5901a64c93f95eda19c717af7d6445aec7a73b7418b70a96d2f484d3f512c",
+      "sanitized": false
+    },
+    {
+      "path": "extensions/@neiwang/deployment/package.json",
+      "sourceSha256": "464ba2b5014a64067970a6a289f8d36798e0bb8f4b71e34059013a4709353371",
+      "publishedSha256": "03f26c30558ce0f5249ff9dea0b7a6aa6b8a8013209c49218dc56a0ecf93ed76",
+      "sanitized": true
+    },
+    {
+      "path": "launcher/bootstrap.cjs",
+      "sourceSha256": "d3895e4e928ef7ce9d89f2fc9df6f7dedf0339a67dee53d057aea4eefb0e0672",
+      "publishedSha256": "004f0ff69ba382f57d7dc474b793d684d732c989f4c509271954a6511b1f6b75",
+      "sanitized": true
+    },
+    {
+      "path": "launcher/supervisor.cjs",
+      "sourceSha256": "bbf0d7d522d7d88bedb70c29974d36d2a03730a3af39cc470810931918703fcb",
+      "publishedSha256": "bbf0d7d522d7d88bedb70c29974d36d2a03730a3af39cc470810931918703fcb",
+      "sanitized": false
+    },
+    {
+      "path": "launcher/shell/main.js",
+      "sourceSha256": "065653cded3502fc6d98f9499f9279dae3df096689f7976652321ac272b3c45a",
+      "publishedSha256": "2a13c7157c0a72b11fe7688f2a54e8e4600a2145b737291dad0519588d44768f",
+      "sanitized": true
+    },
+    {
+      "path": "launcher/shell/package.json",
+      "sourceSha256": "c62c64c08cf4eb01eaa5a2b343bd5a1a382f03bd777257db9615ff5bc439b609",
+      "publishedSha256": "c62c64c08cf4eb01eaa5a2b343bd5a1a382f03bd777257db9615ff5bc439b609",
+      "sanitized": false
+    },
+    {
+      "path": "launcher/shell/rag-control-preload.cjs",
+      "sourceSha256": "a543a1805fc5703ce872f1207de65ff9db1547b5b3b721b5d8e4f0243f45f725",
+      "publishedSha256": "b4d2b17049542dade97fdfb6e11fdf296d0de36c5d27fbd538469003a48dbf8a",
+      "sanitized": true
+    },
+    {
+      "path": "launcher/shell/rag-policy.cjs",
+      "sourceSha256": "02bfcdab4331462a4065df4bfcb4a5b46ec65ed86cd86c803a94fd0d564aad0c",
+      "publishedSha256": "387b536c00636d3f0ca2bce67466390e912b59d2a95b43baf1ecdfe64534e036",
+      "sanitized": true
+    },
+    {
+      "path": "tools/api_tool.py",
+      "sourceSha256": "5e2037e945806078298da1534bc4e06c9083cc031b35776811359e8040c20e4c",
+      "publishedSha256": "5e2037e945806078298da1534bc4e06c9083cc031b35776811359e8040c20e4c",
+      "sanitized": false
+    },
+    {
+      "path": "tools/configure-official-dingtalk.mjs",
+      "sourceSha256": "93dbcd24df16f31917d718b836ec9ce4d5c0dfcd45a51c88ee374d7ad51c2032",
+      "publishedSha256": "0366acc38c5dded5ff39b0c5d4242974a11ea12392a61d16d405c9a9c3f930bc",
+      "sanitized": true
+    },
+    {
+      "path": "tools/document_tools.py",
+      "sourceSha256": "a99817ce2ea1729380c0f292f34b7f3918220d0c8e6c4b9c1df01038bd117b86",
+      "publishedSha256": "a99817ce2ea1729380c0f292f34b7f3918220d0c8e6c4b9c1df01038bd117b86",
+      "sanitized": false
+    },
+    {
+      "path": "tools/dws-login.cjs",
+      "sourceSha256": "5f35c2d9389096e6eea517d190f311465b408b8d84236e48795bee511090529c",
+      "publishedSha256": "5f35c2d9389096e6eea517d190f311465b408b8d84236e48795bee511090529c",
+      "sanitized": false
+    },
+    {
+      "path": "tools/manage-core.cjs",
+      "sourceSha256": "50020c8333385d865adbccd683bee6eb4014e5bd297223f6b1da686f11dabc20",
+      "publishedSha256": "50020c8333385d865adbccd683bee6eb4014e5bd297223f6b1da686f11dabc20",
+      "sanitized": false
+    },
+    {
+      "path": "tools/model_config.py",
+      "sourceSha256": "2d78a223ce2428c6e539f0c3c18f6a65641e01a40457f42e42e8f85acd65687b",
+      "publishedSha256": "532e6475204724967fc20f500c5b5a09ad631ec3a74388d2cf113aa8d32c7ce7",
+      "sanitized": true
+    },
+    {
+      "path": "tools/package_tool.py",
+      "sourceSha256": "3513e6516c701611312236dd24b8bc7935c1955762e0fbb638a2f02cee2a21db",
+      "publishedSha256": "3513e6516c701611312236dd24b8bc7935c1955762e0fbb638a2f02cee2a21db",
+      "sanitized": false
+    },
+    {
+      "path": "tools/pdf_tool.py",
+      "sourceSha256": "1e95f178cfd9850d5629c2edc1a62d1e053a59c980b8b03c6fda275e14357aef",
+      "publishedSha256": "1e95f178cfd9850d5629c2edc1a62d1e053a59c980b8b03c6fda275e14357aef",
+      "sanitized": false
+    },
+    {
+      "path": "tools/python_tool.py",
+      "sourceSha256": "ee5f78ff83fdef767825eb95651b3a65c7aa813feefe2eec926b35a7ae810f0e",
+      "publishedSha256": "ee5f78ff83fdef767825eb95651b3a65c7aa813feefe2eec926b35a7ae810f0e",
+      "sanitized": false
+    },
+    {
+      "path": "tools/rag_tool.py",
+      "sourceSha256": "c5684c3f122956f9d46046f2e024a5f8b7a0f4223a9a7cc5ac9633b9fb5d10d6",
+      "publishedSha256": "7665e0301c265448cb88252033eddd80a60f84f832c2be512e5d59d3ed639920",
+      "sanitized": true
+    },
+    {
+      "path": "tools/tool_entry.py",
+      "sourceSha256": "edc93a18e73371e1c435246b0b165bc2dc1b24eebb429a880be4804db9301e25",
+      "publishedSha256": "ba93c7a84ff0c120b470c1e0fd78f6002b42c673b38904d9ca65f71b2dfde31c",
+      "sanitized": true
+    },
+    {
+      "path": "tools/setup_model.py",
+      "sourceSha256": "7ef3aac62e343f0788bb04f7cf47999fa403a223d78ed3760d51d8e700b61681",
+      "publishedSha256": "60ffc6d4092f30d6482a7f68c8ceac111ff94ee8eca723bda4d764eaa1fd8051",
+      "sanitized": true
+    },
+    {
+      "path": "配置模型.sh",
+      "sourceSha256": "18a51c88f24a4a33cfbc4e9c029e3bba2f184cb1bd142cf2720ee4d45e7dd4e6",
+      "publishedSha256": "18a51c88f24a4a33cfbc4e9c029e3bba2f184cb1bd142cf2720ee4d45e7dd4e6",
+      "sanitized": false
+    },
+    {
+      "path": "plugin-pack/install.cjs",
+      "sourceSha256": "6f93641bbd863abcf1de8b206d0e223f75f0205c4fc4ebbc7ab6eaadd8071dc7",
+      "publishedSha256": "6f93641bbd863abcf1de8b206d0e223f75f0205c4fc4ebbc7ab6eaadd8071dc7",
+      "sanitized": false
+    },
+    {
+      "path": "plugin-pack/安装插件.sh",
+      "sourceSha256": "e82aac124b927a80f9cbe4b661c3a63b2569a583582875a60af4843fcf5b5823",
+      "publishedSha256": "e82aac124b927a80f9cbe4b661c3a63b2569a583582875a60af4843fcf5b5823",
+      "sanitized": false
+    },
+    {
+      "path": "登录AI表格.sh",
+      "sourceSha256": "55442f4ccd3ab0ec61cdba1edccfd19edb2ea7105ef75b6748adb0467fea1fba",
+      "publishedSha256": "55442f4ccd3ab0ec61cdba1edccfd19edb2ea7105ef75b6748adb0467fea1fba",
+      "sanitized": false
+    },
+    {
+      "path": "extensions/@deepseek-ai/neiwang-dingtalk-ui/client.js",
+      "sourceSha256": "129dd11936579f0cc3d1fe2bd273370a88325a33b354f76715bc00769b944280",
+      "publishedSha256": "129dd11936579f0cc3d1fe2bd273370a88325a33b354f76715bc00769b944280",
+      "sanitized": false
+    },
+    {
+      "path": "extensions/@deepseek-ai/neiwang-dingtalk-ui/cordis.patch.yml",
+      "sourceSha256": "583ca72687059818eb37c9db9462c0daf23bc748401b899593f4f35e1c05ceba",
+      "publishedSha256": "583ca72687059818eb37c9db9462c0daf23bc748401b899593f4f35e1c05ceba",
+      "sanitized": false
+    },
+    {
+      "path": "extensions/@deepseek-ai/neiwang-dingtalk-ui/index.mjs",
+      "sourceSha256": "1e91b1ca4456bd407b4616f0a5ca77b964a3038974b01ebe2de829c1de5def1a",
+      "publishedSha256": "919ffe99ab57d45e48e67c42da69e67b1de0ebda5144f1beed49957ee192b4e2",
+      "sanitized": true
+    },
+    {
+      "path": "extensions/@deepseek-ai/neiwang-dingtalk-ui/package.json",
+      "sourceSha256": "b14b4978db916cf59eb0612a0e9aabf508dce78bb1bd8693b0497ed5db75afe0",
+      "publishedSha256": "3744e09c22e179cc508e87216f4fb7ccb0f716a6ddf6214e29a9cd28c443810b",
+      "sanitized": true
+    },
+    {
+      "path": "extensions/@neiwang/dws-aitable/client.js",
+      "sourceSha256": "d46852aff00badc00ba9eba6ee86008a2dc91b688441a440115957b49992ca39",
+      "publishedSha256": "d46852aff00badc00ba9eba6ee86008a2dc91b688441a440115957b49992ca39",
+      "sanitized": false
+    },
+    {
+      "path": "extensions/@neiwang/dws-aitable/cordis.patch.yml",
+      "sourceSha256": "d2edad2519060fc71bd056a5b23f2911edf82b4e2faedc13fcdd36e9c0353b96",
+      "publishedSha256": "cab0cd1995b8e67a72a82fec43e2504ff29f1eb957daadbbc2dfeafb8922d5aa",
+      "sanitized": true
+    },
+    {
+      "path": "extensions/@neiwang/dws-aitable/index.mjs",
+      "sourceSha256": "fef29794d68a072cde91301de74845cb553dda573cef2d7190ff3f3473328709",
+      "publishedSha256": "fef29794d68a072cde91301de74845cb553dda573cef2d7190ff3f3473328709",
+      "sanitized": false
+    },
+    {
+      "path": "extensions/@neiwang/dws-aitable/package.json",
+      "sourceSha256": "69d1e2c04c7dde9d942f9c672253b4ad1aa2fbf0da20c69bfbedfb6d520f38a6",
+      "publishedSha256": "14bd78fc15ddcfd5c18f5965458758f298e3d427ae1f49bd43fe8e7258a45eca",
+      "sanitized": true
+    },
+    {
+      "path": "extensions/@neiwang/dws-aitable/runner.mjs",
+      "sourceSha256": "d1eab795b269a8cfbbcc5b04bad7e1499f145ca1950fc49353ea1dc1589f2d67",
+      "publishedSha256": "d1eab795b269a8cfbbcc5b04bad7e1499f145ca1950fc49353ea1dc1589f2d67",
+      "sanitized": false
+    },
+    {
+      "path": "extensions/@neiwang/feature-defaults/cordis.patch.yml",
+      "sourceSha256": "378edc2b14213e8371601a5749f33e5f382ddb57a927f3da8cc589692f7dc470",
+      "publishedSha256": "1c51414fee731c9294a2ab6e2ee392d5541565560db98dcf5dd44018e89970b7",
+      "sanitized": true
+    },
+    {
+      "path": "extensions/@neiwang/feature-defaults/package.json",
+      "sourceSha256": "b3ed3fbc5ab73be8d7fae61eb97bb16802d778866b5bd799e990bbaa28326673",
+      "publishedSha256": "b3ed3fbc5ab73be8d7fae61eb97bb16802d778866b5bd799e990bbaa28326673",
+      "sanitized": false
+    }
+  ]
+}

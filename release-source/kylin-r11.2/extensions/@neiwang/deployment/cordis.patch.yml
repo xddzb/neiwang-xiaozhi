@@ -1,0 +1,21 @@
+- id: tools
+  config: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"tools\").config"
+- id: ui-brand-official
+  disabled: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"ui-brand-official\").disabled"
+- id: llm-deepseek
+  disabled: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"llm-deepseek\").disabled"
+- id: llm-deepseek-account
+  disabled: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"llm-deepseek-account\").disabled"
+- id: ui-settings-models
+  disabled: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"ui-settings-models\").disabled"
+- id: compaction-basic
+  disabled: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"compaction-basic\").disabled"
+  config: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"compaction-basic\").config"
+- id: workspace-controller
+  config: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"workspace-controller\").config"
+- id: agent-default-model
+  config: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"agent-default-model\").config"
+- id: llm-pi-ai
+  config: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"llm-pi-ai\").config"
+- id: turn-rewind
+  config: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"turn-rewind\").config"
