@@ -33,3 +33,17 @@ test('complete explicit environment adds a default provider',()=>withoutModelEnv
  const p=bootstrap.prepare(),patches=JSON.parse(fs.readFileSync(p.patchFile));assert.equal(patches.find(v=>v.id==='agent-default-model').config.model,'test-model');
  assert.equal(patches.find(v=>v.id==='llm-pi-ai').config.providers.neiwang.apiKeyEnv,'NEIWANG_MODEL_KEY');assert.equal(fs.readFileSync(p.patchFile,'utf8').includes('synthetic-test-value'),false);
 }));
+
+test('Internal first boot loads seeds and missing RAG uses existing key without replacing model',()=>withoutModelEnv(()=>{
+ const {root,bootstrap}=fixture(),crypto=require('node:crypto'),seed=path.join(root,'config/defaults');fs.mkdirSync(seed);
+ const key=crypto.randomBytes(32);fs.writeFileSync(path.join(seed,'.local-key'),key);
+ function encode(value,format){const nonce=crypto.randomBytes(12),c=crypto.createCipheriv('aes-256-gcm',key,nonce);c.setAAD(Buffer.from(format));return JSON.stringify({format,payload:Buffer.concat([nonce,c.update(JSON.stringify(value)),c.final(),c.getAuthTag()]).toString('base64')})}
+ fs.writeFileSync(path.join(seed,'model.enc'),encode({version:1,base_url:'http://synthetic.invalid/v1',api_key:'synthetic-private-fixture',models:['fixture'],default_model:'fixture'},'NEIWANG-MODEL-1'));
+ fs.writeFileSync(path.join(seed,'dify.enc'),encode({base_url:'http://rag.synthetic.invalid/v1',api_key:'synthetic-rag-fixture'},'NEIWANG-DIFY-1'));
+ let p=bootstrap.prepare();assert.equal(p.env.NEIWANG_MODEL_KEY,'synthetic-private-fixture');assert(!fs.readFileSync(p.patchFile,'utf8').includes('synthetic-private-fixture'));
+ const dir=path.join(root,'data/config'),model=fs.readFileSync(path.join(dir,'model.enc')),rag=fs.readFileSync(path.join(dir,'dify.enc'));
+ const {convert}=require('../tools/migrate-settings.cjs'),userKey=crypto.randomBytes(32);fs.writeFileSync(path.join(dir,'.local-key'),userKey);fs.writeFileSync(path.join(dir,'model.enc'),convert(model,key,userKey));fs.unlinkSync(path.join(dir,'dify.enc'));
+ const original=fs.readFileSync(path.join(dir,'model.enc'));p=bootstrap.prepare();assert.deepEqual(fs.readFileSync(path.join(dir,'model.enc')),original);assert.deepEqual(fs.readFileSync(path.join(dir,'.local-key')),userKey);
+ const restored=JSON.parse(convert(fs.readFileSync(path.join(dir,'dify.enc')),userKey,key)),b=Buffer.from(restored.payload,'base64'),d=crypto.createDecipheriv('aes-256-gcm',key,b.subarray(0,12));d.setAAD(Buffer.from(restored.format));d.setAuthTag(b.subarray(-16));assert.deepEqual(JSON.parse(Buffer.concat([d.update(b.subarray(12,-16)),d.final()])),{base_url:'http://rag.synthetic.invalid/v1',api_key:'synthetic-rag-fixture'});
+ assert.equal(p.env.NEIWANG_MODEL_KEY,'synthetic-private-fixture');
+}));

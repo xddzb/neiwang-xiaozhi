@@ -20,6 +20,7 @@ mock=ThreadingHTTPServer(('127.0.0.1',0),Mock);threading.Thread(target=mock.serv
 data=WORK/'data';(data/'config').mkdir(parents=True,exist_ok=True);workspace=WORK/'workspace';workspace.mkdir(exist_ok=True)
 (workspace/'text.pdf').write_bytes((Path(sys.argv[3])/'text.pdf').read_bytes())
 (data/'config/model.enc').write_bytes(model_config.encode({'version':1,'base_url':f'http://127.0.0.1:{mock.server_port}/v1','api_key':'synthetic-test-only','models':['deepseek_v4'],'default_model':'deepseek_v4'}))
+(data/'config/.local-key').write_bytes(model_config.KEY)
 (WORK/'patch.json').write_text(json.dumps([{'insert':[{'id':'r113-test','name':(HERE/'test-r113-runtime.mjs').as_uri()}]}]))
 env={**os.environ,'NEIWANG_APP_ROOT':str(APP),'NEIWANG_DATA_DIR':str(data),'NEIWANG_WORKSPACE_DIR':str(workspace),'NEIWANG_TEST_PATCH':str(WORK/'patch.json')}
 node=APP/('runtime/node/node.exe' if os.name=='nt' else 'runtime/node/bin/node');proc=None;buf=''

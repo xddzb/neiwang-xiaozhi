@@ -21,7 +21,7 @@ function build({dependencies=path.join(source,'node_modules'),output,coreOnly=fa
  if(!dest.startsWith(path.join(source,'builds')+path.sep))throw Error('--output must be a new directory inside this repository builds/ folder.');
  if(fs.existsSync(dest))throw Error('Output already exists. Keep user data safe: move it aside or use a new --output directory.');
  const corePackage=JSON.parse(fs.readFileSync(path.join(dependencies,'@deepseek-ai/dsh/package.json'),'utf8'));
- if(corePackage.version!=='0.2.0-rc.2')throw Error('Unexpected DSH version; run npm ci.');
+ if(corePackage.version!=='0.2.1-rc.3')throw Error('Unexpected DSH version; run npm ci.');
  const electron=path.resolve(electronDist||path.join(dependencies,'electron/dist'));
  const template=JSON.parse(fs.readFileSync(path.join(source,'manifests/interface-template.json'),'utf8'));
  if(require('node:crypto').createHash('sha256').update(fs.readFileSync(path.join(source,template.path))).digest('hex')!==template.sha256)throw Error('The public blank interface template has changed. Keep real interface material in the ignored internal document.');
@@ -49,10 +49,11 @@ function build({dependencies=path.join(source,'node_modules'),output,coreOnly=fa
  const nodeLicense=path.join(path.dirname(process.execPath),'LICENSE');
  if(fs.existsSync(nodeLicense))copy(nodeLicense,path.join(dest,'runtime/node/LICENSE'));
  const app=JSON.parse(fs.readFileSync(path.join(dest,'config/app.json'),'utf8'));
- app.platform=platform;app.bundles=['@neiwang/deployment','@neiwang/brand','@deepseek-ai/dsh-experimental-schedule-bundle'];
- if(!coreOnly)app.bundles.push('@dingtalk-real-ai/dsh-dingtalk','@deepseek-ai/neiwang-dingtalk-ui','@neiwang/dws-aitable','@neiwang/python-tools','@neiwang/skill-incubator','dsh-attachment-formats','@neiwang/browser-automation');
- if(!coreOnly&&!fs.existsSync(path.join(source,'extensions/dsh-attachment-formats/vendor/tessdata/chi_sim.traineddata.gz')))throw Error('Run npm run prepare:plugins in the approved build environment first.');
- for(const name of app.bundles.filter(n=>!['@dingtalk-real-ai/dsh-dingtalk','@deepseek-ai/dsh-experimental-schedule-bundle'].includes(n)))copy(path.join(source,'extensions',name),path.join(dest,'extensions/node_modules',name));
+ app.platform=platform;app.bundles=['@neiwang/deployment','@neiwang/brand'];
+ if(!coreOnly)app.bundles.push('@dingtalk-real-ai/dsh-dingtalk','@deepseek-ai/neiwang-dingtalk-ui','@neiwang/dws-aitable','@neiwang/python-tools','@neiwang/skill-incubator','dsh-better-sidebar','@neiwang/browser-automation');
+ if(!coreOnly&&!fs.existsSync(path.join(source,'extensions/dsh-better-sidebar/lib/index.js')))throw Error('Run npm run prepare:plugins in the approved build environment first.');
+ for(const name of app.bundles.filter(n=>!['@dingtalk-real-ai/dsh-dingtalk'].includes(n)))copy(path.join(source,'extensions',name),path.join(dest,'extensions/node_modules',name));
+ copy(path.join(source,'config/workspace-rules.md'),path.join(dest,'workspace/AGENTS.md'));
  fs.writeFileSync(path.join(dest,'config/app.json'),JSON.stringify(app,null,2)+'\n');
  if(!coreOnly){
   const patch=path.join(dest,'extensions/node_modules/@neiwang/deployment/cordis.patch.yml');
@@ -70,13 +71,13 @@ function build({dependencies=path.join(source,'node_modules'),output,coreOnly=fa
   const result=spawnSync(process.execPath,[path.join(source,'scripts/generate_dws_contracts.mjs'),dws,path.join(dest,'extensions/node_modules/@neiwang/dws-aitable/contracts.json')],{stdio:'inherit',windowsHide:true,env:{...process.env,DWS_CONFIG_DIR:path.join(source,'tmp/dws-schema/config'),DWS_KEYCHAIN_DIR:path.join(source,'tmp/dws-schema/keychain'),DWS_NO_UPDATE_CHECK:'1'}});
   if(result.status!==0)throw Error('DWS local schema generation failed; incomplete build must not be distributed.');
  }
- for(const name of ['BUILD_AND_RUN.md','DEVELOPMENT.md','UI_TROUBLESHOOTING.md'])copy(path.join(source,'docs',name),path.join(dest,'docs',name));
- fs.writeFileSync(path.join(dest,'开发版使用说明.md'),'# 完整开发版\n\n请阅读 [构建与使用指南](docs/BUILD_AND_RUN.md)，首次启动后在设置中配置自己的模型、钉钉与 AI 表格账号。\n');
+ for(const name of ['INSTALL.md','DEVELOPMENT.md','HANDOVER.md'])copy(path.join(source,'docs',name),path.join(dest,'docs',name));
+ fs.writeFileSync(path.join(dest,'开发版使用说明.md'),'# 完整开发版\n\n请阅读 [构建与使用指南](docs/DEVELOPMENT.md)，首次启动后在设置中配置自己的模型、钉钉与 AI 表格账号。\n');
  copy(path.join(source,'private-docs/内网接口文档.template.html'),path.join(dest,'private-docs/内网接口文档.template.html'));
  copy(path.join(source,'private-docs/README.md'),path.join(dest,'private-docs/README.md'));
  fs.writeFileSync(path.join(dest,'start.cmd'),'@echo off\r\ncd /d "%~dp0"\r\n"runtime\\node\\node.exe" "launcher\\supervisor.cjs"\r\nif errorlevel 1 pause\r\n');
  fs.writeFileSync(path.join(dest,'start.sh'),'#!/bin/sh\nset -eu\ncd "$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"\nexec ./runtime/node/bin/node ./launcher/supervisor.cjs\n',{mode:0o755});
- const metadata={platform,arch:process.arch,node:process.versions.node,core:corePackage.version,edition:'development',features:coreOnly?[]:['dingtalk','dws-aitable','python','pyinstaller','schedule','skill-incubator','offline-pdf']};
+ const metadata={platform,arch:process.arch,node:process.versions.node,core:corePackage.version,edition:'development',features:coreOnly?[]:['dingtalk','dws-aitable','python','pyinstaller','schedule','skill-incubator','better-sidebar']};
  fs.mkdirSync(path.join(dest,'manifests'),{recursive:true});fs.writeFileSync(path.join(dest,'manifests/development.json'),JSON.stringify(metadata,null,2));
  if(!coreOnly)copy(path.join(materials,'ready.json'),path.join(dest,'manifests/runtime-assets.json'));
  console.log('Development app built: '+dest);return dest;

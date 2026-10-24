@@ -10,7 +10,7 @@ def main():
   'plugin-profile.cjs':ROOT/'launcher/plugin-profile.cjs',
   'manage-plugins.sh':ROOT/'tools/manage-plugins.sh',
   '启用插件管理.sh':ROOT/'tools/enable-plugin-manager.sh',
-  '使用说明.md':ROOT/'docs/OFFLINE_PLUGIN_MANAGER.md',
+  '使用说明.md':ROOT/'docs/DEVELOPMENT.md',
  }
  rows=[]
  with tarfile.open(out,'w:gz') as tf:

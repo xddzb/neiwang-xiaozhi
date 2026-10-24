@@ -58,12 +58,12 @@ window.addEventListener('DOMContentLoaded',async()=>{
  @media(prefers-reduced-motion:reduce){#neiwang-rag-toggle .rag-track:after{transition:none}}`;
  style.textContent+=`#neiwang-rag-toggle.neiwang-sidebar-rag{position:static;box-sizing:border-box;width:100%;margin:10px 0 4px;z-index:auto;justify-content:space-between;background:var(--dsw-specific-sidebar-fill,#fafafa)}[data-sidebar-collapsed=true] #neiwang-rag-toggle.neiwang-sidebar-rag{padding:8px 2px;justify-content:center}[data-sidebar-collapsed=true] #neiwang-rag-toggle.neiwang-sidebar-rag>span:not(.rag-track){display:none}`;
  document.head.append(style);
- button.setAttribute('role','switch');button.setAttribute('aria-label','RAG智能搜索');
- const label=document.createElement('span');label.textContent='RAG智能搜索';
+ button.setAttribute('role','switch');button.setAttribute('aria-label','检索增强开关');
+ const label=document.createElement('span');label.textContent='检索增强开关';
  const status=document.createElement('span');status.className='rag-status';
  const track=document.createElement('span');track.className='rag-track';track.setAttribute('aria-hidden','true');
  button.append(label,status,track);
- const paint=s=>{status.textContent=s.enabled?'已开启':'已关闭';button.setAttribute('aria-checked',String(s.enabled));button.title='RAG智能搜索：'+(s.enabled?'按需检索':'已关闭')+'。全应用生效，影响主智能体和子智能体，重启后保留；关闭不删除历史引用。';};
+ const paint=s=>{status.textContent=s.enabled?'已开启':'已关闭';button.setAttribute('aria-checked',String(s.enabled));button.title='检索增强开关：'+(s.enabled?'按需检索':'已关闭')+'。全应用生效，影响主智能体和子智能体，重启后保留；关闭不删除历史引用。';};
  paint(state);document.body.append(button);
  const mount=()=>{const foot=document.querySelector('[class~="hHd-Xa_footArea"]');if(foot&&button.parentElement!==foot){foot.append(button);button.classList.add('neiwang-sidebar-rag');}};
  const observer=new MutationObserver(mount);observer.observe(document.body,{childList:true,subtree:true});mount();

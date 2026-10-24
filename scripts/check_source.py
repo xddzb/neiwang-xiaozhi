@@ -11,7 +11,7 @@ def main():
  else:
   # GitHub Download ZIP has no .git: check only source roots, never local build/runtime data.
   files=[]
-  for folder in ['extensions','tools','launcher','config','docs','scripts','manifests','private-docs','.github','release-source']:
+  for folder in ['extensions','tools','launcher','config','docs','scripts','manifests','private-docs','.github']:
    for directory,dirs,names in os.walk(ROOT/folder,followlinks=False):
     dirs[:]=[d for d in dirs if d not in ['node_modules','__pycache__','defaults']]
     for name in names:

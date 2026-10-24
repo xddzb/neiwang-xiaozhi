@@ -20,7 +20,9 @@ class Mock(BaseHTTPRequestHandler):
   self.wfile.write(b'data: [DONE]\n\n')
 mock=ThreadingHTTPServer(('127.0.0.1',0),Mock);threading.Thread(target=mock.serve_forever,daemon=True).start()
 data=WORK/'data';(data/'config').mkdir(parents=True,exist_ok=True);workspace=WORK/'workspace';workspace.mkdir(exist_ok=True)
+(workspace/'AGENTS.md').write_bytes((APP/'workspace/AGENTS.md').read_bytes())
 (data/'config/model.enc').write_bytes(model_config.encode({'version':1,'base_url':f'http://127.0.0.1:{mock.server_port}/v1','api_key':'synthetic-test-only','models':['fixture'],'default_model':'fixture'}))
+(data/'config/.local-key').write_bytes(model_config.KEY)
 (WORK/'patch.json').write_text(json.dumps([{'insert':[{'id':'browser-addon-test','name':(HERE/'test-browser-host.mjs').as_uri()}]}]))
 env={**os.environ,'NEIWANG_APP_ROOT':str(APP),'NEIWANG_DATA_DIR':str(data),'NEIWANG_WORKSPACE_DIR':str(workspace),'NEIWANG_TEST_PATCH':str(WORK/'patch.json')}
 proc=subprocess.Popen([str(APP/('runtime/node/node.exe' if os.name=='nt' else 'runtime/node/bin/node')),str(HERE/'r113-entry.cjs')],cwd=APP,env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,start_new_session=True)
@@ -39,18 +41,22 @@ try:
   if match:url=match.group();break
  if not url:raise AssertionError(re.sub(r'token=[A-Za-z0-9_-]+','token=REDACTED',buf[-6000:]))
  opener=urllib.request.build_opener(urllib.request.ProxyHandler({}),urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()));opener.open(url,timeout=90).read();origin=url.split('/?')[0]
+ def open_json(url,timeout=180):
+  try:return json.load(opener.open(url,timeout=timeout))
+  except urllib.error.HTTPError as error:raise AssertionError(error.read().decode('utf-8','replace')) from None
  def rpc(method,payload):
   req=urllib.request.Request(origin+'/neiwang-browser/'+method,data=json.dumps({'type':'client-request','rpcId':'fixture-'+method,'method':method,'payload':payload}).encode(),headers={'Content-Type':'application/json'})
   return json.load(opener.open(req,timeout=30))
- rpc('compact',{'enabled':False});baseline=json.load(opener.open(origin+'/browser-addon-test/baseline',timeout=180));assert baseline['status']=='PASS'
- rpc('compact',{'enabled':True});compact=json.load(opener.open(origin+'/browser-addon-test/compact',timeout=180));assert compact['status']=='PASS'
+ rpc('compact',{'enabled':False});baseline=open_json(origin+'/browser-addon-test/baseline');assert baseline['status']=='PASS'
+ rpc('compact',{'enabled':True});compact=open_json(origin+'/browser-addon-test/compact');assert compact['status']=='PASS'
  status=rpc('status',{})['result']['value'];assert status['registeredSources']==int(os.environ.get('NEIWANG_EXPECTED_SOURCES','15'))
  assert observed['baseline']['containsFullSdkMap'] and not observed['compact']['containsFullSdkMap'];assert observed['compact']['containsLazyCatalog'];assert observed['compact']['systemChars']<observed['baseline']['systemChars']
  report={'status':'PASS','prompt':observed,'removedSystemCharacters':observed['baseline']['systemChars']-observed['compact']['systemChars'],'exactModelTokensMeasured':False,'sourceCount':status['registeredSources'],'realAgentToolLoop':True,'safetyAndToolPermissionsUnchanged':True}
  (WORK/'prompt-result.json').write_text(json.dumps(report,indent=2));print(json.dumps(report),flush=True)
  ui_env={**env,'DSH_URL':url,'FONTCONFIG_FILE':str(data/'runtime/fonts.conf'),'BROWSER_UI_OUTPUT':str(WORK/'browser-settings.png')}
  ui_env.pop('ELECTRON_RUN_AS_NODE',None)
- ui_cmd=([str(APP/'launcher/electron/electron.exe')] if os.name=='nt' else ['xvfb-run','-a',str(APP/'launcher/electron/electron')])+['--no-sandbox','--disable-gpu',str(HERE/'test-browser-ui.cjs')]
+ ui_env['ELECTRON_ENABLE_LOGGING']='1'
+ ui_cmd=([str((APP/'launcher/electron/electron.exe').resolve())] if os.name=='nt' else ['xvfb-run','-a',str(APP/'launcher/electron/electron')])+['--no-sandbox','--disable-gpu',str(HERE/'test-browser-ui.cjs')]
  subprocess.run(ui_cmd,env=ui_env,cwd=APP,check=True,timeout=240)
  (WORK/'prompt-result.json').write_text(json.dumps(report,indent=2));print(json.dumps(report),flush=True)
 finally:

@@ -102,8 +102,8 @@ def build(args):
  '保留钉钉机器人和AI表格读写插件；使用仍需组织网络与授权，敏感操作权限保持原规则。\n'
  '原生麒麟V10与实际组织服务仍需现场验收；具体已验证项目见validation.json。\n')
  files['安装说明.txt']=guide.encode('utf8');files['新版安装说明.txt']=files['安装说明.txt']
- files['docs/R11_3_HANDOVER.md']=(REPO/'docs/R11_3_HANDOVER.md').read_bytes()
- files['docs/OFFLINE_PLUGIN_MANAGER.md']=(REPO/'docs/OFFLINE_PLUGIN_MANAGER.md').read_bytes()
+ files['docs/HANDOVER.md']=(REPO/'docs/HANDOVER.md').read_bytes()
+ files['docs/DEVELOPMENT.md']=(REPO/'docs/DEVELOPMENT.md').read_bytes()
  validation=REPO/'manifests/r113-validation.json'
  if validation.exists():
   report=json.loads(validation.read_text(encoding='utf8'));report['edition']='public' if args.public else 'organization';report['organizationDefaultsIncluded']=not args.public;files['validation.json']=dump(report)
@@ -128,7 +128,8 @@ def build(args):
     elif args.public and not rel.startswith(('core/','runtime/','launcher/electron/')) and Path(rel).suffix in ['.py','.js','.mjs','.cjs','.json','.yml','.yaml','.txt','.md','.html']:
      try:
       text=data.decode('utf-8-sig')
-      text=re.sub(r'(?<![\w.])(?:10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+)','127.0.0.1',text).replace('https://aei/v1','https://dify.example.invalid/v1')
+      text=re.sub(r'(?<![\w.])(?:10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+)','127.0.0.1',text)
+      text=re.sub(r'https?://(?!localhost(?=[:/\s\"\']|$))[A-Za-z][A-Za-z0-9-]*(?=[:/\s\"\']|$)(?::[0-9]+)?(?:/[^\s\"\'<>]*)?', 'https://service.example.invalid/v1', text)
       data=text.encode('utf8')
       # Refresh checksums for any sanitized optional payload content.
       if rel.startswith('plugin-pack/payload/'):

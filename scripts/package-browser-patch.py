@@ -10,7 +10,7 @@ def main():
  stage.mkdir();subprocess.run([a.node,str(ROOT/'scripts/build-offline-plugin.cjs'),'--source',str(prepared),'--output',str(stage/'plugin'),'--core','0.2.0-rc.2','--os','linux','--arch','arm64'],check=True)
  rows=[]
  for rel,source in {
-  'offline-plugin-manager.cjs':ROOT/'tools/offline-plugin-manager.cjs','setup-plugin-manager.cjs':ROOT/'tools/setup-plugin-manager.cjs','plugin-profile.cjs':ROOT/'launcher/plugin-profile.cjs','manage-plugins.sh':ROOT/'tools/manage-plugins.sh','启用插件管理.sh':ROOT/'tools/enable-plugin-manager.sh','使用说明.md':ROOT/'docs/BROWSER_API_PATCH.md'
+  'offline-plugin-manager.cjs':ROOT/'tools/offline-plugin-manager.cjs','setup-plugin-manager.cjs':ROOT/'tools/setup-plugin-manager.cjs','plugin-profile.cjs':ROOT/'launcher/plugin-profile.cjs','manage-plugins.sh':ROOT/'tools/manage-plugins.sh','启用插件管理.sh':ROOT/'tools/enable-plugin-manager.sh','使用说明.md':ROOT/'docs/DEVELOPMENT.md'
  }.items():
   data=source.read_bytes();(stage/rel).write_bytes(data);rows.append({'path':rel,'sha256':hashlib.sha256(data).hexdigest()})
  (stage/'kit-manifest.json').write_text(json.dumps({'schemaVersion':1,'files':rows},ensure_ascii=False,indent=2),encoding='utf8')
