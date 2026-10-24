@@ -9,15 +9,20 @@
 
 ## 安装
 
-解压到新的可写目录，进入APP根目录：
+下载配套的 Core 核心包与 Plugins 插件包，在同一个新的可写目录解压：
 
 ```sh
+tar -xzf Neiwang-Xiaozhi-Kylin-ARM64-R11.3-Public-Core.tar.gz
+tar -xzf Neiwang-Xiaozhi-Kylin-ARM64-R11.3-Public-Plugins.tar.gz
+cd Neiwang-Xiaozhi-Kylin-ARM64-R11.3
 sh plugin-pack/安装插件.sh
 sh 配置模型.sh
 sh start.sh
 ```
 
 需要知识库时执行 `sh 配置RAG.sh`。GitHub 公开安装包不包含组织凭据或内部接口资料。
+
+两包配套使用，不要分别解压到不同文件夹。详见 [分包安装说明](R11_3_SPLIT_INSTALL.md)。分包逐文件比对通过，合并内容与原完整包一致；报告见 `*-split-validation.json`。
 
 ## 验证与限制
 
