@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-24",
+  "scope": "offline plugin management, not an OCR runtime stability acceptance",
+  "status": "PASS",
+  "hostTests": {
+    "platform": "win32",
+    "passed": 26,
+    "skipped": 3,
+    "failed": 0
+  },
+  "arm64OfflineTests": {
+    "passed": 29,
+    "skipped": 0,
+    "failed": 0,
+    "networkIsolation": "unshare -n"
+  },
+  "integration": {
+    "status": "PASS",
+    "platform": "linux",
+    "arch": "arm64",
+    "networkIsolation": "unshare -n",
+    "realR113Retrofit": true,
+    "actualSkillUpgradeAndRollback": true,
+    "pdfTextPassedAfterBoth": true,
+    "ocrRun": false,
+    "modelRagBindingAndWorkspacePreserved": true,
+    "protectedFileCount": 4,
+    "transaction": "2026-10-24T12-00-33-114Z-f23a4846",
+    "nativeKylinTested": false
+  },
+  "delivery": {
+    "name": "Neiwang-Offline-Plugin-Manager-R11.3.tar.gz",
+    "bytes": 12557,
+    "sha256": "1cbd72b01e5e0f589a930360356c490a027a98db677f588f3daa40dab1499fe8",
+    "codeSha256": {
+      "offline-plugin-manager.cjs": "b91e9eea422c972e8829435387678812253358c0d06e4e17dcd971422c5efb28",
+      "setup-plugin-manager.cjs": "144f9fe341366ee6197ac6ca5a34908b9de9e65eadbb34d4cc0eb5eb8aa22798",
+      "plugin-profile.cjs": "d8136c0f4004c8ce54cb269c4e9424e6dbfefe3e780512a22b6f36a128d2220e",
+      "manage-plugins.sh": "0c7a469d77a2cfcd9126056586e3be9da42abc57c66c0048069eeba7ce000f22",
+      "启用插件管理.sh": "1ef159468f34e52e842640615503a39bd6eb922eb6a76cab5c1bbb0b46408bf9"
+    }
+  },
+  "limitations": [
+    "Native Kylin not tested",
+    "Organization services not contacted",
+    "Repeated emulated OCR hit unresolved V8 WriteProtectMemory/WasmTriggerTierUp crashes; final management regression excludes OCR",
+    "No product Node/OCR runtime flags changed"
+  ]
+}

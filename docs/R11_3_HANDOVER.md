@@ -1,5 +1,7 @@
 # 麒麟 ARM64 R11.3 交接
 
+补充：[独立离线插件管理机制](OFFLINE_PLUGIN_MANAGER.md)已实现。`tools/offline-plugin-manager.cjs` 负责清单/依赖校验、暂存、事务备份、回滚和恢复；`launcher/plugin-profile.cjs` 负责启动保护与回滚后的引用清理。历史安装可用小型接入包补齐，后续构建自动携带。旧发行快照仍保留原内容。
+
 发行已拆分为核心包与插件包，安装步骤见 [R11.3 分包安装](R11_3_SPLIT_INSTALL.md)。组合后的应用内容与原完整包保持一致。可用 `python scripts/split-kylin-r113.py /path/to/full.tar.gz --output /path/to/split` 重建并验证两包。
 
 日期：2026-10-24。内核固定为 DeepSeek Harness 0.2.0-rc.2，未修改内核文件。

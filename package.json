@@ -13,6 +13,7 @@
     "check": "node scripts/python-dev.cjs check_source.py",
     "test:runtime": "node scripts/python-dev.cjs test_runtime_prepare.py",
     "test": "node --test scripts/test-dev.cjs",
+    "test:plugins": "node --test scripts/test-plugin-manager.cjs scripts/test-dev.cjs",
     "verify:app": "node scripts/verify-dev-app.cjs"
   },
   "dependencies": {

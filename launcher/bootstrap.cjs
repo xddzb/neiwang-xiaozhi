@@ -5,6 +5,7 @@ const read=file=>JSON.parse(fs.readFileSync(file,'utf8').replace(/^\uFEFF/,''));
 function packages(modules){const result=[];for(const entry of fs.readdirSync(modules,{withFileTypes:true})){if(entry.name.startsWith('.'))continue;const dir=path.join(modules,entry.name);if(entry.name.startsWith('@')){for(const child of fs.readdirSync(dir,{withFileTypes:true}))if(child.isDirectory()||child.isSymbolicLink())result.push([entry.name+'/'+child.name,path.join(dir,child.name)]);}else if(entry.isDirectory()||entry.isSymbolicLink())result.push([entry.name,dir]);}return result;}
 function link(target,dest){fs.mkdirSync(path.dirname(dest),{recursive:true});try{const info=fs.lstatSync(dest);if(!info.isSymbolicLink())return;const current=path.resolve(path.dirname(dest),fs.readlinkSync(dest));if(current===path.resolve(target))return;fs.unlinkSync(dest);}catch(e){if(e.code!=='ENOENT')throw e;}fs.symlinkSync(process.platform==='win32'?path.resolve(target):path.relative(path.dirname(dest),target),dest,process.platform==='win32'?'junction':'dir');}
 function prepare(){
+ require('./plugin-profile.cjs').assertReady(root);
  const deployment=read(path.join(root,'config/app.json'));
  const core=path.join(root,'core',deployment.coreVersion),modules=path.join(core,'node_modules'),extensions=path.join(root,'extensions/node_modules');
  const data=process.env.NEIWANG_DATA_DIR||path.join(root,'data'),home=path.join(data,'dsh');
@@ -24,6 +25,7 @@ function prepare(){
  for(const name of deployment.bundles)currentProfile.dependencies[name]=read(path.join(extensions,name,'package.json')).version;
  currentProfile.dsh=currentProfile.dsh||{};currentProfile.dsh.profile=currentProfile.dsh.profile||{};
  currentProfile.dsh.profile.bundles=[...new Set([...expectedBundles,...(currentProfile.dsh.profile.bundles||[])])];
+ require('./plugin-profile.cjs')(root,currentProfile,deployment);
  fs.writeFileSync(manifest,JSON.stringify(currentProfile,null,2));
  const userPatch=path.join(profile,'cordis.patch.yml');if(!fs.existsSync(userPatch))fs.writeFileSync(userPatch,'[]\n');
  // User Models settings own credentials and provider choices. No seed credential is required.

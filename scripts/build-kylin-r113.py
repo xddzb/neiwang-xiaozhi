@@ -60,6 +60,13 @@ def build(args):
  release=json.loads(files['manifests/release.json']);release.update(version='R11.3',scheduleEnabled=True,skillIncubator=True,offlinePDF=True);files['manifests/release.json']=dump(release)
  files['workspace/AGENTS.md']+=('\nR11.3：支持本地技能孵化器、pdf_parse和定时任务。PTC工具经run_code调用，先按tool_catalog发现参数。技能先预览，用户要求保存才写入；格式校验不等于业务效果验收。扫描PDF使用本地OCR，无外网回退；低质量识别必须提示核对原页。定时任务只在Host运行时调度，补投递不保证业务仅执行一次，敏感写入仍需管理员/用户授权。\n').encode('utf8')
  files['tools/setup_rag.py']=(REPO/'tools/setup_rag.py').read_bytes()
+ for rel in ['tools/offline-plugin-manager.cjs','launcher/plugin-profile.cjs']:
+  files[rel]=(REPO/rel).read_bytes()
+ files['管理插件.sh']=(REPO/'tools/manage-plugins.sh').read_bytes()
+ boot=files['launcher/bootstrap.cjs'].decode('utf8')
+ boot=boot.replace('function prepare(){',"function prepare(){\n require('./plugin-profile.cjs').assertReady(root);")
+ boot=boot.replace(' fs.writeFileSync(manifest,JSON.stringify(currentProfile,null,2));'," require('./plugin-profile.cjs')(root,currentProfile,deployment);\n fs.writeFileSync(manifest,JSON.stringify(currentProfile,null,2));")
+ files['launcher/bootstrap.cjs']=boot.encode('utf8')
  files['配置RAG.sh']=b'#!/bin/sh\nset -eu\nAPP=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)\nexport PYTHONHOME="$APP/runtime/python"\nexport LD_LIBRARY_PATH="$APP/runtime/python/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"\nexec "$APP/runtime/python/bin/python3.11" "$APP/tools/setup_rag.py"\n'
  manifest=json.loads(files['plugin-pack/pack.json']);manifest['release']='R11.3';manifest['bundles']=list(dict.fromkeys(manifest['bundles']+NEW))
  # Source packages live in payload; brand is also a core file and is replaced in place.
@@ -96,6 +103,7 @@ def build(args):
  '原生麒麟V10与实际组织服务仍需现场验收；具体已验证项目见validation.json。\n')
  files['安装说明.txt']=guide.encode('utf8');files['新版安装说明.txt']=files['安装说明.txt']
  files['docs/R11_3_HANDOVER.md']=(REPO/'docs/R11_3_HANDOVER.md').read_bytes()
+ files['docs/OFFLINE_PLUGIN_MANAGER.md']=(REPO/'docs/OFFLINE_PLUGIN_MANAGER.md').read_bytes()
  validation=REPO/'manifests/r113-validation.json'
  if validation.exists():
   report=json.loads(validation.read_text(encoding='utf8'));report['edition']='public' if args.public else 'organization';report['organizationDefaultsIncluded']=not args.public;files['validation.json']=dump(report)

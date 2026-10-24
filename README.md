@@ -1,5 +1,7 @@
 # 内网小智
 
+新增[独立离线插件管理器](docs/OFFLINE_PLUGIN_MANAGER.md)：现有 R11.3 可接入小型工具包，支持新增/升级插件、备份回滚与中断恢复，保留模型、RAG、钉钉绑定和用户数据，无需重装 APP。历史 Release 的 Core/Plugins 安装资产未被改写。
+
 R11.3 麒麟 ARM64 发行采用 Core 核心包与 Plugins 插件包，两个包解压到同一目录后安装插件。详见[分包安装说明](docs/R11_3_SPLIT_INSTALL.md)。
 
 内网钉钉只允许上传 500 MB 以内的文件，因此发行包拆分为核心包和插件包。内核保持原样，自有启动、配置及扩展在外部组合；当前插件安装器仍要求匹配发行版本。详见[内核与插件升级边界](docs/CORE_AND_PLUGIN_UPGRADES.md)。

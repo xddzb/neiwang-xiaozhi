@@ -169,3 +169,7 @@ npm run prepare:runtime -- --cache /path/to/verified-asset-cache
 ### 系统 Python 版本较旧时
 
 NEIWANG_BUILD_PYTHON 可以指向可移动的独立 Python，不要求替换系统 Python。可从资产清单取得当前平台的 Python 归档并核对 SHA256，在单独目录解压（Linux 归档顶层为 python/，可使用 tar 的 --strip-components=1），再将变量指向其中的 bin/python3。准备脚本随后仍会按清单校验和组装 APP 自己的运行库。这与本次 ARM64 验证中使用独立 Python 作为构建解释器的方式相同。
+
+## 独立离线插件管理
+
+后续源码构建已集成管理器；既有 R11.3 用户可使用小型接入包。安装、升级、回滚和打包操作见 [离线插件管理](OFFLINE_PLUGIN_MANAGER.md)。验证命令为 `npm run test:plugins`，历史整套插件安装器仅用于原配插件初始化。

@@ -5,6 +5,7 @@ function fixture(){
  const parent=path.join(repo,'tmp');fs.mkdirSync(parent,{recursive:true});
  const root=fs.mkdtempSync(path.join(parent,'dev-test-'));
  fs.mkdirSync(path.join(root,'launcher'));fs.copyFileSync(path.join(repo,'launcher/bootstrap.cjs'),path.join(root,'launcher/bootstrap.cjs'));
+ fs.copyFileSync(path.join(repo,'launcher/plugin-profile.cjs'),path.join(root,'launcher/plugin-profile.cjs'));
  fs.mkdirSync(path.join(root,'config'));for(const name of ['app.json','overrides.json'])fs.copyFileSync(path.join(repo,'config',name),path.join(root,'config',name));
  const app=JSON.parse(fs.readFileSync(path.join(root,'config/app.json')));app.bundles=[];fs.writeFileSync(path.join(root,'config/app.json'),JSON.stringify(app));
  fs.mkdirSync(path.join(root,'core',app.coreVersion,'node_modules'),{recursive:true});fs.mkdirSync(path.join(root,'extensions/node_modules'),{recursive:true});

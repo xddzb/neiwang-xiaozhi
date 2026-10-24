@@ -41,6 +41,8 @@ function build({dependencies=path.join(source,'node_modules'),output,coreOnly=fa
  const modules=path.join(dest,'core',corePackage.version,'node_modules');
  copyTree(dependencies,modules,p=>!['electron','.bin','.cache'].includes(path.relative(dependencies,p).split(path.sep)[0]));
  copy(path.join(source,'launcher'),path.join(dest,'launcher'));
+ copy(path.join(source,'tools/offline-plugin-manager.cjs'),path.join(dest,'tools/offline-plugin-manager.cjs'));
+ copy(path.join(source,'tools/manage-plugins.sh'),path.join(dest,'管理插件.sh'));
  copy(electron,path.join(dest,'launcher/electron'));
  copy(process.execPath,path.join(dest,process.platform==='win32'?'runtime/node/node.exe':'runtime/node/bin/node'));
  for(const name of ['app.json','brand.json','overrides.json','deployment.yml'])copy(path.join(source,'config',name),path.join(dest,'config',name));
