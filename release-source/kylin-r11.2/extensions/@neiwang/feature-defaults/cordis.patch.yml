@@ -1,4 +1,0 @@
-- id: dingtalk-channel
-  config: !!js 'JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id==="dingtalk-channel").config'
-- id: office-to-pdf
-  config: !!js 'JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id==="office-to-pdf").config'

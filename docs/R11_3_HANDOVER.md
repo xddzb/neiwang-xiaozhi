@@ -26,7 +26,7 @@
 | `scripts/verify-r113-archive.py` | 检查插件散列、原内核散列、Shell LF、ARM64 canvas及公开包无默认seed |
 | `scripts/test-r113-*` | 文件、OCR、Host/Agent、定时投递/重启和桌面测试 |
 
-`release-source/kylin-r11.2` 是历史发布快照；本版修改和新插件优先看上表。根目录独立开发构建与旧组织发行包的配置体系仍有差异，不能直接用旧 bootstrap 覆盖开发版。
+R11.2 历史源码快照已移除；本版发布快照位于 `release-source/kylin-r11.3`，新增和后续修改优先看根目录源码及上表。根目录独立开发构建与旧组织发行包的配置体系仍有差异，不能直接用旧 bootstrap 覆盖开发版。历史发行流水线引用的授权离线基线归档由组织本地保存，不依赖已删除的旧源码目录。
 
 ## 安装与使用
 
