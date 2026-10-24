@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "version": "R11.5",
+  "coreVersion": "0.2.1-rc.3",
+  "sidebarVersion": "0.28.0",
+  "status": "PASS_WITH_LIMITATIONS",
+  "tests": {
+    "sourceSyntaxAndExclusions": "PASS",
+    "publicPrivateConfigurationGate": "PASS",
+    "firstBootSeedsAndExistingConfigurationProtection": "PASS",
+    "windowsAgentSkillsScheduleAndRestart": "PASS",
+    "arm64VmAgentSkillsScheduleAndRestart": "PASS",
+    "windowsElectronHomeSidebarAndSettings": "PASS",
+    "arm64VmElectronSettings": "UNRESOLVED_IN_EMULATION",
+    "physicalKylin": "NOT_TESTED",
+    "organizationServices": "NOT_TESTED"
+  },
+  "publicArchives": {
+    "kylin": {
+      "status": "PASS",
+      "edition": "Public",
+      "platform": "Kylin-ARM64",
+      "version": "R11.5",
+      "files": 91283,
+      "links": 1049,
+      "splitMembersDisjoint": true,
+      "pluginHashesValid": true,
+      "coreHashesUnchanged": true,
+      "noLiveUserData": true,
+      "currentPrivateCredentialsCompared": true,
+      "assets": [
+        {
+          "name": "Neiwang-Xiaozhi-Kylin-ARM64-R11.5-Public-Core.tar.gz",
+          "bytes": 486354052,
+          "sha256": "1d2053f0abfc6e7479fb76d52fb9681554284cc8f71f5bc79646268f42256725"
+        },
+        {
+          "name": "Neiwang-Xiaozhi-Kylin-ARM64-R11.5-Public-Plugins.tar.gz",
+          "bytes": 208543892,
+          "sha256": "31f7e76e6bcf8823def00490d501d9389c5f51cf6b4041ec35650842aaa84dd3"
+        }
+      ]
+    },
+    "windows": {
+      "status": "PASS",
+      "edition": "Public",
+      "platform": "Win10-x64",
+      "version": "R11.5",
+      "files": 93307,
+      "links": 0,
+      "splitMembersDisjoint": true,
+      "pluginHashesValid": true,
+      "coreHashesUnchanged": true,
+      "noLiveUserData": true,
+      "currentPrivateCredentialsCompared": true,
+      "assets": [
+        {
+          "name": "Neiwang-Xiaozhi-Win10-x64-R11.5-Public-Core.zip",
+          "bytes": 432342434,
+          "sha256": "f010e0ddc8b0aaaa77c892251ada7c3d8c20880a1925e265bf5d40c1a5399a1b"
+        },
+        {
+          "name": "Neiwang-Xiaozhi-Win10-x64-R11.5-Public-Plugins.zip",
+          "bytes": 227266232,
+          "sha256": "5235d97a45275a4b0691136e3882ec2921ca4f26ffd8f234b438370e6c538225"
+        }
+      ]
+    }
+  },
+  "internalChecks": {
+    "status": "PASS",
+    "configurationsCompared": true,
+    "interfaceDocumentsCompared": true,
+    "publicUploadAllowed": false
+  },
+  "safety": {
+    "realMessagesSent": false,
+    "realTablesModified": false,
+    "privateValuesPrinted": false
+  },
+  "assets": [
+    {
+      "name": "Neiwang-Xiaozhi-Kylin-ARM64-R11.5-Public-Core.tar.gz",
+      "bytes": 486354052,
+      "sha256": "1d2053f0abfc6e7479fb76d52fb9681554284cc8f71f5bc79646268f42256725"
+    },
+    {
+      "name": "Neiwang-Xiaozhi-Kylin-ARM64-R11.5-Public-Plugins.tar.gz",
+      "bytes": 208543892,
+      "sha256": "31f7e76e6bcf8823def00490d501d9389c5f51cf6b4041ec35650842aaa84dd3"
+    },
+    {
+      "name": "Neiwang-Xiaozhi-Win10-x64-R11.5-Public-Core.zip",
+      "bytes": 432342434,
+      "sha256": "f010e0ddc8b0aaaa77c892251ada7c3d8c20880a1925e265bf5d40c1a5399a1b"
+    },
+    {
+      "name": "Neiwang-Xiaozhi-Win10-x64-R11.5-Public-Plugins.zip",
+      "bytes": 227266232,
+      "sha256": "5235d97a45275a4b0691136e3882ec2921ca4f26ffd8f234b438370e6c538225"
+    }
+  ]
+}

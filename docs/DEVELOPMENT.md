@@ -91,7 +91,7 @@ Host/Agent、浏览器、定时任务和平台归档测试在独立副本中进�
 node scripts/build-offline-plugin.cjs \
   --source /build/prepared-plugin \
   --output /build/offline-package \
-  --core 0.2.0-rc.2 --os linux --arch arm64
+  --core 0.2.1-rc.3 --os linux --arch arm64
 ```
 
 输出含 `plugin-package.json`、其 SHA256 文件，以及 `payload/<插件名>/`。把整个输出目录打包传入内网，解压后交给管理器。没有指定版本兼容范围、缺少实际依赖或文件被篡改时会拒绝安装。打包器不运行依赖安装，不自动把 Windows 原生模块转换为 ARM64。

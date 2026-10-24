@@ -2,7 +2,7 @@
 
 更新日期：2026-10-24。面向接手开发、构建、内网部署及运维的同事。
 
-当前已发布安装包为 R11.4；本次正在开发 R11.5，目标内核为 DSH 0.2.1-rc.3。新内核验证结果与旧版证据分别记录，不能互相替代。
+本次版本为 R11.5，内核为 DSH 0.2.1-rc.3；历史R11.4使用0.2.0-rc.2。安装包发布状态以GitHub Release为准，新内核验证结果与旧版证据分别记录，不能互相替代。
 
 本文件不含模型密钥、RAG密钥、组织服务地址、机器人凭据或真实接口文档。私有构建材料由组织通过内部渠道单独交接。用户提供的旧 HANDOVER.md 仅作为文档结构和历史问题参考，其中旧包名、路径和历史验收结论不代表本版状态。
 
@@ -11,7 +11,7 @@
 
 条目按“新增 / 变更 / 修复 / 移除 / 验证 / 发布状态”记录；安装包没有重建发布时必须标记未发布。以下为应用版本日志，不是官方DSH内核版本日志。
 
-### R11.5 — 未发布（2026-10-24，进行中）
+### R11.5 — 本地构建与验收（2026-10-25）
 
 - **新增**：接入 dsh-better-sidebar 0.28.0，目标为文件树、编辑预览、任务和底部工作台；版本按新内核兼容要求固定。
 - **变更**：目标内核由 DSH 0.2.0-rc.2 升级到用户指定 0.2.1-rc.3，在独立目录准备，不覆盖在用APP。
@@ -25,7 +25,7 @@
 - **界面命名**：按用户在UI聊天中的更正，统一使用“检索增强开关”，包括可见文字、提示和无障碍标签；仍全应用生效、持久化、按需检索。
 - **文档**：docs收敛为本技术交接、安装与使用、开发与插件维护三个入口，修改日志集中在这里。
 - **验证**：Windows x64与Linux ARM64虚拟机均通过实际Host/Agent、技能创建、定时触发及冷启动恢复；Windows真实Electron首页、侧边栏与设置界面通过。首次预设加载、已有模型保护与补齐RAG时密钥兼容测试通过；Public/Internal配置隔离门禁通过。物理麒麟、组织SSO及真实服务联调尚未验收。
-- **发布状态**：正在打包与归档验收，尚未替换GitHub的R11.4资产。构建、源码提交与Release发布属于独立状态，不相互代替。
+- **发布状态**：安装包已构建，麒麟和Windows的Public包已通过归档散列与实际私有值排除检查；Internal包单独本地交付。GitHub下载入口为Release r11.5，以其实际发布状态为准；源码提交不等于安装资产自动更新。
 
 ### R11.4 文档维护 — 已合并（2026-10-24）
 
@@ -48,13 +48,13 @@
 - **新增**：独立离线插件机制、技能孵化器、PDF/OCR及拆包交付等历史工作。
 - **移除 / 追溯**：不再保留重复历史源码和逐版交接文档；以Git标签、提交和Release说明为证据。日期与测试结果不在此重新推定。
 
-## 1. 接手先看：R11.4已发布基线与当前边界
+## 1. 接手先看：R11.5与当前边界
 
 目标是在纯内网麒麟 ARM64 上提供带图形界面的内网小智，同时提供 Windows x64 版。运行依赖随包提供，安装不要求访问 npm/PyPI，也不要求 sudo；模型和知识检索仍访问组织内已有的模型/RAG服务。
 
 | 项目 | 当前状态 | 接手时注意 |
 |---|---|---|
-| 当前 APP / 内核 | R11.4 / DSH 0.2.0-rc.2 | 不直接修改官方内核 |
+| 当前 APP / 内核 | R11.5 / DSH 0.2.1-rc.3 | 不直接修改官方内核 |
 | 内网固定配置 | Internal 包内置模型、RAG、接口资料 | 不依赖旧APP，不执行首次配置或迁移 |
 | Windows 桌面 | 已启动并验证页面加载 | x64，不适用 Windows ARM64 |
 | 麒麟运行 | ARM64 隔离环境测试通过 | 实体麒麟桌面及组织服务仍需现场验收 |
@@ -75,11 +75,11 @@
 | DWS CLI | 1.0.65；组织授权不因离线打包自动获得 |
 | 文件传输 | 内网钉钉仅允许上传500MB以内文件，因此拆分 Core / Plugins |
 
-旧文档记录的 Chromium 102 缺 API、PyPI runtime 依赖缺件、旧第三方桌面连接问题属于历史经验。本版已改用独立官方内核与启动适配层，不能把旧文档的“最终方案已实机验证”直接套到 R11.4。
+旧文档记录的 Chromium 102 缺 API、PyPI runtime 依赖缺件、旧第三方桌面连接问题属于历史经验。本版已改用独立官方内核与启动适配层，不能把旧文档的“最终方案已实机验证”直接套到 R11.5。
 
 ## 3. 源码、内核和配置分别在哪里
 
-仓库：[xddzb/neiwang-xiaozhi](https://github.com/xddzb/neiwang-xiaozhi)。最新安装资产：[R11.4 Release](https://github.com/xddzb/neiwang-xiaozhi/releases/tag/r11.4)。
+仓库：[xddzb/neiwang-xiaozhi](https://github.com/xddzb/neiwang-xiaozhi)。最新安装资产：[R11.5 Release](https://github.com/xddzb/neiwang-xiaozhi/releases/tag/r11.5)。
 
 ```text
 源码仓库/
@@ -97,8 +97,8 @@
 交付 APP 解压后的结构：
 
 ```text
-Neiwang-Xiaozhi-<平台>-R11.4/
-├─ core/0.2.0-rc.2/node_modules/ 官方内核与锁定依赖
+Neiwang-Xiaozhi-<平台>-R11.5/
+├─ core/0.2.1-rc.3/node_modules/ 官方内核与锁定依赖
 ├─ launcher/                    supervisor、bootstrap、桌面壳
 ├─ runtime/                     平台Node/Python等运行时
 ├─ config/app.json              版本、平台和启用插件清单
@@ -141,8 +141,8 @@ Internal 默认配置首次启动复制到 data/config；已有用户文件不�
 将匹配的 Internal Core、Internal Plugins 和合并脚本放在同一目录。普通用户执行：
 
 ```sh
-sh 合并安装R11.4.sh "/data/内网小智R11.4"
-sh "/data/内网小智R11.4/Neiwang-Xiaozhi-Kylin-ARM64-R11.4/start.sh"
+sh 合并安装R11.5.sh "/data/内网小智R11.5"
+sh "/data/内网小智R11.5/Neiwang-Xiaozhi-Kylin-ARM64-R11.5/start.sh"
 ```
 
 目标目录必须不存在；两份 tar.gz 在麒麟端解压，保留权限和符号链接。不要用Windows展开目录逐文件拷贝。详细步骤见 [安装与使用](INSTALL.md)。
@@ -202,12 +202,12 @@ ls data/config
 ## 7. 定制能力与实际边界
 
 - 品牌：主标题32px、副标题18px，首页隐藏“预览版”；PDF内容预览功能保留。
-- 提示词：SDK参数按需发现，保留安全上下文；Windows测试系统字符50169→8896，ARM64为48959→8655；不是精确token测量。
+- 提示词：SDK参数按需发现，保留安全上下文；R11.5 Windows测试系统字符51583→8635，ARM64为50447→8468；不是精确token测量。
 - RAG：遵守开关，同聊天复用已有材料，知识正文视为参考数据；模型配置和RAG配置独立。
 - Playwright：页面快照、iframe、填写、点击、滚动、拖拽、截图；密码由本人输入；未提供任意JS/Cookie导出工具。登记只读接口的会话桥接仅在工具内部使用。
-- AI表格：插件具备读写命令，组织授权另行管理；写入先预览。旧工作区规则仍残留只读说明，需要清理，不能将其描述为统一权限策略已经完成。
+- AI表格：插件具备读写命令，组织授权另行管理；写入先预览。新包工作区规则已更新，旧安装的用户规则仍需自行核对；统一真人审批尚未完成。
 - 审批：内核具备ask审批、记录与失败拒绝；钉钉审批校验绑定管理员。浏览器/表格confirmed参数仍由调用方提供，尚未统一到不可绕过的真人审批。
-- 技能孵化器/PDF/OCR：离线资源随插件包；原生麒麟OCR尚未完成现场验收。
+- 技能孵化器与better-sidebar：离线依赖随插件包。PDF解析大师已移除，不再以它提供PDF/OCR工具；原生预览及已有通用文件工具独立保留。
 
 ## 8. 后续插件安装、升级与回退
 
@@ -231,19 +231,19 @@ sh 管理插件.sh rollback
 
 | 验证 | 结果与证据 |
 |---|---|
-| Windows单测 | 41通过、3平台/权限相关跳过、0失败 |
-| ARM64隔离环境单测 | 44通过、0失败 |
-| 两平台Host/Agent、浏览器 | 合成本机夹具通过，含密码隐藏、iframe和会话桥接 |
-| PDF/技能/定时任务 | Agent工具调用及冷启动恢复测试通过；Windows OCR通过 |
+| Windows源码回归 | 插件/浏览器/开发回归32通过、3平台相关跳过；新增首次预设与配置隔离测试通过 |
+| 两平台Host/Agent | Windows x64、Linux ARM64虚拟机使用本机合成模型，实际工具循环通过 |
+| 技能/定时任务 | 两平台技能创建、定时投递及冷启动恢复通过；已确认PDF解析大师工具未注册 |
+| 桌面界面 | Windows Electron首页、侧边栏与设置通过；ARM64仿真界面仍有加载时序问题，不能视为物理麒麟已验收 |
 | 打包完整性 | Core散列不变、两包成员分离、插件散列与大小检查通过 |
 | 隐私边界 | Public对比当前私有配置检查通过，Internal单独交付 |
 
-原始公开汇总见 [R11.4验证记录](../manifests/r114-validation.json)。本地临时outputs是调查材料，不提交Git。当前文档更新不会重新构建Release，已发布安装包与后续main源码可能有差异。
+公开汇总见 [R11.5验证记录](../manifests/r115-validation.json)，历史R11.4记录保留原版本标识。本地临时outputs不提交Git。包内文档是构建时快照，最新验证和交接以仓库docs及Release说明为准。
 
 接手优先级：
 
 1. 将浏览器、表格等业务写入接入统一真人审批，校验管理员身份、单次目标和过期状态；不能由模型自行confirmed=true代替。
-2. 清理工作区AGENTS.md里只读表格/移除浏览器等旧规则，与当前插件能力一致。
+2. 已更新新包的统一工作区规则；升级旧安装时核对用户自定义规则，与当前插件能力一致。
 3. 在实体麒麟验证Electron沙箱/系统库、中文OCR、模型/RAG网络、组织SSO和客户端证书。
 4. 收集业务浏览器现场错误再适配；若改接中广核浏览器，先确认Chromium/CDP与组织策略，当前未实现。
 5. UI后续交接：按真实可用能力增加首页示例入口（只填入、不自动提交）；基于真实任务事件呈现阶段；真实文件和引用使用结果卡片。先核对最新版界面，复用better-sidebar，验证1366×768、深色模式与键盘焦点。这些更完整的UI改进尚未在本次内核升级中实现。
@@ -255,7 +255,7 @@ sh 管理插件.sh rollback
 
 ### 10.1 构建与私有输入
 
-`scripts/build-r114-release.py` 从已校验的 R11.3 麒麟 Public 基线和现有 Windows 基线复制到全新目录，保留官方内核文件，组合当前源码中的 PDF/OCR、技能、浏览器、提示词精简、品牌、插件管理和迁移工具。第三方版本/许可证见各扩展的 package.json、lock、upstream.json 和 LICENSE。
+`scripts/build-r115-release.py` 从已校验的麒麟Public基线和现有Windows基线提取运行时资源，使用单独准备的0.2.1-rc.3官方内核材料替换旧core，组合侧边栏、技能、浏览器、提示词精简、品牌与插件管理工具。第三方版本/许可证见各扩展的package.json、lock、upstream.json和LICENSE。
 
 ```sh
 # 只需设置一次本机路径；此清单被Git忽略，不填密钥内容
@@ -267,7 +267,7 @@ python scripts/build-release.py
 
 “已审核麒麟Public基线”是组织在构建机保存的已验证公开安装归档，用于提供麒麟运行时、桌面资源和平台材料，不是名为“材料”的必备目录，也不等于历史源码。基线文件以SHA256锁定；新发行用新内核材料替换其中的旧内核，历史源码快照可以删除。
 
-本地清单统一保存基线、两平台新内核材料、已预配置内网APP、Node和输出目录的路径。模型/RAG、接口文档和接口源从一个 privateApp 自动定位，不再逐项传八个命令行参数。私有参数的实际内容不进入仓库。旧R11.4底层打包脚本仅作历史实现参考，当前构建入口以本节的一条命令为准。
+本地清单统一保存基线、两平台新内核材料、已预配置内网APP、Node和输出目录的路径。模型/RAG、接口文档和接口源从一个privateApp自动定位，不再逐项传八个命令行参数。私有参数的实际内容不进入仓库；历史R11.4入口已停用，当前入口为build-release.py。
 
 构建前先用随包官方DWS CLI执行 `node scripts/generate_dws_contracts.mjs /平台/DWS可执行文件 extensions/@neiwang/dws-aitable/contracts.json`，确保生成27项完整命令Schema；该步骤只读取本地Schema。
 
@@ -277,9 +277,9 @@ python scripts/build-release.py
 
 ```text
 构建目录/
-├─ Public/Neiwang-Xiaozhi-Kylin-ARM64-R11.4/
-├─ Public/Neiwang-Xiaozhi-Win10-x64-R11.4/
-└─ Internal/Neiwang-Xiaozhi-Kylin-ARM64-R11.4/
+├─ Public/Neiwang-Xiaozhi-Kylin-ARM64-R11.5/
+├─ Public/Neiwang-Xiaozhi-Win10-x64-R11.5/
+└─ Internal/Neiwang-Xiaozhi-Kylin-ARM64-R11.5/
 交付目录/
 ├─ GitHub/              两平台四个Public拆分包
 └─ Send-to-Intranet/    仅供组织内传递的麒麟Internal两包
@@ -289,14 +289,14 @@ python scripts/build-release.py
 
 ### 10.2 验证与发布
 
-- `scripts/verify-r114-release.py`：检查每包小于500,000,000字节、两个包成员无重叠、插件散列、原内核散列、平台原生canvas、shell LF、版本与私有路径边界。
-- `scripts/audit-public-release.cjs`：在公开构建中检查当前组织模型/RAG密钥和旧共享加密密钥未残留，仅报告状态和数量，不输出密钥。
+- `scripts/verify-r115-release.py`：检查每包小于500,000,000字节、两个包成员无重叠、插件散列、原内核散列、平台原生canvas、shell LF、版本与私有路径边界。
+- `scripts/check-release-config.cjs`：打包前检查Public没有实际私有值与接口资料，Internal解密配置和接口文件与私有输入一致；不打印配置值。verify-r115-release.py继续检查最终归档中的私有边界及Internal内容一致性。
 - `scripts/test-settings-migration.cjs`：新旧密钥转换、模型/RAG/绑定和本地资料保留、重复迁移、已有文件保护、损坏配置与运行进程阻止。
-- 原插件管理/浏览器回归、真实 Host/Agent、本机合成浏览器/Python会话桥接与 PDF/技能测试继续用于对应平台验收。测试仅访问本机夹具，不写真实表格、不发消息。
+- `scripts/test-r115-schedule.py`和test-r115-runtime.mjs：两平台真实Host/Agent、技能、原生定时任务和冷启动恢复。test-browser-host.py验证精简提示词与浏览器工具；test-browser-ui.cjs验证桌面界面。测试仅访问本机夹具，不写真实表格、不发消息。
 
-具体执行结果以 `manifests/r114-validation.json` 和 GitHub Release 描述为准。原生麒麟桌面、沙箱、证书和组织SSO需现场验收；已有ARM64模拟器OCR/WASM异常不能描述成原生麒麟OCR已验收。
+具体执行结果以 `manifests/r115-validation.json` 和 GitHub Release 描述为准。物理麒麟桌面、沙箱、证书和组织SSO需现场验收；ARM64仿真结果不能代替实体机验收。
 
-先完成公开资产校验与隐私检查，再提交中文 commit，经 PR 和自动检查合并后创建 R11.4 Release。仅上传 GitHub/ 内的四个 Public Core/Plugins 包，SHA256写入 Release 描述，不附加 Internal、日志、凭据或原始业务资料。普通 GitHub 自动生成的源码归档不由安装包构建器控制。
+先完成公开资产校验与隐私检查，再提交中文 commit，经 PR 和自动检查合并后创建 R11.5 Release。仅上传 GitHub/ 内的四个 Public Core/Plugins 包，SHA256写入 Release 描述，不附加 Internal、日志、凭据或原始业务资料。普通 GitHub 自动生成的源码归档不由安装包构建器控制。
 
 配置迁移不覆盖旧目录；保留新目录已修改配置，与发行散列一致、尚未修改的默认模型/RAG和资料模板可由旧配置替换。发布后回退可继续使用未改动的旧APP；不要让新旧实例同时连接同一个钉钉机器人。
 
@@ -305,16 +305,16 @@ python scripts/build-release.py
 
 | 文件 | 约大小（十进制MB） | 用途 |
 |---|---:|---|
-| Neiwang-Xiaozhi-Kylin-ARM64-R11.4-Public-Core.tar.gz | 380 | GitHub公开麒麟核心包 |
-| Neiwang-Xiaozhi-Kylin-ARM64-R11.4-Public-Plugins.tar.gz | 209 | GitHub公开麒麟插件包 |
-| Neiwang-Xiaozhi-Win10-x64-R11.4-Public-Core.zip | 364 | GitHub公开Windows核心包 |
-| Neiwang-Xiaozhi-Win10-x64-R11.4-Public-Plugins.zip | 216 | GitHub公开Windows插件包 |
-| Neiwang-Xiaozhi-Kylin-ARM64-R11.4-Internal-Core.tar.gz | 380 | 组织内固定配置核心包，禁止公开上传 |
-| Neiwang-Xiaozhi-Kylin-ARM64-R11.4-Internal-Plugins.tar.gz | 209 | 组织内接口资料和插件，禁止公开上传 |
-| 合并安装R11.4.sh | 小型脚本 | 内网麒麟合并安装，不做迁移 |
-| 安装与合并说明.md / R11_4_HANDOVER.md | 文档 | 发给部署和开发同事 |
+| Neiwang-Xiaozhi-Kylin-ARM64-R11.5-Public-Core.tar.gz | 486 | GitHub公开麒麟核心包 |
+| Neiwang-Xiaozhi-Kylin-ARM64-R11.5-Public-Plugins.tar.gz | 209 | GitHub公开麒麟插件包 |
+| Neiwang-Xiaozhi-Win10-x64-R11.5-Public-Core.zip | 432 | GitHub公开Windows核心包 |
+| Neiwang-Xiaozhi-Win10-x64-R11.5-Public-Plugins.zip | 227 | GitHub公开Windows插件包 |
+| Neiwang-Xiaozhi-Kylin-ARM64-R11.5-Internal-Core.tar.gz | 486 | 组织内固定配置核心包，禁止公开上传 |
+| Neiwang-Xiaozhi-Kylin-ARM64-R11.5-Internal-Plugins.tar.gz | 209 | 组织内接口资料和插件，禁止公开上传 |
+| 合并安装R11.5.sh | 小型脚本 | 内网麒麟合并安装，不做迁移 |
+| HANDOVER.md / INSTALL.md / DEVELOPMENT.md | 文档 | 发给部署和开发同事 |
 
-工作目录约定（相对构建工作区根）：`collaboration/neiwang-xiaozhi` 为源码，`builds/R11.4-Release` 为平台构建副本，`dist/R11.4/GitHub` 为公开资产，`dist/R11.4/Send-to-Intranet` 为实际内网交付目录。这些大目录和私有文件不是Git源码内容。Linux安装以tar.gz为准，Windows上的展开目录不能替代符号链接正确的归档。
+工作目录约定（相对构建工作区根）：`collaboration/neiwang-xiaozhi`为源码，`builds/Release-Runs/<构建编号>`为平台构建副本，`dist/R11.5/Send-to-Intranet`为本机实际内网交付目录。这些大目录和私有文件不是Git源码内容。Linux安装以tar.gz为准，Windows上的展开目录不能替代符号链接正确的归档。
 
 接手时确认取得：Git仓库与指定提交、两平台审核基线、构建Node/Python、离线依赖及许可证、组织私有输入（内部渠道）、本版SHA256清单、实体机验收记录。不要把历史工具目录和临时输出当成必备平台材料。
 
@@ -322,4 +322,4 @@ python scripts/build-release.py
 
 所有新commit标题、正文用中文。从main创建功能分支，经PR和CI合并；禁止提交密钥、用户配置、绑定、日志、业务数据、真实接口文档、Internal安装包和node_modules。README与本交接文档跟随源码变化更新，不能把待办写成已实现。
 
-本次交接文档及内网合并脚本属于R11.4发布后的源码维护；没有重打包已有Release资产。通用安装脚本和公开说明可提交GitHub，组织实际配置仍仅存在本地Internal包。日后重新构建时由构建脚本将最新版专用安装说明、合并脚本和交接文档放入内网交付目录。
+本次构建已生成R11.5独立新包，不覆盖旧APP。源码文档会持续更新，包内文档为打包时快照；交接时使用仓库或内网交付目录外置的最新版三份文档。组织实际配置仅存在本地Internal输入和安装包。

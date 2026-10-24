@@ -57,7 +57,11 @@ try:
  ui_env.pop('ELECTRON_RUN_AS_NODE',None)
  ui_env['ELECTRON_ENABLE_LOGGING']='1'
  ui_cmd=([str((APP/'launcher/electron/electron.exe').resolve())] if os.name=='nt' else ['xvfb-run','-a',str(APP/'launcher/electron/electron')])+['--no-sandbox','--disable-gpu',str(HERE/'test-browser-ui.cjs')]
- subprocess.run(ui_cmd,env=ui_env,cwd=APP,check=True,timeout=240)
+ try:subprocess.run(ui_cmd,env=ui_env,cwd=APP,check=True,timeout=240)
+ except subprocess.CalledProcessError:
+  while not q.empty():buf+=q.get_nowait()
+  (WORK/'synthetic-backend-error.log').write_text(re.sub(r'token=[A-Za-z0-9_-]+','token=REDACTED',buf[-20000:]),encoding='utf-8');raise
+ report['desktopUiVerified']=True
  (WORK/'prompt-result.json').write_text(json.dumps(report,indent=2));print(json.dumps(report),flush=True)
 finally:
  if proc.poll() is None:
