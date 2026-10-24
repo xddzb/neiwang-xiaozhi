@@ -11,7 +11,7 @@
     "windowsAgentSkillsScheduleAndRestart": "PASS",
     "arm64VmAgentSkillsScheduleAndRestart": "PASS",
     "windowsElectronHomeSidebarAndSettings": "PASS",
-    "arm64VmElectronSettings": "UNRESOLVED_IN_EMULATION",
+    "arm64VmElectronSettings": "PASS",
     "physicalKylin": "NOT_TESTED",
     "organizationServices": "NOT_TESTED"
   },
@@ -99,5 +99,8 @@
       "bytes": 227266232,
       "sha256": "5235d97a45275a4b0691136e3882ec2921ca4f26ffd8f234b438370e6c538225"
     }
-  ]
+  ],
+  "remotePublicAssetDigestsVerified": true,
+  "remoteInternalAssetCount": 0,
+  "uiTestNotes": "Visible menu buttons are matched without clicking container elements; Windows shortcut hints are excluded from the label match. Physical Kylin remains untested."
 }

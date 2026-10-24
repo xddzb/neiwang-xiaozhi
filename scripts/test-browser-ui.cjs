@@ -6,7 +6,7 @@ require(path.join(process.env.NEIWANG_APP_ROOT,'launcher/shell/main.js'));
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 function fail(error){fs.writeFileSync(process.env.BROWSER_UI_OUTPUT+'.error.txt',String(error.stack||error));console.error(error);app.exit(1)}
 async function click(win,labels,selector='button'){
- return win.webContents.executeJavaScript(`(()=>{const labels=${JSON.stringify(labels)},list=[...document.querySelectorAll(${JSON.stringify(selector)})];if(labels.includes('更多'))list.reverse();const b=list.find(e=>labels.includes((e.innerText||'').trim())||labels.includes(e.getAttribute('aria-label')));if(b)b.click();return !!b})()`);
+ return win.webContents.executeJavaScript(`(()=>{const labels=${JSON.stringify(labels)},list=[...document.querySelectorAll(${JSON.stringify(selector)})].filter(e=>e.matches('button,[role=menuitem]')&&e.getClientRects().length);if(labels.includes('更多'))list.reverse();const b=list.find(e=>labels.includes((e.innerText||'').trim().split(String.fromCharCode(10))[0])||labels.includes(e.getAttribute('aria-label')));if(b)b.click();return !!b})()`);
 }
 (async()=>{
  await app.whenReady();let win,ready=false;

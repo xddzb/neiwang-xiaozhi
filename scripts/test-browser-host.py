@@ -47,13 +47,20 @@ try:
  def rpc(method,payload):
   req=urllib.request.Request(origin+'/neiwang-browser/'+method,data=json.dumps({'type':'client-request','rpcId':'fixture-'+method,'method':method,'payload':payload}).encode(),headers={'Content-Type':'application/json'})
   return json.load(opener.open(req,timeout=30))
- rpc('compact',{'enabled':False});baseline=open_json(origin+'/browser-addon-test/baseline');assert baseline['status']=='PASS'
- rpc('compact',{'enabled':True});compact=open_json(origin+'/browser-addon-test/compact');assert compact['status']=='PASS'
- status=rpc('status',{})['result']['value'];assert status['registeredSources']==int(os.environ.get('NEIWANG_EXPECTED_SOURCES','15'))
- assert observed['baseline']['containsFullSdkMap'] and not observed['compact']['containsFullSdkMap'];assert observed['compact']['containsLazyCatalog'];assert observed['compact']['systemChars']<observed['baseline']['systemChars']
- report={'status':'PASS','prompt':observed,'removedSystemCharacters':observed['baseline']['systemChars']-observed['compact']['systemChars'],'exactModelTokensMeasured':False,'sourceCount':status['registeredSources'],'realAgentToolLoop':True,'safetyAndToolPermissionsUnchanged':True}
- (WORK/'prompt-result.json').write_text(json.dumps(report,indent=2));print(json.dumps(report),flush=True)
- ui_env={**env,'DSH_URL':url,'FONTCONFIG_FILE':str(data/'runtime/fonts.conf'),'BROWSER_UI_OUTPUT':str(WORK/'browser-settings.png')}
+ if os.environ.get('NEIWANG_UI_ONLY')=='1':
+  report=json.loads((WORK/'prompt-result.json').read_text());assert report['status']=='PASS';report['uiOnlyRerun']=True
+ else:
+  rpc('compact',{'enabled':False});baseline=open_json(origin+'/browser-addon-test/baseline');assert baseline['status']=='PASS'
+  rpc('compact',{'enabled':True});compact=open_json(origin+'/browser-addon-test/compact');assert compact['status']=='PASS'
+  status=rpc('status',{})['result']['value'];assert status['registeredSources']==int(os.environ.get('NEIWANG_EXPECTED_SOURCES','15'))
+  assert observed['baseline']['containsFullSdkMap'] and not observed['compact']['containsFullSdkMap'];assert observed['compact']['containsLazyCatalog'];assert observed['compact']['systemChars']<observed['baseline']['systemChars']
+  report={'status':'PASS','prompt':observed,'removedSystemCharacters':observed['baseline']['systemChars']-observed['compact']['systemChars'],'exactModelTokensMeasured':False,'sourceCount':status['registeredSources'],'realAgentToolLoop':True,'safetyAndToolPermissionsUnchanged':True}
+  (WORK/'prompt-result.json').write_text(json.dumps(report,indent=2));print(json.dumps(report),flush=True)
+ ui_env={**env,'DSH_URL':url,'BROWSER_UI_OUTPUT':str(WORK/'browser-settings.png')}
+ if os.name!='nt':
+  from xml.sax.saxutils import escape
+  fontconfig=data/'runtime/fonts.conf';cache=data/'runtime/font-cache';cache.mkdir(parents=True,exist_ok=True)
+  fontconfig.write_text('<?xml version="1.0"?><!DOCTYPE fontconfig SYSTEM "fonts.dtd"><fontconfig><include ignore_missing="yes">/etc/fonts/fonts.conf</include><dir>'+escape(str(APP/'runtime/ui-fonts'))+'</dir><cachedir>'+escape(str(cache))+'</cachedir></fontconfig>',encoding='utf-8');ui_env['FONTCONFIG_FILE']=str(fontconfig)
  ui_env.pop('ELECTRON_RUN_AS_NODE',None)
  ui_env['ELECTRON_ENABLE_LOGGING']='1'
  ui_cmd=([str((APP/'launcher/electron/electron.exe').resolve())] if os.name=='nt' else ['xvfb-run','-a',str(APP/'launcher/electron/electron')])+['--no-sandbox','--disable-gpu',str(HERE/'test-browser-ui.cjs')]
