@@ -23,7 +23,7 @@ data=WORK/'data';(data/'config').mkdir(parents=True,exist_ok=True);workspace=WOR
 (data/'config/model.enc').write_bytes(model_config.encode({'version':1,'base_url':f'http://127.0.0.1:{mock.server_port}/v1','api_key':'synthetic-test-only','models':['fixture'],'default_model':'fixture'}))
 (WORK/'patch.json').write_text(json.dumps([{'insert':[{'id':'browser-addon-test','name':(HERE/'test-browser-host.mjs').as_uri()}]}]))
 env={**os.environ,'NEIWANG_APP_ROOT':str(APP),'NEIWANG_DATA_DIR':str(data),'NEIWANG_WORKSPACE_DIR':str(workspace),'NEIWANG_TEST_PATCH':str(WORK/'patch.json')}
-proc=subprocess.Popen([str(APP/'runtime/node/bin/node'),str(HERE/'r113-entry.cjs')],cwd=APP,env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,start_new_session=True)
+proc=subprocess.Popen([str(APP/('runtime/node/node.exe' if os.name=='nt' else 'runtime/node/bin/node')),str(HERE/'r113-entry.cjs')],cwd=APP,env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,start_new_session=True)
 q=queue.Queue();buf=''
 def reader():
  for line in iter(proc.stdout.readline,b''):q.put(line.decode('utf8','replace'))
@@ -44,16 +44,22 @@ try:
   return json.load(opener.open(req,timeout=30))
  rpc('compact',{'enabled':False});baseline=json.load(opener.open(origin+'/browser-addon-test/baseline',timeout=180));assert baseline['status']=='PASS'
  rpc('compact',{'enabled':True});compact=json.load(opener.open(origin+'/browser-addon-test/compact',timeout=180));assert compact['status']=='PASS'
- status=rpc('status',{})['result']['value'];assert status['registeredSources']>=15
+ status=rpc('status',{})['result']['value'];assert status['registeredSources']==int(os.environ.get('NEIWANG_EXPECTED_SOURCES','15'))
  assert observed['baseline']['containsFullSdkMap'] and not observed['compact']['containsFullSdkMap'];assert observed['compact']['containsLazyCatalog'];assert observed['compact']['systemChars']<observed['baseline']['systemChars']
  report={'status':'PASS','prompt':observed,'removedSystemCharacters':observed['baseline']['systemChars']-observed['compact']['systemChars'],'exactModelTokensMeasured':False,'sourceCount':status['registeredSources'],'realAgentToolLoop':True,'safetyAndToolPermissionsUnchanged':True}
  (WORK/'prompt-result.json').write_text(json.dumps(report,indent=2));print(json.dumps(report),flush=True)
  ui_env={**env,'DSH_URL':url,'FONTCONFIG_FILE':str(data/'runtime/fonts.conf'),'BROWSER_UI_OUTPUT':str(WORK/'browser-settings.png')}
- subprocess.run(['xvfb-run','-a',str(APP/'launcher/electron/electron'),'--no-sandbox','--disable-gpu',str(HERE/'test-browser-ui.cjs')],env=ui_env,cwd=APP,check=True,timeout=240)
+ ui_env.pop('ELECTRON_RUN_AS_NODE',None)
+ ui_cmd=([str(APP/'launcher/electron/electron.exe')] if os.name=='nt' else ['xvfb-run','-a',str(APP/'launcher/electron/electron')])+['--no-sandbox','--disable-gpu',str(HERE/'test-browser-ui.cjs')]
+ subprocess.run(ui_cmd,env=ui_env,cwd=APP,check=True,timeout=240)
  (WORK/'prompt-result.json').write_text(json.dumps(report,indent=2));print(json.dumps(report),flush=True)
 finally:
  if proc.poll() is None:
-  os.killpg(proc.pid,signal.SIGTERM)
+  if os.name=='nt':subprocess.run(['taskkill','/PID',str(proc.pid),'/T','/F'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+  else:os.killpg(proc.pid,signal.SIGTERM)
   try:proc.wait(timeout=20)
-  except subprocess.TimeoutExpired:os.killpg(proc.pid,signal.SIGKILL);proc.wait()
+  except subprocess.TimeoutExpired:
+   if os.name=='nt':proc.kill()
+   else:os.killpg(proc.pid,signal.SIGKILL)
+   proc.wait()
  mock.shutdown()
