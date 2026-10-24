@@ -1,5 +1,7 @@
 # 麒麟 ARM64 R11.3 交接
 
+发行已拆分为核心包与插件包，安装步骤见 [R11.3 分包安装](R11_3_SPLIT_INSTALL.md)。组合后的应用内容与原完整包保持一致。可用 `python scripts/split-kylin-r113.py /path/to/full.tar.gz --output /path/to/split` 重建并验证两包。
+
 日期：2026-10-24。内核固定为 DeepSeek Harness 0.2.0-rc.2，未修改内核文件。
 
 ## 本版变化
