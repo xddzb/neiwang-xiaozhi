@@ -4,6 +4,8 @@ R11.4 提供麒麟 ARM64 和 Windows 10/11 x64。每个平台分为 Core 核心�
 
 Core 包含未修改的 DSH 0.2.0-rc.2 内核、桌面壳、Node/Python、模型/RAG配置入口和迁移工具；Plugins 包含业务接口、钉钉机器人、AI表格、PDF/OCR、技能孵化器和 Playwright。原生定时任务随内核提供；APP关闭、休眠或关机时不执行，不保证补投递业务恰好一次。
 
+内网 Internal 交付版已内置固定模型、RAG和接口资料，不需要旧APP、迁移或首次配置。直接安装步骤见 [内网版安装说明](INTERNAL_INSTALL.md)。下文首次配置和迁移步骤用于 Public 包或明确需要导入旧设置的场景。
+
 ## 麒麟：本地合并两包
 
 将两包放入同一个目录。在终端执行，以下示例为 GitHub Public 包：

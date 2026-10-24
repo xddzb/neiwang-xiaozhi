@@ -33,7 +33,7 @@ sh 配置RAG.sh
 sh start.sh
 ```
 
-Internal 包只需将上面文件名中的 `Public` 换成 `Internal`；已有默认配置时跳过重新配置。
+Internal 内网交付版已内置固定模型、RAG和接口资料，不需要旧 APP、迁移或首次配置。请直接按 [内网版安装说明](docs/INTERNAL_INSTALL.md) 合并安装并启动；上面的首次配置步骤仅用于 Public 包。
 
 Windows PowerShell：
 
