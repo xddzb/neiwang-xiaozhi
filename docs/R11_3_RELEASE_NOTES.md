@@ -11,6 +11,8 @@
 
 下载配套的 Core 核心包与 Plugins 插件包，在同一个新的可写目录解压：
 
+**拆包原因：内网钉钉只允许上传 500 MB 以内的文件。** 原完整安装包约 587 MB，现拆成约 381 MB 核心包和约 207 MB 插件包，每个文件均低于 500 MB。Assets 只保留这两个安装包，说明和校验值放在正文及仓库。
+
 ```sh
 tar -xzf Neiwang-Xiaozhi-Kylin-ARM64-R11.3-Public-Core.tar.gz
 tar -xzf Neiwang-Xiaozhi-Kylin-ARM64-R11.3-Public-Plugins.tar.gz
@@ -31,3 +33,12 @@ sh start.sh
 扫描件OCR每次最多20页，复杂表格、公式和低质量扫描须核对原页。技能格式校验不代表业务质量合格。APP需保持运行才能按时调度，不安装系统常驻服务。
 
 [开发交接与构建说明](R11_3_HANDOVER.md)
+
+[内核与插件升级边界](CORE_AND_PLUGIN_UPGRADES.md)
+
+## 公开分包 SHA256
+
+```text
+c6ae6bc94c511c19ddbd9195230dfae2a4f94f5379a4102061ff18d454f9c2af  Neiwang-Xiaozhi-Kylin-ARM64-R11.3-Public-Core.tar.gz
+5bbbd69c14734c37c2da97da2cafb1bc2e0d775198c3200ab24d2e3dd6db5ae7  Neiwang-Xiaozhi-Kylin-ARM64-R11.3-Public-Plugins.tar.gz
+```

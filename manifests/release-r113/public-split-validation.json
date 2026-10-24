@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "source": "Neiwang-Xiaozhi-Kylin-ARM64-R11.3-Public.tar.gz",
+  "sourceSha256": "4b419ff27eba184fc4d73d5f8d0a76de4e94eecb8d1457334a0fc2f307bf2a0a",
+  "verification": "All member names, types, modes, link targets and file SHA256 match the original; no missing or overlapping members.",
+  "members": 45761,
+  "assets": [
+    {
+      "name": "Neiwang-Xiaozhi-Kylin-ARM64-R11.3-Public-Core.tar.gz",
+      "kind": "Core",
+      "bytes": 380484471,
+      "members": 33628,
+      "sha256": "c6ae6bc94c511c19ddbd9195230dfae2a4f94f5379a4102061ff18d454f9c2af"
+    },
+    {
+      "name": "Neiwang-Xiaozhi-Kylin-ARM64-R11.3-Public-Plugins.tar.gz",
+      "kind": "Plugins",
+      "bytes": 206526995,
+      "members": 12133,
+      "sha256": "5bbbd69c14734c37c2da97da2cafb1bc2e0d775198c3200ab24d2e3dd6db5ae7"
+    }
+  ]
+}

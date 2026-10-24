@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "archive": "Neiwang-Xiaozhi-Kylin-ARM64-R11.3-Public.tar.gz",
+  "filesScanned": 44712,
+  "knownOrganizationCredentialsAbsent": true,
+  "findings": []
+}

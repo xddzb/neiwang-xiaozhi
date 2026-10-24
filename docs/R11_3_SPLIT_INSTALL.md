@@ -2,6 +2,8 @@
 
 同一版本、同一类型（Internal 或 Public）的 Core 和 Plugins 两包配套使用。
 
+拆包原因：内网钉钉只允许上传 500 MB 以内的文件。原完整包约 587 MB，拆分后核心包约 381 MB、插件包约 207 MB，单文件均低于限制。
+
 - Core：应用内核、Node/Python/Electron 运行环境、启动器及基础配置。
 - Plugins：完整 `plugin-pack/`，含插件安装器、依赖、离线 OCR 数据和插件清单。
 
