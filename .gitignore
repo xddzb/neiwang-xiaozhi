@@ -78,3 +78,10 @@ private-docs/*
 build-materials/
 # Generated plugin runtime assets (distributed only in reviewed offline APPs)
 extensions/dsh-attachment-formats/vendor/tessdata/
+
+# Downloaded pinned sidebar runtime; prepare:plugins restores from verified npm artifact
+extensions/dsh-better-sidebar/lib/
+extensions/dsh-better-sidebar/src/
+extensions/dsh-better-sidebar/locale/
+extensions/dsh-better-sidebar/icon.svg
+config/build.local.json

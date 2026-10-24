@@ -1,16 +1,39 @@
-const {app,BrowserWindow,Menu}=require('electron'),fs=require('node:fs'),path=require('node:path');
-app.disableHardwareAcceleration();require(path.join(process.env.NEIWANG_APP_ROOT,'launcher/shell/main.js'));const delay=ms=>new Promise(r=>setTimeout(r,ms));
-(async()=>{await app.whenReady();let win,text='',ready=false;for(let i=0;i<100;i++){win=BrowserWindow.getAllWindows()[0];if(win){ready=await win.webContents.executeJavaScript(`!![...document.querySelectorAll('button')].find(e=>['设置','Settings'].includes(e.getAttribute('aria-label'))||['设置','Settings'].includes(e.innerText.trim()))`);if(ready)break}await delay(1000)}if(!ready){text=await win.webContents.executeJavaScript('document.body.innerText');throw Error('Main UI not ready: '+text.slice(0,1000).replace(/token=[A-Za-z0-9_-]+/g,'token=REDACTED'))}if(Menu.getApplicationMenu()!==null)throw Error('Edit menu returned');await verifyBranding();await win.webContents.executeJavaScript(`(()=>{const b=[...document.querySelectorAll('button')].find(e=>['设置','Settings'].includes(e.getAttribute('aria-label'))||['设置','Settings'].includes(e.innerText.trim()));b.click()})()`);await delay(1500);await win.webContents.executeJavaScript(`(()=>{const b=[...document.querySelectorAll('button')].find(e=>e.innerText.trim()==='业务浏览器与接口');if(!b)throw Error('browser navigation missing');b.click()})()`);await delay(2000);text=await win.webContents.executeJavaScript('document.body.innerText');if(!text.includes('已登记接口源：'+(process.env.NEIWANG_EXPECTED_SOURCES||15)))throw Error('Restored source count not shown: '+text.slice(-1500));if(!text.includes('精简工具提示词'))throw Error('Compact setting missing');fs.writeFileSync(process.env.BROWSER_UI_OUTPUT,(await win.webContents.capturePage()).toPNG());console.log('PASS browser settings UI, expected source count, compact option, no Edit menu');app.exit(0)})().catch(e=>{console.error(e);app.exit(1)});
-
-async function verifyBranding(){
- const fixture=new BrowserWindow({show:false,webPreferences:{preload:path.join(process.env.NEIWANG_APP_ROOT,'launcher/shell/rag-control-preload.cjs'),contextIsolation:true,nodeIntegration:false}});
- try{
-  await fixture.loadURL('data:text/html;charset=utf-8,'+encodeURIComponent('<!doctype html><html><head><title>DeepSeek Harness</title></head><body><div data-dsh-boot><div><div>HARNESS</div><div data-dsh-boot-spinner></div><div>Loading plugins…</div></div></div></body></html>'));
-  const loading=await fixture.webContents.executeJavaScript(`(()=>{const main=document.querySelector('[data-dsh-boot] > div > :first-child'),sub=document.querySelector('[data-neiwang-boot-subtitle]');return {title:document.title,main:main.textContent,sub:sub?.textContent,mainSize:parseFloat(getComputedStyle(main).fontSize),subSize:parseFloat(getComputedStyle(sub).fontSize),text:document.body.innerText}})()`);
-  if(loading.title!=='内网小智'||loading.main!=='内网小智'||loading.sub!=='你说我做'||/harness/i.test(loading.text)||loading.mainSize<=loading.subSize)throw Error('Loading branding failed: '+JSON.stringify(loading));
-  await fixture.webContents.executeJavaScript(`document.body.innerHTML='<div class="pXSMma_titleGroup"><span>探索未至之境</span><span class="pXSMma_previewBadge">预览版</span></div><button>PDF预览</button>'`);await delay(100);
-  const home=await fixture.webContents.executeJavaScript(`(()=>{const g=document.querySelector('.pXSMma_titleGroup'),sub=g.firstElementChild;return {main:getComputedStyle(g,'::before').content,mainSize:parseFloat(getComputedStyle(g,'::before').fontSize),sub:sub.textContent,subSize:parseFloat(getComputedStyle(sub).fontSize),badge:getComputedStyle(g.lastElementChild).display,pdf:document.querySelector('button').innerText}})()`);
-  if(home.main!=='"内网小智"'||home.sub!=='你说我做'||home.mainSize<=home.subSize||home.badge!=='none'||home.pdf!=='PDF预览')throw Error('Home branding failed: '+JSON.stringify(home));
-  console.log('PASS isolated Electron branding fixture: title, early boot, 32/18px hierarchy, preview badge hidden, PDF preview retained');
- }finally{fixture.destroy()}
+const fs=require('node:fs'),path=require('node:path');
+process.on('uncaughtException',fail);
+const {app,BrowserWindow,Menu}=require('electron');
+app.disableHardwareAcceleration();
+require(path.join(process.env.NEIWANG_APP_ROOT,'launcher/shell/main.js'));
+const delay=ms=>new Promise(r=>setTimeout(r,ms));
+function fail(error){fs.writeFileSync(process.env.BROWSER_UI_OUTPUT+'.error.txt',String(error.stack||error));console.error(error);app.exit(1)}
+async function click(win,labels,selector='button'){
+ return win.webContents.executeJavaScript(`(()=>{const labels=${JSON.stringify(labels)},list=[...document.querySelectorAll(${JSON.stringify(selector)})].filter(e=>e.matches('button,[role=menuitem]')&&e.getClientRects().length);if(labels.includes('更多'))list.reverse();const b=list.find(e=>labels.includes((e.innerText||'').trim().split(String.fromCharCode(10))[0])||labels.includes(e.getAttribute('aria-label')));if(b)b.click();return !!b})()`);
 }
+(async()=>{
+ await app.whenReady();let win,ready=false;
+ for(let i=0;i<100;i++){
+  win=BrowserWindow.getAllWindows()[0];
+  if(win){ready=await win.webContents.executeJavaScript(`!!document.querySelector('[data-dsh-better-sidebar]') || !![...document.querySelectorAll('button')].find(e=>['设置','Settings'].includes(e.getAttribute('aria-label')))`);if(ready)break}
+  await delay(1000);
+ }
+ if(!ready)throw Error('Main UI not ready');
+ if(process.platform==='linux')await delay(15000);
+ if(Menu.getApplicationMenu()!==null)throw Error('Edit menu returned');
+ const home=await win.webContents.executeJavaScript(`({text:document.body.innerText,sidebar:!!document.querySelector('[data-dsh-better-sidebar]'),title:document.title})`);
+ if(!home.text.includes('你说我做')||home.text.includes('预览版')||home.title!=='内网小智')throw Error('Home branding mismatch');
+ if(process.env.NEIWANG_EXPECT_SIDEBAR==='1'&&(!home.sidebar||home.text.includes('PDF解析大师')))throw Error('Sidebar/parser mismatch');
+ fs.writeFileSync(process.env.BROWSER_UI_OUTPUT.replace('.png','-home.png'),(await win.webContents.capturePage()).toPNG());
+ if(!await click(win,['设置','Settings'])){
+  if(!await click(win,['更多','More']))throw Error('More menu missing');
+  await delay(500);
+  if(!await click(win,['设置','Settings','偏好设置','Preferences'],'*'))throw Error('Settings menu missing: '+await win.webContents.executeJavaScript('document.body.innerText.slice(-1800)'));
+ }
+ let settingsReady=false;
+ for(let i=0;i<120;i++){if(await click(win,['业务浏览器与接口'])){settingsReady=true;break}await delay(500)}
+ if(!settingsReady){fs.writeFileSync(process.env.BROWSER_UI_OUTPUT+'.dom.json',JSON.stringify(await win.webContents.executeJavaScript(`({text:document.body.innerText,buttons:[...document.querySelectorAll('button')].map(e=>({text:e.innerText,label:e.getAttribute('aria-label'),title:e.title}))})`),null,2));throw Error('Browser settings entry missing')}
+ await delay(1500);
+ const text=await win.webContents.executeJavaScript('document.body.innerText');
+ if(!text.includes('已登记接口源：'+(process.env.NEIWANG_EXPECTED_SOURCES||15))||!text.includes('精简工具提示词'))throw Error('Browser configuration UI mismatch');
+ fs.writeFileSync(process.env.BROWSER_UI_OUTPUT,(await win.webContents.capturePage()).toPNG());
+ console.log('PASS actual homepage branding, sidebar, no Edit/preview badge, browser configuration and source count');
+ app.exit(0);
+})().catch(fail);

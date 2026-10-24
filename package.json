@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "description": "内网小智开发版构建入口",
-  "engines": {"node": ">=24.9.0 <25"},
+  "engines": {
+    "node": ">=24.9.0 <25"
+  },
   "scripts": {
     "prepare:runtime": "node scripts/prepare-dev.cjs",
     "prepare:plugins": "node scripts/prepare-offline-plugins.cjs",
@@ -12,13 +14,15 @@
     "package": "node scripts/package-dev.cjs",
     "check": "node scripts/python-dev.cjs check_source.py",
     "test:runtime": "node scripts/python-dev.cjs test_runtime_prepare.py",
-    "test": "node --test scripts/test-dev.cjs",
+    "test": "node --test scripts/test-dev.cjs scripts/test-release-config.cjs",
     "test:plugins": "node --test scripts/test-plugin-manager.cjs scripts/test-dev.cjs",
     "verify:app": "node scripts/verify-dev-app.cjs"
   },
   "dependencies": {
-    "@deepseek-ai/dsh": "0.2.0-rc.2",
+    "@deepseek-ai/dsh": "0.2.1-rc.3",
     "@dingtalk-real-ai/dsh-dingtalk": "0.10.2"
   },
-  "devDependencies": {"electron": "33.2.0"}
+  "devDependencies": {
+    "electron": "33.2.0"
+  }
 }

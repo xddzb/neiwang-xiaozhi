@@ -1,7 +1,7 @@
 {
   "name": "内网小智",
-  "version": "R11.4-dev",
-  "coreVersion": "0.2.0-rc.2",
+  "version": "R11.5-dev",
+  "coreVersion": "0.2.1-rc.3",
   "port": 3080,
   "contextWindow": 128000,
   "maxOutputTokens": 8192,

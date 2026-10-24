@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "linuxBaseline": "/构建材料/麒麟已审核Public完整基线.tar.gz",
+  "linuxBaselineSha256": "填入该文件的64位SHA256",
+  "windowsBaseline": "/构建材料/已审核Windows基线APP",
+  "privateApp": "/内部材料/已预配置内网APP",
+  "node": "/运行时/node",
+  "outputRoot": "/构建输出",
+  "coreLinux": "/构建材料/core-linux-arm64",
+  "coreWindows": "/构建材料/core-win32-x64"
+}
