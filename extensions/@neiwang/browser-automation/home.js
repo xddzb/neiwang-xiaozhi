@@ -1,0 +1,1 @@
+document.getElementById('form').onsubmit=e=>{e.preventDefault();let text=document.getElementById('url').value.trim();if(!/^https?:\/\//i.test(text))text='https://'+text;try{const u=new URL(text);if(!['http:','https:'].includes(u.protocol)||u.username||u.password)throw Error();location.href=u.href}catch{document.getElementById('error').textContent='请输入有效的 HTTP/HTTPS 网址'}};

@@ -1,5 +1,7 @@
 # 内网小智
 
+新增[麒麟离线浏览器与业务接口恢复补丁](docs/BROWSER_API_PATCH.md)：Playwright 独立插件、缺失业务源恢复、浏览器登录会话适配，以及 PTC 工具参数按需发现。组织补丁含内部接口定义，仅本地交付；通用源码不含私有地址或登录数据。
+
 新增[独立离线插件管理器](docs/OFFLINE_PLUGIN_MANAGER.md)：现有 R11.3 可接入小型工具包，支持新增/升级插件、备份回滚与中断恢复，保留模型、RAG、钉钉绑定和用户数据，无需重装 APP。历史 Release 的 Core/Plugins 安装资产未被改写。
 
 R11.3 麒麟 ARM64 发行采用 Core 核心包与 Plugins 插件包，两个包解压到同一目录后安装插件。详见[分包安装说明](docs/R11_3_SPLIT_INSTALL.md)。
@@ -23,7 +25,7 @@ R11.3 麒麟 ARM64 发行采用 Core 核心包与 Plugins 插件包，两个包�
 | `scripts/` | R10 核心/插件拆包、文档嵌入、完整性验证及历史适配脚本 |
 | `docs/` | 安装说明、更新说明及开发指引 |
 
-钉钉使用官方 `DingTalk-Real-AI/dsh-dingtalk` 0.10.2，源码在本仓库保留的是配置页面和集成层。DWS AI 表格调用官方 DWS CLI；PyInstaller 用于将授权的 Python 脚本打包。业务浏览器已移除。
+钉钉使用官方 `DingTalk-Real-AI/dsh-dingtalk` 0.10.2，源码在本仓库保留的是配置页面和集成层。DWS AI 表格调用官方 DWS CLI；PyInstaller 用于将授权的 Python 脚本打包。基础发行不启用业务浏览器，可通过独立离线补丁恢复，无需重装 APP。
 
 ## 开发与验证
 

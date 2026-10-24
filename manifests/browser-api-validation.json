@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-24",
+  "status": "PASS",
+  "hostTests": {
+    "passed": 36,
+    "skipped": 3,
+    "failed": 0
+  },
+  "arm64OfflineTests": {
+    "passed": 39,
+    "skipped": 0,
+    "failed": 0,
+    "externalNetworkDisabled": true,
+    "loopbackEnabled": true
+  },
+  "browser": {
+    "status": "PASS",
+    "platform": "linux",
+    "arch": "arm64",
+    "offlineDependencies": true,
+    "navigation": true,
+    "snapshotRefs": true,
+    "fillAndSelect": true,
+    "iframe": true,
+    "screenshot": true,
+    "scroll": true,
+    "confirmationGuard": true,
+    "passwordNotExposed": true,
+    "legacyApiWithBrowserSession": true,
+    "loopbackOnly": true,
+    "testOnlyElectronFlags": [
+      "--no-sandbox",
+      "--disable-gpu"
+    ],
+    "realOrganizationServicesTested": false,
+    "nativeKylinTested": false
+  },
+  "prompt": {
+    "status": "PASS",
+    "prompt": {
+      "baseline": {
+        "systemChars": 48966,
+        "systemUtf8Bytes": 52788,
+        "wireToolCount": 1,
+        "containsFullSdkMap": true,
+        "containsLazyCatalog": false
+      },
+      "compact": {
+        "systemChars": 8662,
+        "systemUtf8Bytes": 11766,
+        "wireToolCount": 1,
+        "containsFullSdkMap": false,
+        "containsLazyCatalog": true
+      }
+    },
+    "removedSystemCharacters": 40304,
+    "exactModelTokensMeasured": false,
+    "sourceCount": 15,
+    "realAgentToolLoop": true,
+    "safetyAndToolPermissionsUnchanged": true
+  },
+  "sourceRestoration": {
+    "sources": 15,
+    "enabled": 13,
+    "disabled": 2,
+    "connections": 4,
+    "oldFilesNeverOverwritten": true,
+    "capturedCredentialsCopied": false
+  },
+  "finalArchiveInstallAndIdempotency": true,
+  "rollbackVerified": true,
+  "existingModelRagDingtalkBindingWorkspaceFixturesUnchanged": true,
+  "archive": {
+    "status": "PASS",
+    "files": 390,
+    "allManifestHashesValid": true,
+    "runtimeCodeIdenticalToArm64TestedCandidate": true,
+    "credentialCapturesOrModelRagBindingDataIncluded": false,
+    "privateBusinessDefinitionsIncluded": true,
+    "doNotPublishArchivePublicly": true,
+    "bytes": 2047512,
+    "sha256": "82e1a3ddc2b397118d5ff8743f3360231ef847652a07d719a622216068ba3dd3"
+  },
+  "limitations": [
+    "Native Kylin not tested",
+    "No real organization service requests",
+    "Exact organization-model token counts not measured",
+    "Legacy OCR/WASM simulator issue not changed"
+  ],
+  "branding": {
+    "status": "PASS",
+    "electronFixture": true,
+    "nativeKylinTested": false,
+    "bootTitle": "内网小智",
+    "subtitle": "你说我做",
+    "titlePx": 32,
+    "subtitlePx": 18,
+    "previewBadgeHidden": true,
+    "pdfPreviewRetained": true,
+    "coreModified": false,
+    "rollbackAndReinstall": true
+  }
+}
