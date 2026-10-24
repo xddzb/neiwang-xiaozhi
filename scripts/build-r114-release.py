@@ -208,6 +208,8 @@ def main(a):
  internal_assets=package(internal,links,dist/'Send-to-Intranet','Internal')
  put(dist/'Send-to-Intranet','安装与合并说明.md',(ROOT/'docs/INTERNAL_INSTALL.md').read_bytes())
  put(dist/'Send-to-Intranet','合并安装R11.4.sh',(ROOT/'scripts/install-internal-r114.sh').read_bytes())
+ put(dist/'Send-to-Intranet','R11_4_HANDOVER.md',(ROOT/'docs/R11_4_HANDOVER.md').read_bytes())
+ put(dist/'Send-to-Intranet','INTERNAL_INSTALL.md',(ROOT/'docs/INTERNAL_INSTALL.md').read_bytes())
  put(work,'composition.json',dump({'version':VERSION,'publicAssets':public_assets,'internalAssets':internal_assets,'oldDirectoriesModified':False}))
  print(json.dumps({'status':'BUILT','version':VERSION,'work':str(work),'dist':str(dist)}),flush=True)
 if __name__=='__main__':
