@@ -6,6 +6,7 @@
   "engines": {"node": ">=24.9.0 <25"},
   "scripts": {
     "prepare:runtime": "node scripts/prepare-dev.cjs",
+    "prepare:plugins": "node scripts/prepare-offline-plugins.cjs",
     "build": "node scripts/build-dev.cjs",
     "start": "node scripts/start-dev.cjs",
     "package": "node scripts/package-dev.cjs",

@@ -1,0 +1,19 @@
+{
+  "name": "内网小智",
+  "version": "R11.3",
+  "coreVersion": "0.2.0-rc.2",
+  "port": 3080,
+  "contextWindow": 128000,
+  "maxOutputTokens": 8192,
+  "bundles": [
+    "@neiwang/deployment",
+    "@deepseek-ai/neiwang-tool-catalog",
+    "@neiwang/brand",
+    "@anionex/dsh-turn-rewind",
+    "@dsh-plugin/dsh-code-review",
+    "@deepseek-ai/dsh-experimental-schedule-bundle"
+  ],
+  "businessBrowser": false,
+  "platform": "Kylin-ARM64",
+  "edition": "core"
+}

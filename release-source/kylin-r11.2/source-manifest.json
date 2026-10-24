@@ -5,7 +5,8 @@
     "Source snapshot, not an installable application",
     "Deployment encryption key replaced with NEIWANG_CONFIG_KEY",
     "Encrypted seeds, user data, enterprise API definitions, contracts and third-party runtimes excluded",
-    "Historical release scripts require private release baselines; use root developer build for clean checkout"
+    "Historical release scripts require private release baselines; use root developer build for clean checkout",
+    "2026-10-24: brand extension overrides the Chinese homepage headline; published hashes updated for authored changes."
   ],
   "files": [
     {
@@ -65,8 +66,8 @@
     {
       "path": "extensions/@neiwang/brand/client.js",
       "sourceSha256": "f37107fa441849f3eebff4c8c6285ae8d95b5a4b825c8c85ebb29acf3e2bbbde",
-      "publishedSha256": "f37107fa441849f3eebff4c8c6285ae8d95b5a4b825c8c85ebb29acf3e2bbbde",
-      "sanitized": false
+      "publishedSha256": "c5563c5b6fae8b8bfba13cdb7f0039d5b0ca1533e43e9d75029edc58f88db137",
+      "sanitized": true
     },
     {
       "path": "extensions/@neiwang/brand/cordis.patch.yml",
@@ -83,7 +84,7 @@
     {
       "path": "extensions/@neiwang/brand/package.json",
       "sourceSha256": "acdb01797f6cb3040a4d921857e933d0a30588cce04de4f2af5e79f30076de21",
-      "publishedSha256": "b55e5dfc884211333864d906bfc982b6ca278f1aab04e01fb680c9ca3d4d2d22",
+      "publishedSha256": "efa960be4c08ecd9928bf6a2bc58268f00b77c4e7e952503b220c3d4f271948f",
       "sanitized": true
     },
     {

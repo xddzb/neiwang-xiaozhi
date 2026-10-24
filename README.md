@@ -1,8 +1,10 @@
 # 内网小智
 
+2026-10-24：麒麟 ARM64 R11.3 新增原生定时任务、技能孵化器与离线 PDF/中英文 OCR，并更新首页文案。详见 [R11.3 交接与构建说明](docs/R11_3_HANDOVER.md)。新插件已在源码中提供；完整开发构建前增加 `npm run prepare:plugins`，实际发行验证结果以 Release 附带的 validation.json 为准。公开版不含组织模型、RAG 凭据及内部接口资料。
+
 2026-10-23 补充：[麒麟 R11.2 开发交接文档](docs/HANDOVER_R11_2.html)及[发布源码快照](release-source/kylin-r11.2/source-manifest.json)。包含本次 RAG 漏配修复、Shell 换行修复、机器人/AI 表格适配和交付验证范围。根目录独立开发构建流程继续保留；快照需发行基线及运行时，不能直接启动。组织凭据、加密默认配置和内部发行包不上传。
 
-内网小智的协作源码仓库。当前开发主线为完整 R10-dev：官方 DeepSeek Harness 内核、部署配置、自有扩展和用户数据分离；Windows x64 / 麒麟 ARM64 交付采用 Core 核心包与 Plugins 可选插件包。
+内网小智的协作源码仓库。当前开发主线为 R11.3-dev，沿用独立开发构建架构：官方 DeepSeek Harness 内核、部署配置、自有扩展和用户数据分离；Windows x64 / 麒麟 ARM64 交付采用 Core 核心包与 Plugins 可选插件包。
 
 ## 源码目录
 
@@ -25,7 +27,7 @@
 python scripts/check_source.py
 ```
 
-开发版通过 `npm ci` 下载锁定依赖、`npm run prepare:runtime` 准备已校验的独立运行库、`npm run build` 生成桌面 APP、`npm start` 启动，不再要求本机 R9 基线或预先配置模型密钥。首次启动在设置 → 模型中填写自己的服务和 API Key，可继续修改。完整命令及平台前提见构建运行指南。历史 R10 离线核心/插件包的脚本仍需发行基线，与新开发构建不同。
+开发版通过 `npm ci` 下载锁定依赖、`npm run prepare:runtime` 准备已校验的独立运行库、`npm run prepare:plugins` 准备离线 PDF/OCR 插件材料，`npm run build` 生成桌面 APP、`npm start` 启动，不再要求本机 R9 基线或预先配置模型密钥。首次启动在设置 → 模型中填写自己的服务和 API Key，可继续修改。完整命令及平台前提见构建运行指南。历史 R10 离线核心/插件包的脚本仍需发行基线，与新开发构建不同。
 
 ## 从源码生成完整 APP
 
@@ -34,6 +36,7 @@ python scripts/check_source.py
 ```sh
 npm ci
 npm run prepare:runtime
+npm run prepare:plugins
 npm run build
 # 用构建指南中对应平台的目录执行 npm run verify:app -- builds/<目录>
 npm start

@@ -1,0 +1,66 @@
+{
+  "remoteTablesModified": false,
+  "uiChecks": [
+    "Homepage headline",
+    "Automation navigation",
+    "Skill incubator settings",
+    "PDF local OCR settings",
+    "DingTalk and AI table settings",
+    "No Edit menu"
+  ],
+  "runtime": {
+    "status": "PASS",
+    "features": {
+      "status": "PASS",
+      "toolNames": [
+        "skill_new",
+        "skill_validate",
+        "skill_package",
+        "skill_improve_description",
+        "pdf_parse",
+        "schedule_create",
+        "schedule_list",
+        "schedule_delete",
+        "schedule_update"
+      ],
+      "timerDelivered": true,
+      "agentSkillCreated": true,
+      "pdfTextInToolResult": true
+    },
+    "restart": {
+      "status": "PASS",
+      "persistedTaskRestored": true,
+      "coldSessionDelivered": true,
+      "generatedSkillDiscoverableAfterRestart": true
+    },
+    "ui": true,
+    "model": "local synthetic fixture",
+    "nativeKylinTested": false
+  },
+  "limitations": [
+    "App must remain running for scheduled delivery",
+    "Delivery is not a business execution success record",
+    "OCR is bounded to 20 pages per request; verify complex layouts against original",
+    "No native Kylin or real organization service acceptance performed"
+  ],
+  "offline": {
+    "status": "PASS",
+    "skill": true,
+    "pdfText": true,
+    "ocrChineseEnglish": true,
+    "fetchAttempts": 0,
+    "platform": "linux",
+    "arch": "arm64"
+  },
+  "status": "PASS",
+  "testEnvironment": "Ubuntu 20.04 ARM64 / QEMU",
+  "networkIsolation": "ARM64 unit test ran under sudo unshare -n",
+  "target": "Kylin V10 ARM64",
+  "coreUnchanged": true,
+  "date": "2026-10-24",
+  "dingtalkMessagesSent": false,
+  "nativeKylinTested": false,
+  "version": "R11.3",
+  "modelsAndRag": "Existing encrypted defaults preserved in organization edition only; no live organization endpoint tested",
+  "installedWithRealInstaller": true
+}

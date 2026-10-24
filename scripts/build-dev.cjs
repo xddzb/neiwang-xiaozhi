@@ -47,9 +47,10 @@ function build({dependencies=path.join(source,'node_modules'),output,coreOnly=fa
  const nodeLicense=path.join(path.dirname(process.execPath),'LICENSE');
  if(fs.existsSync(nodeLicense))copy(nodeLicense,path.join(dest,'runtime/node/LICENSE'));
  const app=JSON.parse(fs.readFileSync(path.join(dest,'config/app.json'),'utf8'));
- app.platform=platform;app.bundles=['@neiwang/deployment','@neiwang/brand'];
- if(!coreOnly)app.bundles.push('@dingtalk-real-ai/dsh-dingtalk','@deepseek-ai/neiwang-dingtalk-ui','@neiwang/dws-aitable','@neiwang/python-tools');
- for(const name of app.bundles.filter(n=>n!=='@dingtalk-real-ai/dsh-dingtalk'))copy(path.join(source,'extensions',name),path.join(dest,'extensions/node_modules',name));
+ app.platform=platform;app.bundles=['@neiwang/deployment','@neiwang/brand','@deepseek-ai/dsh-experimental-schedule-bundle'];
+ if(!coreOnly)app.bundles.push('@dingtalk-real-ai/dsh-dingtalk','@deepseek-ai/neiwang-dingtalk-ui','@neiwang/dws-aitable','@neiwang/python-tools','@neiwang/skill-incubator','dsh-attachment-formats');
+ if(!coreOnly&&!fs.existsSync(path.join(source,'extensions/dsh-attachment-formats/vendor/tessdata/chi_sim.traineddata.gz')))throw Error('Run npm run prepare:plugins in the approved build environment first.');
+ for(const name of app.bundles.filter(n=>!['@dingtalk-real-ai/dsh-dingtalk','@deepseek-ai/dsh-experimental-schedule-bundle'].includes(n)))copy(path.join(source,'extensions',name),path.join(dest,'extensions/node_modules',name));
  fs.writeFileSync(path.join(dest,'config/app.json'),JSON.stringify(app,null,2)+'\n');
  if(!coreOnly){
   const patch=path.join(dest,'extensions/node_modules/@neiwang/deployment/cordis.patch.yml');
@@ -73,7 +74,7 @@ function build({dependencies=path.join(source,'node_modules'),output,coreOnly=fa
  copy(path.join(source,'private-docs/README.md'),path.join(dest,'private-docs/README.md'));
  fs.writeFileSync(path.join(dest,'start.cmd'),'@echo off\r\ncd /d "%~dp0"\r\n"runtime\\node\\node.exe" "launcher\\supervisor.cjs"\r\nif errorlevel 1 pause\r\n');
  fs.writeFileSync(path.join(dest,'start.sh'),'#!/bin/sh\nset -eu\ncd "$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"\nexec ./runtime/node/bin/node ./launcher/supervisor.cjs\n',{mode:0o755});
- const metadata={platform,arch:process.arch,node:process.versions.node,core:corePackage.version,edition:'development',features:coreOnly?[]:['dingtalk','dws-aitable','python','pyinstaller']};
+ const metadata={platform,arch:process.arch,node:process.versions.node,core:corePackage.version,edition:'development',features:coreOnly?[]:['dingtalk','dws-aitable','python','pyinstaller','schedule','skill-incubator','offline-pdf']};
  fs.mkdirSync(path.join(dest,'manifests'),{recursive:true});fs.writeFileSync(path.join(dest,'manifests/development.json'),JSON.stringify(metadata,null,2));
  if(!coreOnly)copy(path.join(materials,'ready.json'),path.join(dest,'manifests/runtime-assets.json'));
  console.log('Development app built: '+dest);return dest;

@@ -76,3 +76,5 @@ private-docs/*
 !private-docs/README.md
 !private-docs/内网接口文档.template.html
 build-materials/
+# Generated plugin runtime assets (distributed only in reviewed offline APPs)
+extensions/dsh-attachment-formats/vendor/tessdata/

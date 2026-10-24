@@ -2,7 +2,7 @@
 
 ## 构建内容与目录
 
-默认构建包含：官方 DSH 内核与可修改的模型设置、桌面界面、钉钉官方连接器及绑定设置、DWS AI 表格、独立 Python 3.12.14、PyInstaller 6.22.3，以及空白接口文档模板。Linux 版另含固定版本 bubblewrap 沙箱助手及许可证/对应源码。默认不包含真实接口、企业专用业务实现、真实凭据、Office/OCR 大型依赖。这里的“完整开发版”指上述能力全部可用，企业业务仍需另行开发和授权。
+默认构建包含：官方 DSH 内核与可修改的模型设置、桌面界面、钉钉官方连接器及绑定设置、DWS AI 表格、独立 Python 3.12.14、PyInstaller 6.22.3，以及空白接口文档模板。Linux 版另含固定版本 bubblewrap 沙箱助手及许可证/对应源码。新增原生定时任务、技能孵化器和离线PDF/中英文OCR；插件依赖与语言包由 prepare:plugins 提前准备。默认不包含真实接口、企业专用业务实现、真实凭据及大型云端解析模型。这里的“完整开发版”指上述能力全部可用，企业业务仍需另行开发和授权。
 
 构建产物是可移动的 APP 文件夹；Windows 通过 start.cmd 启动，麒麟通过 start.sh 启动，不是带系统安装向导的 MSI/DEB。Node、Electron、Python 和 DWS 随包携带，接收同平台 APP 的同事不必另装 Node/Python。模型推理和钉钉/DWS 远端业务仍需有效账号和网络。
 
@@ -24,6 +24,7 @@ git clone https://github.com/xddzb/neiwang-xiaozhi.git
 cd neiwang-xiaozhi
 npm.cmd ci
 npm.cmd run prepare:runtime
+npm.cmd run prepare:plugins
 npm.cmd run build
 npm.cmd run verify:app -- builds/Neiwang-Xiaozhi-Win10-x64-Dev
 npm.cmd start
@@ -48,6 +49,7 @@ git clone https://github.com/xddzb/neiwang-xiaozhi.git
 cd neiwang-xiaozhi
 npm ci
 npm run prepare:runtime
+npm run prepare:plugins
 npm run build
 # ARM64：
 npm run verify:app -- builds/Neiwang-Xiaozhi-Linux-arm64-Dev
@@ -78,7 +80,7 @@ Linux 需有 x-terminal-emulator 或 xterm；没有图形终端时在 APP 目录
 
 ### DWS AI 表格
 
-默认已包含官方 DWS CLI 1.0.65。当前 Agent 接口仅开放查询，新增、修改和删除已禁用。Windows 先在 APP 目录运行 `powershell -NoProfile -File tools/dws-readonly-app.ps1 -Mode Configure`，使用已核对权限的专用只读应用；再在“设置 → 钉钉AI表格”登录并刷新。凭据采用当前 Windows 用户加密保存在 data/config/dws-readonly-app.xml，授权状态在 data/dws-readonly/。麒麟目前只完成 CLI/Schema 与工具自检，专用应用的图形授权配置尚未适配，不能视为已完成真实表格接入。不要复用机器人密钥，也不要提交本机授权数据。
+默认已包含官方 DWS CLI 1.0.65。R11.3恢复原插件公开的27个读写命令：未确认写入默认预览，删除先确认；具备能力不等于已获得组织权限。设置→钉钉AI表格→登录／授权，由本人和组织管理员核对权限并完成授权，刷新后选择完整执行账号。机器人绑定与表格授权分别管理，不提交本机凭据和授权数据。旧版 dws-readonly-app.ps1 作为历史专用只读应用辅助脚本保留，不是当前默认入口。实际麒麟图形授权及组织表格连通性需现场验收。
 
 先做 Base/表/字段/记录查询，确认目标后再授权写入，并读回校验。工具默认对未确认写入执行 dry-run；超时或未知结果先查询，不自动重试写操作。本功能是 AI 表格，不是普通电子表格或宜搭。
 
@@ -134,6 +136,7 @@ $env:ELECTRON_SKIP_BINARY_DOWNLOAD='1'
 npm.cmd ci
 Remove-Item Env:ELECTRON_SKIP_BINARY_DOWNLOAD
 npm.cmd run prepare:runtime
+npm.cmd run prepare:plugins
 npm.cmd run build -- --electron-dist 'D:/offline-materials/electron-33.2.0-win32-x64'
 ```
 
