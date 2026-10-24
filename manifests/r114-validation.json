@@ -1,0 +1,258 @@
+{
+  "schemaVersion": 1,
+  "version": "R11.4",
+  "date": "2026-10-24",
+  "status": "PASS",
+  "core": "0.2.0-rc.2",
+  "coreFilesModified": false,
+  "archives": {
+    "kylinPublic": {
+      "status": "PASS",
+      "edition": "Public",
+      "platform": "Kylin-ARM64",
+      "version": "R11.4",
+      "files": 45077,
+      "links": 1049,
+      "splitMembersDisjoint": true,
+      "pluginHashesValid": true,
+      "coreHashesUnchanged": true,
+      "noLiveUserData": true,
+      "currentPrivateCredentialsCompared": true,
+      "assets": [
+        {
+          "name": "Neiwang-Xiaozhi-Kylin-ARM64-R11.4-Public-Core.tar.gz",
+          "bytes": 379902257,
+          "sha256": "08e35ef2586e5268474ac14ae2d07b64c3916239e71720edc3e0ae797f3165dd"
+        },
+        {
+          "name": "Neiwang-Xiaozhi-Kylin-ARM64-R11.4-Public-Plugins.tar.gz",
+          "bytes": 208620274,
+          "sha256": "4764d043df772903e0559f949335d5534c11e9f4ce7079139a524d748799ff37"
+        }
+      ]
+    },
+    "windowsPublic": {
+      "status": "PASS",
+      "edition": "Public",
+      "platform": "Win10-x64",
+      "version": "R11.4",
+      "files": 47898,
+      "links": 0,
+      "splitMembersDisjoint": true,
+      "pluginHashesValid": true,
+      "coreHashesUnchanged": true,
+      "noLiveUserData": true,
+      "currentPrivateCredentialsCompared": true,
+      "assets": [
+        {
+          "name": "Neiwang-Xiaozhi-Win10-x64-R11.4-Public-Core.zip",
+          "bytes": 363618205,
+          "sha256": "8261b30ad5138cf0402fd419829b705f60fbb6534e8b6d87245a5a121905031b"
+        },
+        {
+          "name": "Neiwang-Xiaozhi-Win10-x64-R11.4-Public-Plugins.zip",
+          "bytes": 215904963,
+          "sha256": "9ffb8499d5f8787f23599cf6f445ac09312ce182af29b12eeca5ce604b7ce2ab"
+        }
+      ]
+    },
+    "internalArchiveVerified": true,
+    "internalAssetsBelow500MB": true
+  },
+  "unitTests": {
+    "windows": {
+      "passed": 41,
+      "skipped": 3,
+      "failed": 0
+    },
+    "arm64Offline": {
+      "passed": 44,
+      "skipped": 0,
+      "failed": 0
+    }
+  },
+  "windows": {
+    "host": {
+      "status": "PASS",
+      "prompt": {
+        "baseline": {
+          "systemChars": 50169,
+          "systemUtf8Bytes": 54003,
+          "wireToolCount": 1,
+          "containsFullSdkMap": true,
+          "containsLazyCatalog": false
+        },
+        "compact": {
+          "systemChars": 8896,
+          "systemUtf8Bytes": 12008,
+          "wireToolCount": 1,
+          "containsFullSdkMap": false,
+          "containsLazyCatalog": true
+        }
+      },
+      "removedSystemCharacters": 41273,
+      "exactModelTokensMeasured": false,
+      "sourceCount": 0,
+      "realAgentToolLoop": true,
+      "safetyAndToolPermissionsUnchanged": true
+    },
+    "browser": {
+      "status": "PASS",
+      "platform": "win32",
+      "arch": "x64",
+      "offlineDependencies": true,
+      "navigation": true,
+      "snapshotRefs": true,
+      "fillAndSelect": true,
+      "iframe": true,
+      "screenshot": true,
+      "scroll": true,
+      "confirmationGuard": true,
+      "passwordNotExposed": true,
+      "legacyApiWithBrowserSession": true,
+      "loopbackOnly": true,
+      "testOnlyElectronFlags": [
+        "--no-sandbox",
+        "--disable-gpu"
+      ],
+      "realOrganizationServicesTested": false,
+      "nativeKylinTested": false
+    },
+    "pdfAndSkills": {
+      "status": "PASS",
+      "skill": true,
+      "pdfText": true,
+      "ocrChineseEnglish": true,
+      "fetchAttempts": 0,
+      "platform": "win32",
+      "arch": "x64"
+    },
+    "schedule": {
+      "status": "PASS",
+      "version": "R11.4",
+      "features": {
+        "status": "PASS",
+        "toolNames": [
+          "skill_new",
+          "skill_validate",
+          "skill_package",
+          "skill_improve_description",
+          "pdf_parse",
+          "schedule_create",
+          "schedule_list",
+          "schedule_delete",
+          "schedule_update"
+        ],
+        "timerDelivered": true,
+        "agentSkillCreated": true,
+        "pdfTextInToolResult": true
+      },
+      "restart": {
+        "status": "PASS",
+        "persistedTaskRestored": true,
+        "coldSessionDelivered": true,
+        "generatedSkillDiscoverableAfterRestart": true
+      },
+      "model": "local synthetic fixture",
+      "nativeKylinTested": false
+    }
+  },
+  "arm64": {
+    "host": {
+      "status": "PASS",
+      "prompt": {
+        "baseline": {
+          "systemChars": 48959,
+          "systemUtf8Bytes": 52781,
+          "wireToolCount": 1,
+          "containsFullSdkMap": true,
+          "containsLazyCatalog": false
+        },
+        "compact": {
+          "systemChars": 8655,
+          "systemUtf8Bytes": 11759,
+          "wireToolCount": 1,
+          "containsFullSdkMap": false,
+          "containsLazyCatalog": true
+        }
+      },
+      "removedSystemCharacters": 40304,
+      "exactModelTokensMeasured": false,
+      "sourceCount": 0,
+      "realAgentToolLoop": true,
+      "safetyAndToolPermissionsUnchanged": true
+    },
+    "browser": {
+      "status": "PASS",
+      "platform": "linux",
+      "arch": "arm64",
+      "offlineDependencies": true,
+      "navigation": true,
+      "snapshotRefs": true,
+      "fillAndSelect": true,
+      "iframe": true,
+      "screenshot": true,
+      "scroll": true,
+      "confirmationGuard": true,
+      "passwordNotExposed": true,
+      "legacyApiWithBrowserSession": true,
+      "loopbackOnly": true,
+      "testOnlyElectronFlags": [
+        "--no-sandbox",
+        "--disable-gpu"
+      ],
+      "realOrganizationServicesTested": false,
+      "nativeKylinTested": false
+    },
+    "schedule": {
+      "status": "PASS",
+      "version": "R11.4",
+      "features": {
+        "status": "PASS",
+        "toolNames": [
+          "skill_new",
+          "skill_validate",
+          "skill_package",
+          "skill_improve_description",
+          "pdf_parse",
+          "schedule_create",
+          "schedule_list",
+          "schedule_delete",
+          "schedule_update"
+        ],
+        "timerDelivered": true,
+        "agentSkillCreated": true,
+        "pdfTextInToolResult": true
+      },
+      "restart": {
+        "status": "PASS",
+        "persistedTaskRestored": true,
+        "coldSessionDelivered": true,
+        "generatedSkillDiscoverableAfterRestart": true
+      },
+      "model": "local synthetic fixture",
+      "nativeKylinTested": false
+    },
+    "earlyBootAndSettingsUi": true,
+    "initialTwoArchiveInstallAndRepeat": true,
+    "finalRuntimeFileHashesCompared": 418,
+    "externalNetworkDisabledDuringTests": true
+  },
+  "configurationPreservation": {
+    "oldDirectoriesNotModified": true,
+    "modelAndRagValuesVerifiedEqual": true,
+    "localInterfaceDocumentByteIdentical": true,
+    "internalApiSourceCount": 15,
+    "newUserEditsKept": true,
+    "unchangedFactoryDefaultsYieldToOldSettings": true,
+    "migrationReencryptsWithoutPrintingKeys": true,
+    "windowsBotBindingNotPreseededIntoKylin": true
+  },
+  "limitations": [
+    "ARM64 graphics validated under Ubuntu 20.04 QEMU, not physical Kylin",
+    "Existing ARM64 emulator OCR/WASM failure remains a limitation; Windows bilingual OCR passed",
+    "No real organization model, RAG, DingTalk or business-system requests",
+    "Exact organization-model token counts not measured",
+    "Electron sandbox-disabling flags were test-only, never production defaults"
+  ]
+}

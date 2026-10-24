@@ -5,6 +5,7 @@ if(Number(process.versions.node.split('.')[0])!==24)throw Error('Use Node.js 24.
 const npm=process.env.npm_execpath;
 if(!npm||!fs.existsSync(npm))throw Error('Run through npm run prepare:plugins');
 function run(file,args,options={}){const r=cp.spawnSync(file,args,{cwd:plugin,encoding:'utf8',windowsHide:true,...options});if(r.status!==0)throw Error((r.stderr||r.stdout||'command failed').slice(-3000));return r.stdout;}
+run(process.execPath,[npm,'ci','--omit=dev','--ignore-scripts','--no-audit','--no-fund'],{cwd:path.join(root,'extensions/@neiwang/browser-automation')});
 run(process.execPath,[npm,'ci','--omit=dev','--ignore-scripts','--no-audit','--no-fund']);
 const temp=fs.mkdtempSync(path.join(root,'tmp/plugin-assets-'));
 const dataDir=path.join(plugin,'vendor/tessdata');fs.mkdirSync(dataDir,{recursive:true});

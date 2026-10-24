@@ -1,61 +1,97 @@
-# 内网小智
+# 内网小智 R11.4
 
-新增[麒麟离线浏览器与业务接口恢复补丁](docs/BROWSER_API_PATCH.md)：Playwright 独立插件、缺失业务源恢复、浏览器登录会话适配，以及 PTC 工具参数按需发现。组织补丁含内部接口定义，仅本地交付；通用源码不含私有地址或登录数据。
+支持 **麒麟 ARM64** 与 **Windows 10/11 x64**。当前应用发行版本是 **R11.4**；官方内核仍为 **DSH 0.2.0-rc.2**，应用版本和内核版本分别管理。
 
-新增[独立离线插件管理器](docs/OFFLINE_PLUGIN_MANAGER.md)：现有 R11.3 可接入小型工具包，支持新增/升级插件、备份回滚与中断恢复，保留模型、RAG、钉钉绑定和用户数据，无需重装 APP。历史 Release 的 Core/Plugins 安装资产未被改写。
+本版包含模型对话、RAG、业务接口、钉钉机器人与 AI 表格、原生定时任务、技能孵化器、离线 PDF/中英文 OCR、Playwright 浏览器，以及独立离线插件安装/升级/回退。首页移除“预览版”，加载页和首页显示“内网小智”主标题、“你说我做”副标题；工具参数按需发现，减少重复系统提示词。钉钉仍需组织网络和授权；APP 关闭时定时任务不执行。
 
-R11.3 麒麟 ARM64 发行采用 Core 核心包与 Plugins 插件包，两个包解压到同一目录后安装插件。详见[分包安装说明](docs/R11_3_SPLIT_INSTALL.md)。
+## 下载与拆包原因
 
-内网钉钉只允许上传 500 MB 以内的文件，因此发行包拆分为核心包和插件包。内核保持原样，自有启动、配置及扩展在外部组合；当前插件安装器仍要求匹配发行版本。详见[内核与插件升级边界](docs/CORE_AND_PLUGIN_UPGRADES.md)。
+从 [GitHub Releases](https://github.com/xddzb/neiwang-xiaozhi/releases/latest) 下载与系统对应的两包：
 
-2026-10-24：麒麟 ARM64 R11.3 新增原生定时任务、技能孵化器与离线 PDF/中英文 OCR，并更新首页文案。详见 [R11.3 交接与构建说明](docs/R11_3_HANDOVER.md)。新插件已在源码中提供；完整开发构建前增加 `npm run prepare:plugins`，实际发行验证结果以 Release 附带的 validation.json 为准。公开版不含组织模型、RAG 凭据及内部接口资料。
+| 平台 | 核心包 | 插件包 |
+| --- | --- | --- |
+| 麒麟 ARM64 | `Neiwang-Xiaozhi-Kylin-ARM64-R11.4-Public-Core.tar.gz` | `Neiwang-Xiaozhi-Kylin-ARM64-R11.4-Public-Plugins.tar.gz` |
+| Windows 10/11 x64 | `Neiwang-Xiaozhi-Win10-x64-R11.4-Public-Core.zip` | `Neiwang-Xiaozhi-Win10-x64-R11.4-Public-Plugins.zip` |
 
-仓库已移除 R11.2 历史源码快照，当前源码以根目录开发主线及 `release-source/kylin-r11.3` 发布快照为准。组织凭据、加密默认配置和内部发行包不上传。
+**内网钉钉只允许上传 500MB 以内文件，所以每个平台拆成 Core、Plugins 两包。** 两包解压到同一个新目录，再运行插件安装器即可；不能用 `cat` 拼接。各包 SHA256 和已验证范围见 Release 描述。
 
-内网小智的协作源码仓库。当前开发主线为 R11.3-dev，沿用独立开发构建架构：官方 DeepSeek Harness 内核、部署配置、自有扩展和用户数据分离；Windows x64 / 麒麟 ARM64 交付采用 Core 核心包与 Plugins 可选插件包。
+GitHub 只发布 Public 包，不含组织模型/RAG凭据、内部接口定义或真实接口文档。供本组织内传递的 Internal 麒麟包单独在本地生成，保留当前模型、RAG加密默认配置、本地接口文档和接口源，禁止上传公开仓库。不要把 Public 和 Internal 两类包混用。
 
-## 源码目录
+## 本地合并安装代码
 
-| 目录 | 用途 |
-| --- | --- |
-| `launcher/` | 桌面启动、内核运行环境、Electron 壳与品牌资源 |
-| `extensions/` | 独立部署、品牌、工具目录、钉钉设置/绑定、DWS AI 表格适配源码 |
-| `tools/` | 钉钉配置、DWS 登录、Python/PyInstaller、文档处理入口 |
-| `config/` | 无凭据的部署模板 |
-| `scripts/` | R10 核心/插件拆包、文档嵌入、完整性验证及历史适配脚本 |
-| `docs/` | 安装说明、更新说明及开发指引 |
+麒麟：
 
-钉钉使用官方 `DingTalk-Real-AI/dsh-dingtalk` 0.10.2，源码在本仓库保留的是配置页面和集成层。DWS AI 表格调用官方 DWS CLI；PyInstaller 用于将授权的 Python 脚本打包。基础发行不启用业务浏览器，可通过独立离线补丁恢复，无需重装 APP。
+```sh
+mkdir -p R11.4
+tar -xzf Neiwang-Xiaozhi-Kylin-ARM64-R11.4-Public-Core.tar.gz -C R11.4
+tar -xzf Neiwang-Xiaozhi-Kylin-ARM64-R11.4-Public-Plugins.tar.gz -C R11.4
+cd R11.4/Neiwang-Xiaozhi-Kylin-ARM64-R11.4
+sh plugin-pack/安装插件.sh
+# 首次使用 Public 包需配置；迁移旧配置见下方。
+sh 配置模型.sh
+sh 配置RAG.sh
+sh start.sh
+```
 
-## 开发与验证
+Internal 包只需将上面文件名中的 `Public` 换成 `Internal`；已有默认配置时跳过重新配置。
 
-同事从 GitHub 下载后，请先按 [从源码生成并运行 APP](docs/BUILD_AND_RUN.md) 操作；该文档包含依赖安装、构建命令、模型配置、钉钉和分发打包步骤。另见 [开发说明](docs/DEVELOPMENT.md) 和 [协作约定](CONTRIBUTING.md)。运行源码检查：
+Windows PowerShell：
+
+```powershell
+New-Item -ItemType Directory -Path .\R11.4 -ErrorAction Stop
+Expand-Archive -LiteralPath .\Neiwang-Xiaozhi-Win10-x64-R11.4-Public-Core.zip -DestinationPath .\R11.4
+Expand-Archive -LiteralPath .\Neiwang-Xiaozhi-Win10-x64-R11.4-Public-Plugins.zip -DestinationPath .\R11.4
+Set-Location .\R11.4\Neiwang-Xiaozhi-Win10-x64-R11.4
+& .\runtime\node\node.exe .\plugin-pack\install.cjs
+& .\配置模型.cmd
+& .\配置RAG.cmd
+& .\start.cmd
+```
+
+## 升级并保留旧配置
+
+关闭新旧 APP，将新版解压到独立新目录并安装插件。不要覆盖旧目录。在新 APP 根目录、首次启动前运行：
+
+```sh
+# 麒麟：只读取旧目录，补充新版缺失的配置，保留新版已修改设置
+./runtime/node/bin/node tools/migrate-settings.cjs "/旧APP完整目录"
+```
+
+```powershell
+# Windows PowerShell
+& .\runtime\node\node.exe .\tools\migrate-settings.cjs 'C:\旧APP完整目录'
+```
+
+可迁移模型、RAG和开关、钉钉绑定、DWS设置、用户profile配置、业务接口源/连接、本地接口文档。旧版加密模型与RAG按新安装的本地密钥重新加密，不输出明文；原目录保持不动；与随包散列相同的未修改模板可由旧配置替换，已修改的新配置保留。它不复制聊天、整个工作区或浏览器缓存；跨电脑的系统密钥/登录状态可能需要重新授权。自定义数据目录及迁移边界见 [R11.4 安装与配置保留说明](docs/R11_4_INSTALL.md)。
+
+后续仅新增或升级插件，使用 [独立离线插件管理器](docs/OFFLINE_PLUGIN_MANAGER.md)，无需重装 APP。初始 Core/Plugins 组合包和后续独立插件包是两种格式，不能混用。
+
+## 项目目录和内核位置
+
+| 源码目录 | 用途 | APP内位置 |
+| --- | --- | --- |
+| `launcher/` | 启动、桌面壳、品牌与运行环境适配 | `launcher/` |
+| `extensions/` | 自有插件、PDF/OCR、技能孵化器、浏览器等 | `extensions/node_modules/` |
+| `tools/` | 模型/RAG/钉钉配置、接口适配、插件管理、配置迁移 | `tools/` |
+| `config/` | 不含凭据的部署模板，开发主线为 R11.4-dev | `config/` |
+| `scripts/` | 当前构建、发布、验证和历史基线适配工具 | 构建时使用 |
+| `docs/` | 安装、升级、开发及验证记录 | `docs/` |
+| `manifests/` | 依赖来源、完整性与验证记录 | `manifests/` |
+| `private-docs/` | 公开空白模板；真实文档由本地加入、不入库 | `private-docs/` 或 `offline-api-tool/` |
+| `release-source/kylin-r11.3/` | 保留的历史发布源码快照，不是当前发行目录 | 不用于覆盖新版 |
+
+**官方内核在 APP 的 `core/0.2.0-rc.2/node_modules/`。** `runtime/` 提供平台运行库，`launcher/electron/` 是桌面运行时；定制代码在内核外。`data/` 保存模型/RAG、用户profile、机器人绑定等私有配置；`workspace/` 是用户文件。两者不得被升级覆盖或提交 Git。
+
+## 从源码构建和验证
+
+当前普通开发构建见 [BUILD_AND_RUN](docs/BUILD_AND_RUN.md)：安装 Node 24.x（至少24.9）、Git、Python 3.10+，在目标平台执行 `npm ci`、`npm run prepare:runtime`、`npm run prepare:plugins`、`npm run build`。这些准备步骤在联网构建机完成，APP运行和插件安装不联网补下载。
+
+R11.4 已审查发行基线组合与公开/内部包分离流程见 [R11.4 发布交接](docs/R11_4_HANDOVER.md)，使用 `scripts/build-r114-release.py`，需显式提供本地平台基线及私有输入。它不把组织资料提交到仓库，也不修改旧 APP。
 
 ```sh
 python scripts/check_source.py
+npm test
+node --test scripts/test-plugin-manager.cjs scripts/test-settings-migration.cjs scripts/test-browser-patch.cjs scripts/test-browser-controller.mjs
 ```
 
-开发版通过 `npm ci` 下载锁定依赖、`npm run prepare:runtime` 准备已校验的独立运行库、`npm run prepare:plugins` 准备离线 PDF/OCR 插件材料，`npm run build` 生成桌面 APP、`npm start` 启动，不再要求本机 R9 基线或预先配置模型密钥。首次启动在设置 → 模型中填写自己的服务和 API Key，可继续修改。完整命令及平台前提见构建运行指南。历史 R10 离线核心/插件包的脚本仍需发行基线，与新开发构建不同。
-
-## 从源码生成完整 APP
-
-安装 Node 24.x（至少 24.9.0）、Git 和用于构建准备的 Python 3.10+，在目标操作系统/架构执行：
-
-```sh
-npm ci
-npm run prepare:runtime
-npm run prepare:plugins
-npm run build
-# 用构建指南中对应平台的目录执行 npm run verify:app -- builds/<目录>
-npm start
-```
-
-默认构建已包含钉钉、DWS AI 表格、独立 Python/PyInstaller；不再需要 --with-dingtalk。Windows 与麒麟必须分别在对应平台构建。完整步骤、离线材料缓存、分发打包和首次登录见 [构建运行指南](docs/BUILD_AND_RUN.md)。
-
-## 接口文档与模型密钥在哪里
-
-- **接口文档不在 tools 或 extensions 中**。原开发工程位置为工程根目录 `offline-api-tool/内网接口文档.html`，该真实文档未上传。现在提供 `private-docs/内网接口文档.template.html` 空白模板，复制为同目录的 `内网接口文档.html` 后内部填写，与 `tools/`、`extensions/` 平级，文档正文不入库，也不会自动启用业务接口。
-- **开发版模型配置**：设置 → 模型。凭据保存在 `<APP根目录>/data/dsh/.credentials.yaml`，用户配置在 `<APP根目录>/data/dsh/profiles/web/cordis.patch.yml`。不提交这些文件。高级环境配置字段见 `.env.example`，但该模板不会自动加载。
-- **原已交付 R10 发布版**仍使用 `<APP根目录>/data/config/model.enc`，与新开发版不同；不要把旧文件或启动器直接覆盖到开发版。
-
-第三方组件保留其原有许可证。此仓库尚未为项目自有代码指定开源许可证；上传源码不代表授予第三方组件以外的额外许可。
+实际发布验证结果和边界见 Release 描述与仓库验证清单。第三方许可证按原组件保留；协作约定见 [CONTRIBUTING](CONTRIBUTING.md)。
