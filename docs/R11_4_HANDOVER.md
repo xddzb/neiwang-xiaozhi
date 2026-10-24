@@ -18,6 +18,8 @@ python scripts/build-r114-release.py \
   --node /Node24可执行文件
 ```
 
+构建前先用随包官方DWS CLI执行 `node scripts/generate_dws_contracts.mjs /平台/DWS可执行文件 extensions/@neiwang/dws-aitable/contracts.json`，确保生成27项完整命令Schema；该步骤只读取本地Schema。
+
 三个私有输入只在组织内保管，不入 Git。构建不执行接口文档中的代码，不请求模型、RAG、钉钉或业务系统；只在内存中解密当前模型/RAG并按新安装密钥重新加密到 Internal 的 defaults。Windows 机器人绑定不作为麒麟的默认绑定，避免两个实例抢同一机器人；实际旧麒麟绑定通过原机迁移保留。
 
 构建输出分离为：
@@ -45,4 +47,4 @@ python scripts/build-r114-release.py \
 
 先完成公开资产校验与隐私检查，再提交中文 commit，经 PR 和自动检查合并后创建 R11.4 Release。仅上传 GitHub/ 内的四个 Public Core/Plugins 包，SHA256写入 Release 描述，不附加 Internal、日志、凭据或原始业务资料。普通 GitHub 自动生成的源码归档不由安装包构建器控制。
 
-配置迁移不覆盖旧目录，也不覆盖新目录已有配置。发布后回退可继续使用未改动的旧APP；不要让新旧实例同时连接同一个钉钉机器人。
+配置迁移不覆盖旧目录；保留新目录已修改配置，与发行散列一致、尚未修改的默认模型/RAG和资料模板可由旧配置替换。发布后回退可继续使用未改动的旧APP；不要让新旧实例同时连接同一个钉钉机器人。
