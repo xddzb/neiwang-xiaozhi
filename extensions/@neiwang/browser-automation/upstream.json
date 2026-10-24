@@ -1,0 +1,10 @@
+{
+  "component": "playwright-core",
+  "version": "1.56.1",
+  "repository": "https://github.com/microsoft/playwright/tree/v1.56.1/packages/playwright-core",
+  "license": "Apache-2.0",
+  "dependencyIntegrity": "package-lock.json",
+  "browser": "Existing APP Electron 33.2.0 / Chromium, isolated business process with CDP on loopback only",
+  "browserDownloadAtRuntime": false,
+  "credentialExportTool": false
+}
