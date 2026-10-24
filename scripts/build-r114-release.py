@@ -147,7 +147,9 @@ def sanitize_public(app):
   if rel.startswith(('core/','runtime/','launcher/electron/')) or p.suffix not in ['.py','.js','.mjs','.cjs','.json','.yml','.yaml','.txt','.md','.html']:continue
   try:text=p.read_text(encoding='utf-8-sig')
   except UnicodeDecodeError:continue
-  text=re.sub(r'(?<![\w.])(?:10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+)','127.0.0.1',text).replace('https://aei/v1','https://dify.example.invalid/v1')
+  text=re.sub(r'(?<![\w.])(?:10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+)','127.0.0.1',text)
+  # Replace single-label organization service URLs without embedding their actual hostname.
+  text=re.sub(r'https?://(?!localhost(?=[:/\s\"\']|$))[A-Za-z][A-Za-z0-9-]*(?=[:/\s\"\']|$)(?::[0-9]+)?(?:/[^\s\"\'<>]*)?', 'https://service.example.invalid/v1', text)
   p.write_text(text,encoding='utf8',newline='\n')
 def package(app,links,out,edition,core_paths=None):
  platform=json.loads((app/'config/app.json').read_text(encoding='utf8'))['platform'];linux=platform=='Kylin-ARM64'
@@ -204,7 +206,10 @@ def main(a):
  source=Path(a.private_sources)/'extensions/apis';shutil.copytree(source,internal/'plugin-pack/payload/extensions/apis')
  im=json.loads((internal/'plugin-pack/pack.json').read_text(encoding='utf8'));refresh_manifest(internal,im)
  internal_assets=package(internal,links,dist/'Send-to-Intranet','Internal')
- put(dist/'Send-to-Intranet','安装与合并说明.md',(ROOT/'docs/R11_4_INSTALL.md').read_bytes())
+ put(dist/'Send-to-Intranet','安装与合并说明.md',(ROOT/'docs/INTERNAL_INSTALL.md').read_bytes())
+ put(dist/'Send-to-Intranet','合并安装R11.4.sh',(ROOT/'scripts/install-internal-r114.sh').read_bytes())
+ put(dist/'Send-to-Intranet','R11_4_HANDOVER.md',(ROOT/'docs/R11_4_HANDOVER.md').read_bytes())
+ put(dist/'Send-to-Intranet','INTERNAL_INSTALL.md',(ROOT/'docs/INTERNAL_INSTALL.md').read_bytes())
  put(work,'composition.json',dump({'version':VERSION,'publicAssets':public_assets,'internalAssets':internal_assets,'oldDirectoriesModified':False}))
  print(json.dumps({'status':'BUILT','version':VERSION,'work':str(work),'dist':str(dist)}),flush=True)
 if __name__=='__main__':
