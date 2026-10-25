@@ -72,7 +72,13 @@ function load(root){
  const file=path.join(process.env.NEIWANG_DATA_DIR||path.join(root,'data'),'config/isu-instruments.json');
  if(!fs.existsSync(file))throw Error('isu_credentials_missing');
  const c=JSON.parse(fs.readFileSync(file,'utf8'));
- const u=new URL(c.base_url);if(u.protocol!=='https:'||u.username||u.password||u.search||u.hash)throw Error('isu_endpoint_invalid');
+ // Older credentials did not carry an endpoint. Reuse the private deployment
+ // connection definition; never embed an organization's address in source.
+ if(!c.base_url){
+  try{c.base_url=JSON.parse(fs.readFileSync(path.join(root,'extensions/apis/connections/weekly-isu.json'),'utf8')).base_url}catch{throw Error('isu_endpoint_missing')}
+ }
+ let u;try{u=new URL(c.base_url)}catch{throw Error('isu_endpoint_invalid')}
+ if(u.protocol!=='https:'||u.username||u.password||u.search||u.hash)throw Error('isu_endpoint_invalid');
  for(const k of ['token','baseCookie','sidCookie'])if(typeof c[k]!=='string'||!c[k]||/[\r\n]/.test(c[k]))throw Error('isu_credentials_invalid');
  if(!c.baseCookie.startsWith('OPGview8088=')||c.baseCookie.includes(';'))throw Error('isu_credentials_invalid');
  if(c.verify_tls!==undefined&&typeof c.verify_tls!=='boolean')throw Error('isu_credentials_invalid');

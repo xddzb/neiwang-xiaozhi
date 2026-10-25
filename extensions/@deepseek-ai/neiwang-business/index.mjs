@@ -1,6 +1,7 @@
 import {defineTool} from '@deepseek-ai/dsh-tools';
 import {installScheduler,queryKnowledge,materialState,assessMaterials} from './rag-scheduler.mjs';
 import isu from './isu-instruments.cjs';
+import runtime from '@neiwang/python-tools/runtime.cjs';
 import {spawn} from 'node:child_process';
 import {join,resolve,relative,isAbsolute} from 'node:path';
 import {mkdirSync,statSync,copyFileSync,constants,realpathSync} from 'node:fs';
@@ -11,7 +12,7 @@ function run(args,exec) {
  return new Promise(resolveResult=>{
   if(!root)return resolveResult(JSON.stringify({ok:false,status:'app_root_missing'}));
   if(exec.signal.aborted)return resolveResult(JSON.stringify({ok:false,status:'cancelled'}));
-  const child=spawn((process.env.NEIWANG_PYTHON||join(root,process.platform==='win32'?'runtime/python/python.exe':'runtime/python/bin/python3.11')),['-I','-B','-X','utf8',join(root,'tools/tool_entry.py'),...args],{windowsHide:true,detached:process.platform!=='win32',stdio:['ignore','pipe','pipe']});
+  const child=spawn((process.env.NEIWANG_PYTHON||runtime.pythonExecutable(root)),['-I','-B','-X','utf8',join(root,'tools/tool_entry.py'),...args],{windowsHide:true,detached:process.platform!=='win32',stdio:['ignore','pipe','pipe']});
   let data='',done=false;
   function killTree(){if(!child.pid)return;if(process.platform==='win32')spawn('taskkill',['/PID',String(child.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'});else{try{process.kill(-child.pid,'SIGKILL');}catch{child.kill('SIGKILL');}}}
   const aborted=()=>{killTree();finish(JSON.stringify({ok:false,status:'cancelled'}));};

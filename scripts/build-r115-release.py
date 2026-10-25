@@ -126,6 +126,9 @@ def compose(app,platform,public_model,public_boot):
  put(pack,'install.cjs',(ROOT/'scripts/install-feature-pack.cjs').read_bytes())
  for name in ['INSTALL.md','DEVELOPMENT.md','HANDOVER.md']:
   put(app,'docs/'+name,(ROOT/'docs'/name).read_bytes())
+ # Frozen release evidence; a changed local rebuild still needs fresh tests.
+ evidence=ROOT/'manifests'/(VERSION.lower().replace('.','')+'-validation.json')
+ if evidence.is_file():put(app,'manifests/'+evidence.name,evidence.read_bytes())
  for name in ['README.md','内网接口文档.template.html']:put(app,'private-docs/'+name,(ROOT/'private-docs'/name).read_bytes())
  if linux:
   put(app,'runtime/node/bin/dsh',b'#!/bin/sh\nset -eu\nHERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)\nAPP=$(CDPATH= cd -- "$HERE/../../.." && pwd)\nexec "$HERE/node" "$APP/core/0.2.1-rc.3/node_modules/@deepseek-ai/dsh/lib/bin.js" "$@"\n')
@@ -243,7 +246,7 @@ def main(a):
  source=Path(a.private_sources)/'extensions/apis';shutil.copytree(source,internal/'plugin-pack/payload/extensions/apis')
  im=json.loads((internal/'plugin-pack/pack.json').read_text(encoding='utf8'));refresh_manifest(internal,im);check_configuration(internal,'Internal')
  internal_assets=[] if a.assemble_only else package(internal,links,dist/'Send-to-Intranet','Internal')
- put(dist/'Send-to-Intranet','合并安装R11.6.sh',(ROOT/'scripts/install-internal-r115.sh').read_bytes())
+ put(dist/'Send-to-Intranet','合并安装R11.6.sh',(ROOT/'scripts/install-internal-r115.sh').read_bytes().removeprefix(b'\xef\xbb\xbf').replace(b'\r\n',b'\n'))
  put(dist/'Send-to-Intranet','HANDOVER.md',(ROOT/'docs/HANDOVER.md').read_bytes())
  put(dist/'Send-to-Intranet','INSTALL.md',(ROOT/'docs/INSTALL.md').read_bytes())
  put(dist/'Send-to-Intranet','DEVELOPMENT.md',(ROOT/'docs/DEVELOPMENT.md').read_bytes())

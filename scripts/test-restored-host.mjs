@@ -29,12 +29,14 @@ export function apply(ctx){ctx.webServer.register({kind:'prefix',path:'/restored
   assert((await rag.queryKnowledge('synthetic topic',{...exec,agent:child},run,'synthetic missing definition')).reused);assert.equal(calls,1);
   policy.write(false);assert.equal((await rag.queryKnowledge('synthetic topic',exec,run,'synthetic missing definition')).status,'rag_disabled');policy.write(true);
   const userFile=join(cwd,'rewind-fixture.txt');writeFileSync(userFile,'synthetic original');
+  writeFileSync(join(cwd,'python-runtime-fixture.py'),"import sys\nprint('PYTHON_RUNTIME_OK', sys.version.split()[0])\n");
   for(const text of ['BROWSER_PATCH_BASELINE_KEEP','BROWSER_PATCH_BASELINE_REMOVE']){
    agent.followup({id:randomUUID(),role:'user',content:[{type:'text',text}],source:{kind:'user'}});await agent.whenIdle();
   }
   const events=agent.session.snapshotEvents(0),target=events.find(e=>e.type==='user/message'&&JSON.stringify(e.data).includes('BASELINE_REMOVE'));
   assert(target,'second turn absent');assert(events.some(e=>e.type==='assistant/message'),'model response absent');
   assert(JSON.stringify(events).includes('knowledge_gap'),'real Agent catalog/tool loop absent');
+  assert(JSON.stringify(events).includes('PYTHON_RUNTIME_OK'),'bundled Python was not executed through the real Agent');
   const turn=events.findLast(e=>e.type==='turn/start'&&e.seq<target.seq).data.turn;
   let checkpoint;const deadline=Date.now()+60000;
   while(Date.now()<deadline){try{checkpoint=await ctx.changeLedger.findTurnCheckpoint({cwd,sessionId:agent.id,turn})}catch(e){if(e.code!=='WORKSPACE_LOCKED')throw e}if(checkpoint)break;await new Promise(r=>setTimeout(r,500))}

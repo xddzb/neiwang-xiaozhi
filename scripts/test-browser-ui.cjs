@@ -36,16 +36,24 @@ async function click(win,labels,selector='button'){
   await win.webContents.executeJavaScript(`document.querySelector('.dcl-rewind-trigger').click()`);
   let dialog=false;for(let i=0;i<60;i++){dialog=await win.webContents.executeJavaScript(`!!document.querySelector('.dcl-rewind-dialog')`);if(dialog)break;await delay(500)}
   if(!dialog)throw Error('Rewind preview dialog absent');
-  await delay(750); // Let the real dialog transition paint before capturing it.
-  const dialogText=await win.webContents.executeJavaScript(`document.querySelector('.dcl-rewind-dialog').innerText`);
-  if(!/只回溯消息|Messages only|messages only/.test(dialogText))throw Error('Rewind choices absent: '+dialogText);
+  let dialogText='',choices=false;
+  for(let i=0;i<180;i++){dialogText=await win.webContents.executeJavaScript(`document.querySelector('.dcl-rewind-dialog').innerText`);choices=/只回溯消息|messages only/i.test(dialogText);if(choices)break;await delay(500)}
+  if(!choices)throw Error('Rewind choices absent: '+dialogText);
+  await delay(750); // Capture after preview data and its transition have painted.
   fs.writeFileSync(process.env.BROWSER_UI_OUTPUT.replace('.png','-rewind.png'),(await win.webContents.capturePage()).toPNG());
-  await win.webContents.executeJavaScript(`(()=>{const d=document.querySelector('.dcl-rewind-dialog');const b=[...d.querySelectorAll('button')].find(b=>/取消|Cancel|Close|关闭/.test(b.innerText||b.getAttribute('aria-label')||''));if(!b)throw Error('Cancel control absent');b.click()})()`);
+  await win.webContents.executeJavaScript(`(()=>{const e=[...document.querySelectorAll('.dcl-rewind-option')].find(e=>/只回溯消息|messages only/i.test(e.innerText));if(!e)throw Error('Messages-only choice absent');e.click()})()`);
+  let applyReady=false;for(let i=0;i<80;i++){applyReady=await win.webContents.executeJavaScript(`!![...document.querySelectorAll('.dcl-rewind-dialog button')].find(e=>!e.disabled&&/只回溯消息|messages only/i.test(e.innerText))`);if(applyReady)break;await delay(500)}
+  if(!applyReady)throw Error('Messages-only confirmation did not become ready');
+  await win.webContents.executeJavaScript(`[...document.querySelectorAll('.dcl-rewind-dialog button')].find(e=>!e.disabled&&/只回溯消息|messages only/i.test(e.innerText)).click()`);
+  let draft=false;for(let i=0;i<180;i++){draft=await win.webContents.executeJavaScript(`[...document.querySelectorAll('textarea,input,[contenteditable=true]')].some(e=>(e.value||e.innerText||'').includes('BROWSER_PATCH_BASELINE_KEEP'))`);if(draft)break;await delay(500)}
+  if(!draft)throw Error('Rewind did not open the new conversation with the original prompt as a draft');
+  fs.writeFileSync(process.env.BROWSER_UI_OUTPUT.replace('.png','-rewind-result.png'),(await win.webContents.capturePage()).toPNG());
   await delay(500);
   await win.webContents.executeJavaScript(`(()=>{const b=[...document.querySelectorAll('[data-sidebar-right-expand]')].find(e=>e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden');if(b)b.click()})()`);
   await delay(1000);await click(win,['文件','Files']);
   let listed=false;for(let i=0;i<80;i++){listed=await win.webContents.executeJavaScript(`document.body.innerText.includes('rewind-fixture.txt')`);if(listed)break;await delay(500)}
   if(!listed)throw Error('Sidebar file tree did not show the synthetic workspace file');
+  await delay(750);
   fs.writeFileSync(process.env.BROWSER_UI_OUTPUT.replace('.png','-sidebar.png'),(await win.webContents.capturePage()).toPNG());
  }
  if(!await click(win,['设置','Settings'])){

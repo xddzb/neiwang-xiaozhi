@@ -9,5 +9,8 @@
       "patch": "./cordis.patch.yml"
     }
   },
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "peerDependencies": {
+    "@neiwang/python-tools": "^1.1.0"
+  }
 }

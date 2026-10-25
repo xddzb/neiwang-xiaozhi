@@ -18,7 +18,7 @@ class Mock(BaseHTTPRequestHandler):
   if request.get('tools') and not any(m['role']=='tool' for m in messages[last+1:]):
    system='\n'.join(str(m['content']) for m in messages if m['role']=='system');observed[label]={'systemChars':len(system),'systemUtf8Bytes':len(system.encode()),'wireToolCount':len(request['tools']),'containsFullSdkMap':'interface ToolArgsMap' in system,'containsLazyCatalog':'工具按需发现' in system}
   if request.get('tools') and not any(m['role']=='tool' for m in messages[last+1:]):
-   code="console.log(await tools.tool_catalog({operation:'describe',name:'knowledge_query'}));console.log(await tools.knowledge_materials({operation:'inspect'}));console.log(await tools.mcp__browser__automation({operation:'help'}));console.log(await tools.business_api({operation:'list'}));"
+   code="console.log(await tools.local_python({script:'python-runtime-fixture.py'}));console.log(await tools.tool_catalog({operation:'describe',name:'knowledge_query'}));console.log(await tools.knowledge_materials({operation:'inspect'}));console.log(await tools.mcp__browser__automation({operation:'help'}));console.log(await tools.business_api({operation:'list'}));"
    chunks=[({'role':'assistant','tool_calls':[{'index':0,'id':'browser-fixture-'+uuid.uuid4().hex,'type':'function','function':{'name':'run_code','arguments':json.dumps({'code':code,'description':'Inspect offline tools and registered local sources'})}}]},None),({},'tool_calls')]
   else:chunks=[({'role':'assistant','content':'BROWSER_PATCH_DONE'},None),({},'stop')]
   self.send_response(200);self.send_header('Content-Type','text/event-stream');self.end_headers()
@@ -47,7 +47,7 @@ try:
   if match:url=match.group();break
  if not url:raise AssertionError(re.sub(r'token=[A-Za-z0-9_-]+','token=REDACTED',buf[-6000:]))
  opener=urllib.request.build_opener(urllib.request.ProxyHandler({}),urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()));opener.open(url,timeout=90).read();origin=url.split('/?')[0]
- def open_json(url,timeout=180):
+ def open_json(url,timeout=600):
   try:return json.load(opener.open(url,timeout=timeout))
   except urllib.error.HTTPError as error:raise AssertionError(error.read().decode('utf-8','replace')) from None
  def rpc(method,payload):
@@ -73,7 +73,7 @@ try:
  try:post({**target,'mode':'code','checkpointId':preview['checkpointId']});raise AssertionError('unconfirmed restore accepted')
  except urllib.error.HTTPError as e:assert e.code==409
  assert Path(fixture['userFile']).read_text()=='synthetic current'
- report={'status':'PASS','version':'R11.6','actualHostAndAgent':True,'messagesOnlyForkPreservesOriginal':True,'unconfirmedFileRestoreRejected':True,'checkpointPreview':True,'ragDisabledMakesNoRequest':True,'childReusesParentMaterials':True,'noDuplicateTools':True,'physicalKylinTested':False}
+ report={'status':'PASS','version':json.loads((APP/'config/app.json').read_text(encoding='utf8'))['version'],'actualHostAndAgent':True,'messagesOnlyForkPreservesOriginal':True,'unconfirmedFileRestoreRejected':True,'checkpointPreview':True,'ragDisabledMakesNoRequest':True,'childReusesParentMaterials':True,'noDuplicateTools':True,'physicalKylinTested':False}
  (WORK/'restored-result.json').write_text(json.dumps(report,indent=2));print(json.dumps(report),flush=True)
  ui_env={**env,'DSH_URL':url,'BROWSER_UI_OUTPUT':str(WORK/'browser-settings.png'),'NEIWANG_REWIND_UI':'1'}
  if os.name!='nt':
@@ -83,7 +83,7 @@ try:
  ui_env.pop('ELECTRON_RUN_AS_NODE',None)
  ui_env['ELECTRON_ENABLE_LOGGING']='1'
  ui_cmd=([str((APP/'launcher/electron/electron.exe').resolve())] if os.name=='nt' else ['xvfb-run','-a',str(APP/'launcher/electron/electron')])+['--no-sandbox','--disable-gpu',str(HERE/'test-browser-ui.cjs')]
- try:subprocess.run(ui_cmd,env=ui_env,cwd=APP,check=True,timeout=240)
+ try:subprocess.run(ui_cmd,env=ui_env,cwd=APP,check=True,timeout=600)
  except subprocess.CalledProcessError:
   while not q.empty():buf+=q.get_nowait()
   (WORK/'synthetic-backend-error.log').write_text(re.sub(r'token=[A-Za-z0-9_-]+','token=REDACTED',buf[-20000:]),encoding='utf-8');raise

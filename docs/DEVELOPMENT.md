@@ -115,3 +115,5 @@ python scripts/package-plugin-manager.py --output /build/Neiwang-Offline-Plugin-
 运行node --test scripts/test-feature-boot.cjs验证两包首次启动、缺包和损坏阻断。scripts/test-restored-runtime.py在独立APP副本运行真实Host/Agent、按需目录、RAG关闭与父子复用、检查点预览、消息分支和未确认文件恢复拒绝；scripts/test-browser-host.py验证SDK精简前后的实际请求和工具回环。两者均使用本机合成模型，不调用组织服务；UI测试操作实际检索开关、侧边栏和设置。测试不能在发布暂存目录或用户在用APP执行。
 
 回退适配版目前只扩展兼容声明，运行时代码来自固定上游包；src供审阅，lib按SHA512校验的原始包恢复。回退验收的合成WORK必须放在任何Git检出目录之外，以免普通目录测试扫描到源码仓库；实际Git工作区的检查点遵循其真实仓库边界。Windows工具沙箱验收需要能设置工作区ACL的正常用户权限，不应为了测试关闭APP的沙箱规则。
+
+PythonTools 1.1.0的runtime.cjs公开导出供业务插件共用；业务/RAG扩展依赖PythonTools ^1.1.0，离线更新应一并封装。运行时只在APP/runtime/python中选择，支持发行3.11与开发3.12，不查询系统PATH；两平台真实Agent的local_python调用已验收。
