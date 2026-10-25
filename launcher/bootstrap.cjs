@@ -98,6 +98,17 @@ function prepare(){
   {id:'dingtalk-channel',config:{workspace:path.join(root,'workspace/dingtalk'),markdownTitle:deployment.name}},
   {id:'office-to-pdf',config:{fontDirectories:process.platform==='win32'?[path.join(root,'extensions/office-fonts'),path.join(env.WINDIR||'C:/Windows','Fonts')]:[path.join(root,'extensions/office-fonts'),'/usr/share/fonts','/usr/local/share/fonts']}}
  ];
+ // 模型设置页只写 profile 用户层。llm-pi-ai 与 agent-default-model 若由 !!js 提供默认值，
+ // 设置页会把未求值表达式当成配置键，报 "Config field \"__jsExpr\" is not volatile"。
+ // 首次启动把部署默认值写入用户层；已存在的用户条目保持不变。
+ let userPatchText=fs.readFileSync(userPatch,'utf8');
+ if(userPatchText.trim()==='[]')userPatchText='';
+ for(const id of ['llm-pi-ai','agent-default-model']){
+  if(new RegExp('^- id: "?'+id+'"?$','m').test(userPatchText))continue;
+  if(userPatchText.length>0&&!userPatchText.endsWith('\n'))userPatchText+='\n';
+  userPatchText+=`- id: ${id}\n  config: ${JSON.stringify(patches.find(row=>row.id===id).config)}\n`;
+ }
+ fs.writeFileSync(userPatch,userPatchText||'[]\n');
  // Profile user changes must win over deployment defaults, especially DingTalk account policies.
  const patchFile=path.join(data,'runtime/deployment.patch.json');
  fs.writeFileSync(patchFile,JSON.stringify(patches,null,2),{mode:0o600});

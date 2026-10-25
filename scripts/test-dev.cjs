@@ -23,7 +23,12 @@ test('first boot needs no model seed and enables model settings',()=>withoutMode
  assert.deepEqual(patches.find(v=>v.id==='llm-pi-ai').config,{});
  assert.equal(patches.find(v=>v.id==='agent-default-model').config.provider,'deepseek-official');
  assert.equal(fs.existsSync(path.join(root,'data/config/model.enc')),false);
- const user=path.join(p.profile,'cordis.patch.yml'),content='# user-owned settings\n[]\n';fs.writeFileSync(user,content);bootstrap.prepare();assert.equal(fs.readFileSync(user,'utf8'),content);
+ const user=path.join(p.profile,'cordis.patch.yml'),content='# user-owned settings\n- id: ui-settings-general\n  config: {"welcomeNoticeVersion":"keep-me"}\n';fs.writeFileSync(user,content);
+ bootstrap.prepare();const userText=fs.readFileSync(user,'utf8');
+ assert.equal(userText.startsWith(content),true);
+ assert.match(userText,/- id: llm-pi-ai/);
+ assert.match(userText,/- id: agent-default-model/);
+ bootstrap.prepare();assert.equal(fs.readFileSync(user,'utf8'),userText);
 }));
 test('partial environment model configuration is rejected clearly',()=>withoutModelEnv(()=>{
  const {bootstrap}=fixture();process.env.NEIWANG_MODEL_ID='test-model';assert.throws(()=>bootstrap.prepare(),/Provide all NEIWANG_MODEL/);
