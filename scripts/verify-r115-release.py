@@ -44,10 +44,10 @@ def verify(paths,edition,secrets=(),private_source=None):
    if rel.endswith('/canvas-linux-arm64-gnu/skia.linux-arm64-gnu.node'):assert data[:4]==b'\x7fELF' and struct.unpack_from('<H',data,18)[0]==183
    if rel.endswith('/canvas-win32-x64-msvc/skia.win32-x64-msvc.node'):
     assert data[:2]==b'MZ';offset=struct.unpack_from('<I',data,0x3c)[0];assert data[offset:offset+4]==b'PE\0\0' and struct.unpack_from('<H',data,offset+4)[0]==0x8664
- app=files['config/app.json']['json'];pack=files['plugin-pack/pack.json']['json'];assert app['version']==pack['release']=='R11.5';assert app['platform']==pack['platform'];assert app['coreVersion']=='0.2.1-rc.3'
+ app=files['config/app.json']['json'];pack=files['plugin-pack/pack.json']['json'];assert app['version']==pack['release']=='R11.6';assert app['platform']==pack['platform'];assert app['coreVersion']=='0.2.1-rc.3'
  for row in pack['files']:assert files['plugin-pack/payload/'+row['path']]['sha256']==row['sha256'],row['path']
  for rel,h in files['manifests/core-sha256.json']['json'].items():assert files['core/0.2.1-rc.3/'+rel]['sha256']==h,rel
- assert all(n in pack['bundles'] for n in ['@neiwang/browser-automation','@neiwang/skill-incubator','dsh-better-sidebar'])
+ assert all(n in pack['bundles'] for n in ['@neiwang/browser-automation','@neiwang/skill-incubator','dsh-better-sidebar','@anionex/dsh-turn-rewind','@deepseek-ai/neiwang-business','@deepseek-ai/neiwang-tool-catalog','@neiwang/python-tools'])
  assert 'dsh-attachment-formats' not in pack['bundles']
  assert '@deepseek-ai/dsh-experimental-schedule-bundle' not in app['bundles']
  assert files['core/0.2.1-rc.3/node_modules/@deepseek-ai/dsh/package.json']['json']['version']=='0.2.1-rc.3'
@@ -62,7 +62,7 @@ def verify(paths,edition,secrets=(),private_source=None):
   for src,prefix in [(source/'offline-api-tool','offline-api-tool/'),(api,'plugin-pack/payload/extensions/apis/')]:
    expected={prefix+p.relative_to(src).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in src.rglob('*') if p.is_file() and p.suffix!='.pyc' and not any(n in p.relative_to(src).parts for n in ['__pycache__','.git','.cache'])}
    assert expected and {r:v['sha256'] for r,v in files.items() if r.startswith(prefix)}==expected
- return {'status':'PASS','edition':edition,'platform':app['platform'],'version':'R11.5','files':len(files),'links':len(links),'splitMembersDisjoint':True,'pluginHashesValid':True,'coreHashesUnchanged':True,'noLiveUserData':True,'currentPrivateCredentialsCompared':bool(secrets or private_source),'internalDocumentsCompared':bool(edition=='Internal' and private_source),'assets':assets}
+ return {'status':'PASS','edition':edition,'platform':app['platform'],'version':'R11.6','files':len(files),'links':len(links),'splitMembersDisjoint':True,'pluginHashesValid':True,'coreHashesUnchanged':True,'noLiveUserData':True,'currentPrivateCredentialsCompared':bool(secrets or private_source),'internalDocumentsCompared':bool(edition=='Internal' and private_source),'assets':assets}
 if __name__=='__main__':
  p=argparse.ArgumentParser();p.add_argument('--edition',choices=['Public','Internal'],required=True);p.add_argument('--report',required=True);p.add_argument('--private-source');p.add_argument('--node');p.add_argument('archives',nargs=2);a=p.parse_args()
  if a.node:os.environ['NEIWANG_AEAD_NODE']=a.node

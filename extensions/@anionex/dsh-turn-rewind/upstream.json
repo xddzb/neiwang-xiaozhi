@@ -1,0 +1,8 @@
+{
+  "name": "@anionex/dsh-turn-rewind",
+  "version": "0.3.10",
+  "tarball": "https://registry.npmjs.org/@anionex/dsh-turn-rewind/-/dsh-turn-rewind-0.3.10.tgz",
+  "integrity": "sha512-JJBf0luFUFwkzlalDq71mKj+Utzyu4yN40iJicP0qjbXw6z2oyUvBnujRqZTYzPWGKnvc5qriWH4xrGTvK2gzg==",
+  "license": "BSD-3-Clause",
+  "adaptation": "Local rc.3 compatibility validation; upstream declares rc.2 only; runtime source unchanged."
+}

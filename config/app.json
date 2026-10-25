@@ -1,6 +1,6 @@
 {
   "name": "内网小智",
-  "version": "R11.5-dev",
+  "version": "R11.6-dev",
   "coreVersion": "0.2.1-rc.3",
   "port": 3080,
   "contextWindow": 128000,

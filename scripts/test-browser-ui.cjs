@@ -21,7 +21,33 @@ async function click(win,labels,selector='button'){
  const home=await win.webContents.executeJavaScript(`({text:document.body.innerText,sidebar:!!document.querySelector('[data-dsh-better-sidebar]'),title:document.title})`);
  if(!home.text.includes('你说我做')||home.text.includes('预览版')||home.title!=='内网小智')throw Error('Home branding mismatch');
  if(process.env.NEIWANG_EXPECT_SIDEBAR==='1'&&(!home.sidebar||home.text.includes('PDF解析大师')))throw Error('Sidebar/parser mismatch');
+ const toggle=await win.webContents.executeJavaScript(`(async()=>{const b=document.querySelector('#neiwang-rag-toggle');if(!b)return {found:false};const before=b.getAttribute('aria-checked');b.click();for(let i=0;i<100&&b.disabled;i++)await new Promise(r=>setTimeout(r,30));const changed=b.getAttribute('aria-checked')!==before;b.click();for(let i=0;i<100&&b.disabled;i++)await new Promise(r=>setTimeout(r,30));return {found:true,changed,restored:b.getAttribute('aria-checked')===before}})()`);
+ if(!toggle.found||!toggle.changed||!toggle.restored)throw Error('RAG switch missing or not functional: '+JSON.stringify(toggle));
  fs.writeFileSync(process.env.BROWSER_UI_OUTPUT.replace('.png','-home.png'),(await win.webContents.capturePage()).toPNG());
+ if(process.env.NEIWANG_REWIND_UI==='1'){
+  let selected=false;
+  for(let i=0;i<60;i++){
+   selected=await win.webContents.executeJavaScript(`(()=>{const e=[...document.querySelectorAll('button,[role=button],[role=treeitem]')].find(e=>e.getClientRects().length&&/BROWSER_PATCH/.test(e.innerText||'')&&(e.innerText||'').length<250);if(e)e.click();return !!e})()`);
+   if(selected)break;await delay(500);
+  }
+  if(!selected)throw Error('Synthetic conversation not shown in sidebar: '+await win.webContents.executeJavaScript('document.body.innerText.slice(-4000)'));
+  let present=false;for(let i=0;i<80;i++){present=await win.webContents.executeJavaScript(`!!document.querySelector('.dcl-rewind-trigger')`);if(present)break;await delay(500)}
+  if(!present)throw Error('Rewind action absent in real conversation');
+  await win.webContents.executeJavaScript(`document.querySelector('.dcl-rewind-trigger').click()`);
+  let dialog=false;for(let i=0;i<60;i++){dialog=await win.webContents.executeJavaScript(`!!document.querySelector('.dcl-rewind-dialog')`);if(dialog)break;await delay(500)}
+  if(!dialog)throw Error('Rewind preview dialog absent');
+  await delay(750); // Let the real dialog transition paint before capturing it.
+  const dialogText=await win.webContents.executeJavaScript(`document.querySelector('.dcl-rewind-dialog').innerText`);
+  if(!/只回溯消息|Messages only|messages only/.test(dialogText))throw Error('Rewind choices absent: '+dialogText);
+  fs.writeFileSync(process.env.BROWSER_UI_OUTPUT.replace('.png','-rewind.png'),(await win.webContents.capturePage()).toPNG());
+  await win.webContents.executeJavaScript(`(()=>{const d=document.querySelector('.dcl-rewind-dialog');const b=[...d.querySelectorAll('button')].find(b=>/取消|Cancel|Close|关闭/.test(b.innerText||b.getAttribute('aria-label')||''));if(!b)throw Error('Cancel control absent');b.click()})()`);
+  await delay(500);
+  await win.webContents.executeJavaScript(`(()=>{const b=[...document.querySelectorAll('[data-sidebar-right-expand]')].find(e=>e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden');if(b)b.click()})()`);
+  await delay(1000);await click(win,['文件','Files']);
+  let listed=false;for(let i=0;i<80;i++){listed=await win.webContents.executeJavaScript(`document.body.innerText.includes('rewind-fixture.txt')`);if(listed)break;await delay(500)}
+  if(!listed)throw Error('Sidebar file tree did not show the synthetic workspace file');
+  fs.writeFileSync(process.env.BROWSER_UI_OUTPUT.replace('.png','-sidebar.png'),(await win.webContents.capturePage()).toPNG());
+ }
  if(!await click(win,['设置','Settings'])){
   if(!await click(win,['更多','More']))throw Error('More menu missing');
   await delay(500);

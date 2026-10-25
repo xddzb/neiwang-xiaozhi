@@ -1,4 +1,4 @@
-"""Compose R11.5 from reviewed platform baselines; never modify the old APP.
+"""Compose R11.6 from reviewed platform baselines; never modify the old APP.
 
 Private inputs are explicit CLI arguments, never source-controlled materials.
 Public and internal directories are physically separate. No runtime downloads.
@@ -6,9 +6,9 @@ Public and internal directories are physically separate. No runtime downloads.
 from pathlib import Path
 import argparse,tarfile,zipfile,json,hashlib,shutil,os,io,subprocess,re,posixpath
 ROOT=Path(__file__).resolve().parents[1]
-VERSION='R11.5'
-EXTRA=['@neiwang/skill-incubator','dsh-better-sidebar','@neiwang/browser-automation']
-RETIRED=['dsh-attachment-formats','@deepseek-ai/dsh-experimental-schedule-bundle','@anionex/dsh-turn-rewind']
+VERSION='R11.6'
+EXTRA=['@deepseek-ai/neiwang-business','@deepseek-ai/neiwang-tool-catalog','@neiwang/python-tools','@anionex/dsh-turn-rewind','@neiwang/skill-incubator','dsh-better-sidebar','@neiwang/browser-automation']
+RETIRED=['dsh-attachment-formats','@deepseek-ai/dsh-experimental-schedule-bundle']
 def dump(v):return json.dumps(v,ensure_ascii=False,indent=2).encode('utf8')
 def sha(p):
  h=hashlib.sha256()
@@ -91,6 +91,11 @@ def compose(app,platform,public_model,public_boot):
  # Remove inherited private entries before rebuilding the payload inventory.
  manifest['files']=[r for r in manifest['files'] if (pack/'payload'/r['path']).is_file() and not private(r['path'])]
  for name in EXTRA:
+  # All runtime files for a source-owned plugin must come from that source;
+  # never retain stale generated code from a historical baseline.
+  for base in [pack/'payload/extensions/node_modules',app/'extensions/node_modules']:
+   target=base/name
+   if target.exists():shutil.rmtree(target)
   for rel,data in plugin_files(name,platform):put(pack/'payload',rel,data)
  for rel in ['tools/offline-plugin-manager.cjs','launcher/plugin-profile.cjs','tools/migrate-settings.cjs','tools/setup_rag.py']:
   put(app,rel,(ROOT/rel).read_bytes())
@@ -102,8 +107,8 @@ def compose(app,platform,public_model,public_boot):
  for n in ['client.js','package.json']:put(app,'extensions/node_modules/@neiwang/brand/'+n,(ROOT/'extensions/@neiwang/brand'/n).read_bytes())
  boot=public_boot.decode('utf8')
  put(app,'launcher/bootstrap.cjs',boot.encode('utf8'))
- for name in ['model_config.py','rag_tool.py','local_aead.py']:put(app,'tools/'+name,(ROOT/'tools'/name).read_bytes())
- for rel in ['tools/offline-plugin-manager.cjs','tools/model_config.py','tools/rag_tool.py','tools/local_aead.py']:
+ for name in ['model_config.py','rag_tool.py','local_aead.py','tool_entry.py','api_tool.py','browser_session.py','once_response.py','python_tool.py','package_tool.py']:put(app,'tools/'+name,(ROOT/'tools'/name).read_bytes())
+ for rel in ['tools/offline-plugin-manager.cjs','tools/model_config.py','tools/rag_tool.py','tools/local_aead.py','tools/tool_entry.py','tools/api_tool.py','tools/browser_session.py','tools/once_response.py','tools/python_tool.py','tools/package_tool.py']:
   if (pack/'payload'/rel).exists():put(pack/'payload',rel,(app/rel).read_bytes())
  # Existing business API consumes browser cookies through a narrowly scoped local bridge.
  adapter=app/'tools/browser_session.py'
@@ -139,7 +144,7 @@ def refresh_manifest(app,manifest):
  for p,rel in regulars(app/'plugin-pack/payload'):
   rows.append({'path':rel,'sha256':sha(p),'mode':0o755 if p.suffix=='.sh' or p.read_bytes()[:4]==b'\x7fELF' else 0o644})
  manifest['files']=rows;manifest['links']=[row for row in manifest.get('links',[]) if 'dsh-attachment-formats' not in row['path']];put(app,'plugin-pack/pack.json',dump(manifest))
- release={'version':VERSION,'platform':manifest['platform'],'coreVersion':'0.2.1-rc.3','features':['schedule','skill-incubator','better-sidebar','playwright','compact-tool-prompt','dingtalk','dws-aitable','offline-plugin-manager'],'configurationMigration':'tools/migrate-settings.cjs','coreModified':False}
+ release={'version':VERSION,'platform':manifest['platform'],'coreVersion':'0.2.1-rc.3','features':['search-enhancement','turn-rewind','schedule','skill-incubator','better-sidebar','playwright','compact-tool-prompt','dingtalk','dws-aitable','offline-plugin-manager'],'configurationMigration':'tools/migrate-settings.cjs','coreModified':False}
  release['shippedUserFiles']={rel:sha(p) for p,rel in regulars(app) if rel.startswith(('offline-api-tool/','private-docs/'))}
  defaults=app/'config/defaults'
  if defaults.exists():
@@ -238,7 +243,7 @@ def main(a):
  source=Path(a.private_sources)/'extensions/apis';shutil.copytree(source,internal/'plugin-pack/payload/extensions/apis')
  im=json.loads((internal/'plugin-pack/pack.json').read_text(encoding='utf8'));refresh_manifest(internal,im);check_configuration(internal,'Internal')
  internal_assets=[] if a.assemble_only else package(internal,links,dist/'Send-to-Intranet','Internal')
- put(dist/'Send-to-Intranet','合并安装R11.5.sh',(ROOT/'scripts/install-internal-r115.sh').read_bytes())
+ put(dist/'Send-to-Intranet','合并安装R11.6.sh',(ROOT/'scripts/install-internal-r115.sh').read_bytes())
  put(dist/'Send-to-Intranet','HANDOVER.md',(ROOT/'docs/HANDOVER.md').read_bytes())
  put(dist/'Send-to-Intranet','INSTALL.md',(ROOT/'docs/INSTALL.md').read_bytes())
  put(dist/'Send-to-Intranet','DEVELOPMENT.md',(ROOT/'docs/DEVELOPMENT.md').read_bytes())

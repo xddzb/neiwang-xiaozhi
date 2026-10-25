@@ -9,7 +9,7 @@ function workspace(exec){
 }
 function run(tool,args,exec){
  const root=process.env.NEIWANG_APP_ROOT;
- const executable=join(root,process.platform==='win32'?'runtime/python/python.exe':'runtime/python/bin/python3');
+ const executable=join(root,process.platform==='win32'?'runtime/python/python.exe':'runtime/python/bin/python3.11');
  return new Promise(done=>{
   if(exec.signal.aborted)return done(JSON.stringify({ok:false,status:'cancelled'}));
   let output='',ended=false;

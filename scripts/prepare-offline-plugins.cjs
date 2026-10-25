@@ -2,7 +2,7 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto');
 const root=path.resolve(__dirname,'..'),plugin=path.join(root,'extensions/dsh-better-sidebar');
-function run(file,args,options={}){const r=cp.spawnSync(file,args,{cwd:plugin,encoding:'utf8',windowsHide:true,...options});if(r.status!==0)throw Error((r.stderr||r.stdout||'command failed').slice(-2000));return r.stdout}
+function run(file,args,options={}){const r=cp.spawnSync(file,args,{cwd:plugin,encoding:'utf8',windowsHide:true,env:{...process.env,npm_config_cache:path.join(root,'tmp/npm-plugins-cache')},...options});if(r.status!==0)throw Error((r.stderr||r.stdout||'command failed').slice(-2000));return r.stdout}
 async function prepare(){
  if(Number(process.versions.node.split('.')[0])!==24)throw Error('Use Node.js 24.x');
  const npm=process.env.npm_execpath;if(!npm||!fs.existsSync(npm))throw Error('Run through npm run prepare:plugins');
@@ -18,7 +18,20 @@ async function prepare(){
  for(const name of ['LICENSE','icon.svg','cordis.patch.yml'])fs.copyFileSync(path.join(pkg,name),path.join(plugin,name));
  run(process.execPath,[npm,'ci','--omit=dev','--ignore-scripts','--legacy-peer-deps','--no-audit','--no-fund']);
  run(process.execPath,[npm,'ci','--omit=dev','--ignore-scripts','--no-audit','--no-fund'],{cwd:path.join(root,'extensions/@neiwang/browser-automation')});
+ await prepareRewind(npm);
  console.log('Prepared pinned offline sidebar 0.28.0 and Playwright dependencies; no PDF parser');
 }
+async function prepareRewind(npm){
+ const dest=path.join(root,'extensions/@anionex/dsh-turn-rewind'),pin=JSON.parse(fs.readFileSync(path.join(dest,'upstream.json'),'utf8'));
+ if(pin.version!=='0.3.10'||pin.tarball!=='https://registry.npmjs.org/@anionex/dsh-turn-rewind/-/dsh-turn-rewind-0.3.10.tgz')throw Error('Unexpected rewind artifact');
+ const response=await fetch(pin.tarball);if(!response.ok)throw Error('Rewind artifact download failed');const bytes=Buffer.from(await response.arrayBuffer());
+ if('sha512-'+crypto.createHash('sha512').update(bytes).digest('base64')!==pin.integrity)throw Error('Rewind integrity mismatch');
+ fs.mkdirSync(path.join(root,'tmp'),{recursive:true});
+ const temp=fs.mkdtempSync(path.join(root,'tmp/rewind-assets-')),file=path.join(temp,'plugin.tgz');fs.writeFileSync(file,bytes);
+ const names=run('tar',['-tzf',file]);if(names.split(/\r?\n/).filter(Boolean).some(n=>!n.startsWith('package/')||n.split('/').includes('..')))throw Error('Unsafe rewind artifact');
+ run('tar',['-xzf',file,'-C',temp]);
+ require('./build-dev.cjs').copyTree(path.join(temp,'package/lib'),path.join(dest,'lib'));
+ run(process.execPath,[npm,'ci','--omit=dev','--ignore-scripts','--legacy-peer-deps','--no-audit','--no-fund'],{cwd:dest});
+}
 if(require.main===module)prepare().catch(e=>{console.error(e.message);process.exitCode=1});
-module.exports={prepare};
+module.exports={prepare,prepareRewind};

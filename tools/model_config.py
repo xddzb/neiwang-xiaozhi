@@ -12,7 +12,7 @@ from local_aead import AESGCM
 
 # Shared deployment key: deliberately portable per the user's deployment choice.
 def local_key():
-    target = ROOT/'data/config/.local-key'
+    target = CONFIG/'.local-key'
     target.parent.mkdir(parents=True,exist_ok=True)
     if not target.exists():
         try:
@@ -22,6 +22,7 @@ def local_key():
     value=target.read_bytes()
     if len(value)!=32: raise ValueError('invalid local configuration key')
     return value
+CONFIG=Path(os.environ.get('NEIWANG_CONFIG_DIR',str(Path(os.environ.get('NEIWANG_DATA_DIR',str(ROOT/'data')))/'config')))
 KEY = local_key()
 AAD = b'NEIWANG-MODEL-1'
 
@@ -53,7 +54,7 @@ def decode(raw):
 
 if __name__ == '__main__':
     try:
-        path = ROOT/'data/config/model.enc'
+        path = CONFIG/'model.enc'
         if sys.argv[1:] == ['generate']:
             value = json.load(sys.stdin)
             encrypted = encode(value)

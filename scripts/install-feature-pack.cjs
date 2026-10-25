@@ -15,12 +15,14 @@ function install(){
  const appFile=path.join(root,'config/app.json'),app=JSON.parse(fs.readFileSync(appFile,'utf8'));
  if(app.version!==manifest.release||app.platform!==manifest.platform||process.platform!==manifest.os||process.arch!==manifest.arch)throw Error('Core release/platform does not match this plugin pack');
  if(running())throw Error('请完全退出内网小智后再安装插件。');
+ console.log('正在校验本地离线插件包，首次启动请等待完成。');
  const payload=path.join(pack,'payload');
  for(const file of manifest.files){const src=safe(payload,file.path),dst=safe(root,file.path);if(!fs.existsSync(src)||fs.lstatSync(src).isSymbolicLink()||digest(src)!==file.sha256)throw Error('Plugin file checksum failed: '+file.path);if(fs.existsSync(dst)&&(fs.lstatSync(dst).isSymbolicLink()||digest(dst)!==file.sha256))throw Error('Existing file differs; no files changed: '+file.path);}
  for(const link of manifest.links){const dst=safe(root,link.path);const resolved=path.posix.normalize(path.posix.join(path.posix.dirname(link.path),link.target));safe(root,resolved);if(path.posix.isAbsolute(link.target))throw Error('Absolute link rejected');if(fs.existsSync(dst)||(()=>{try{return fs.lstatSync(dst).isSymbolicLink()}catch{return false}})()){if(!fs.lstatSync(dst).isSymbolicLink()||fs.readlinkSync(dst)!==link.target)throw Error('Link conflict');}}
- const lock=path.join(root,'config/.plugin-install.lock');const fd=fs.openSync(lock,'wx');let created=[];
+ const lock=path.join(root,'config/.plugin-install.lock');const fd=fs.openSync(lock,'wx');fs.writeFileSync(fd,JSON.stringify({pid:process.pid}));let created=[];
  const oldApp=fs.readFileSync(appFile);const marker=path.join(root,'config/feature-pack.json');const oldMarker=fs.existsSync(marker)?fs.readFileSync(marker):null;
  try{
+  console.log('校验通过，正在安装本地插件；不会下载依赖。');
   for(const file of manifest.files){const src=safe(payload,file.path),dst=safe(root,file.path);if(fs.existsSync(dst))continue;fs.mkdirSync(path.dirname(dst),{recursive:true});fs.copyFileSync(src,dst,fs.constants.COPYFILE_EXCL);created.push(dst);fs.chmodSync(dst,file.mode);}
   for(const link of manifest.links){const dst=safe(root,link.path);try{fs.lstatSync(dst);continue;}catch{}fs.mkdirSync(path.dirname(dst),{recursive:true});fs.symlinkSync(link.target,dst);created.push(dst);}
   const bundles=[...new Set([...app.bundles,...manifest.bundles])];
@@ -30,4 +32,20 @@ function install(){
  }catch(error){fs.writeFileSync(appFile,oldApp);if(oldMarker)fs.writeFileSync(marker,oldMarker);else if(fs.existsSync(marker))fs.unlinkSync(marker);for(const file of created.reverse())fs.unlinkSync(file);throw error;}
  finally{fs.closeSync(fd);fs.unlinkSync(lock);}
 }
-try{install();}catch(error){console.error('安装失败：'+error.message);process.exitCode=1;}
+function recover(){
+ const lock=path.join(root,'config/.plugin-install.lock');
+ if(running())throw Error('请先退出本APP的所有进程，再恢复首次插件安装。');
+ if(fs.existsSync(lock)){
+  const raw=fs.readFileSync(lock,'utf8');let owner;
+  if(raw.trim()){try{owner=JSON.parse(raw).pid}catch{throw Error('安装锁损坏，请人工检查，未修改文件。')}
+   if(!Number.isSafeInteger(owner)||owner<=0)throw Error('安装锁PID无效，未修改文件。');
+   try{process.kill(owner,0);throw Error('安装进程仍在运行，不能恢复。')}catch(e){if(e.code!=='ESRCH')throw e}
+  }
+  // Removing an abandoned lock never removes a plugin or a user file.
+  // install revalidates every source and existing target before any copy.
+  fs.unlinkSync(lock);
+ }
+ install();
+}
+module.exports={install,recover};
+if(require.main===module)try{process.argv.includes('--recover')?recover():install();}catch(error){console.error('安装失败：'+error.message);process.exitCode=1;}

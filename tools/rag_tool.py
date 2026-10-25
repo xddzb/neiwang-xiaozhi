@@ -11,12 +11,12 @@ import urllib.parse
 import urllib.request
 import uuid
 import ssl
-from model_config import KEY
+from model_config import KEY, CONFIG
 from local_aead import AESGCM
 from api_tool import NoRedirect, output_path
 
 ROOT=Path(__file__).resolve().parents[1]
-FILE=Path(os.environ.get('NEIWANG_RAG_CONFIG',str(ROOT/'data/config/dify.enc')))
+FILE=Path(os.environ.get('NEIWANG_RAG_CONFIG',str(CONFIG/'dify.enc')))
 AAD=b'NEIWANG-DIFY-1'
 
 def validate(v):
@@ -45,7 +45,7 @@ def load_config():
 
 def rag_enabled():
     try:
-        return json.loads((ROOT/'data/config/rag-policy.json').read_text(encoding='utf-8')).get('enabled') is True
+        return json.loads((CONFIG/'rag-policy.json').read_text(encoding='utf-8')).get('enabled') is True
     except FileNotFoundError:
         return True
     except Exception:

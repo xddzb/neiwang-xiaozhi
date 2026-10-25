@@ -65,8 +65,8 @@ window.addEventListener('DOMContentLoaded',async()=>{
  button.append(label,status,track);
  const paint=s=>{status.textContent=s.enabled?'已开启':'已关闭';button.setAttribute('aria-checked',String(s.enabled));button.title='检索增强开关：'+(s.enabled?'按需检索':'已关闭')+'。全应用生效，影响主智能体和子智能体，重启后保留；关闭不删除历史引用。';};
  paint(state);document.body.append(button);
- const mount=()=>{const foot=document.querySelector('[class~="hHd-Xa_footArea"]');if(foot&&button.parentElement!==foot){foot.append(button);button.classList.add('neiwang-sidebar-rag');}};
+ const mount=()=>{const foot=document.querySelector('[data-neiwang-rag-slot], [data-dsh-sidebar-footer], [class~="hHd-Xa_footArea"]');if(foot&&button.parentElement!==foot){foot.append(button);button.classList.add('neiwang-sidebar-rag');}};
  const observer=new MutationObserver(mount);observer.observe(document.body,{childList:true,subtree:true});mount();
- button.onclick=async()=>{button.disabled=true;try{state=await ipcRenderer.invoke('neiwang-rag-set',!state.enabled);paint(state);}finally{button.disabled=false;}};
+ button.onclick=async()=>{button.disabled=true;try{state=await ipcRenderer.invoke('neiwang-rag-set',!state.enabled);paint(state);}catch{status.textContent='保存失败，请重试';}finally{button.disabled=false;}};
  ipcRenderer.on('neiwang-rag-state',(_e,s)=>{state=s;paint(s);});
 });

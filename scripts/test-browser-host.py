@@ -3,6 +3,10 @@ from pathlib import Path
 import os,sys,json,subprocess,threading,queue,re,time,urllib.request,http.cookiejar,signal,hashlib
 from http.server import ThreadingHTTPServer,BaseHTTPRequestHandler
 HERE=Path(__file__).resolve().parent;APP=Path(sys.argv[1]).resolve();WORK=Path(sys.argv[2]).resolve();WORK.mkdir(parents=True,exist_ok=True)
+sources=APP/'extensions/apis/sources'
+if not sources.is_dir():sources=APP/'plugin-pack/payload/extensions/apis/sources'
+os.environ.setdefault('NEIWANG_EXPECTED_SOURCES',str(len(list(sources.glob('*.json')))))
+os.environ.setdefault('NEIWANG_EXPECT_SIDEBAR','1')
 sys.path.insert(0,str(APP/'tools'));import model_config
 observed={}
 class Mock(BaseHTTPRequestHandler):
