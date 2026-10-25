@@ -60,6 +60,15 @@ function prepare(){
  require('./plugin-profile.cjs')(root,currentProfile,deployment);
  fs.writeFileSync(manifest,JSON.stringify(currentProfile,null,2));
  const userPatch=path.join(profile,'cordis.patch.yml');if(!fs.existsSync(userPatch))fs.writeFileSync(userPatch,'[]\n');
+ // 会话回退插件目前只声明到 0.2.1-rc.2；按用户要求在当前运行时授予精确版本豁免，升级内核后自动失效。
+ if(deployment.bundles.includes('@anionex/dsh-turn-rewind')){
+  const manifestFile=path.join(extensions,'@anionex/dsh-turn-rewind/package.json');
+  if(!fs.existsSync(manifestFile))throw Error('Turn rewind bundle is declared but its package is missing; run npm run prepare:plugins.');
+  const file=path.join(profile,'compatibility.json'),grants=fs.existsSync(file)?read(file):{};
+  const key='@anionex/dsh-turn-rewind@'+read(manifestFile).version;
+  grants[key]=[...new Set([...(grants[key]||[]),deployment.coreVersion])];
+  fs.writeFileSync(file,JSON.stringify(grants,null,2)+'\n');
+ }
  // User Models settings own credentials and provider choices. No seed credential is required.
  const fields=['NEIWANG_MODEL_KEY','NEIWANG_MODEL_URL','NEIWANG_MODEL_ID'];
  const supplied=fields.some(key=>Boolean(process.env[key]));

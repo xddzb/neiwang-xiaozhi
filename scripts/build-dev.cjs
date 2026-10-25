@@ -50,8 +50,10 @@ function build({dependencies=path.join(source,'node_modules'),output,coreOnly=fa
  if(fs.existsSync(nodeLicense))copy(nodeLicense,path.join(dest,'runtime/node/LICENSE'));
  const app=JSON.parse(fs.readFileSync(path.join(dest,'config/app.json'),'utf8'));
  app.platform=platform;app.bundles=['@neiwang/deployment','@neiwang/brand'];
- if(!coreOnly)app.bundles.push('@dingtalk-real-ai/dsh-dingtalk','@deepseek-ai/neiwang-dingtalk-ui','@neiwang/dws-aitable','@neiwang/python-tools','@deepseek-ai/neiwang-business','@deepseek-ai/neiwang-tool-catalog','@anionex/dsh-turn-rewind','@neiwang/skill-incubator','dsh-better-sidebar','@neiwang/browser-automation');
+ if(!coreOnly)app.bundles.push('@dingtalk-real-ai/dsh-dingtalk','@deepseek-ai/neiwang-dingtalk-ui','@neiwang/dws-aitable','@neiwang/python-tools','@deepseek-ai/neiwang-business','@deepseek-ai/neiwang-tool-catalog','@anionex/dsh-turn-rewind','@neiwang/skill-incubator','dsh-better-sidebar','dsh-attachment-formats','@neiwang/browser-automation');
  if(!coreOnly&&!fs.existsSync(path.join(source,'extensions/dsh-better-sidebar/lib/index.js')))throw Error('Run npm run prepare:plugins in the approved build environment first.');
+ if(!coreOnly&&!fs.existsSync(path.join(source,'extensions/dsh-attachment-formats/vendor/tessdata/chi_sim.traineddata.gz')))throw Error('Run npm run prepare:plugins in the approved build environment first.');
+ if(!coreOnly&&!fs.existsSync(path.join(source,'extensions/@anionex/dsh-turn-rewind/node_modules/ignore')))throw Error('Run npm run prepare:plugins in the approved build environment first.');
  for(const name of app.bundles.filter(n=>!['@dingtalk-real-ai/dsh-dingtalk'].includes(n)))copy(path.join(source,'extensions',name),path.join(dest,'extensions/node_modules',name));
  copy(path.join(source,'config/workspace-rules.md'),path.join(dest,'workspace/AGENTS.md'));
  fs.writeFileSync(path.join(dest,'config/app.json'),JSON.stringify(app,null,2)+'\n');
