@@ -1,0 +1,16 @@
+{
+  "name": "@deepseek-ai/neiwang-business",
+  "type": "module",
+  "version": "1.1.0",
+  "main": "index.mjs",
+  "description": "内网工具：Dify RAG 知识库、HTTP 业务接口、自带 Python 的 Office/PDF/OCR 文件处理。无需联网安装依赖。",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "license": "UNLICENSED",
+  "peerDependencies": {
+    "@neiwang/python-tools": "^1.1.0"
+  }
+}

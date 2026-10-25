@@ -9,5 +9,6 @@ module.exports=function syncPluginProfile(root,profile,deployment){
  for(const name of retired)delete profile.dependencies[name];
 };
 module.exports.assertReady=function(root){
- if(fs.existsSync(path.join(root,'config/.plugin-install.lock'))||fs.existsSync(path.join(root,'extensions/.plugin-manager/active.json')))throw Error('插件安装正在进行或上次安装中断；请先关闭安装器并运行 管理插件.sh recover');
+ if(fs.existsSync(path.join(root,'config/.plugin-install.lock')))throw Error('首次插件安装正在进行或已中断。先退出本APP所有进程，再用随包Node运行 plugin-pack/install.cjs --recover。');
+ if(fs.existsSync(path.join(root,'extensions/.plugin-manager/active.json')))throw Error('增量插件安装正在进行或已中断；退出APP后运行 管理插件.sh recover。');
 };

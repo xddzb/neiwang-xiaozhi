@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "version": "R11.6",
+  "coreVersion": "0.2.1-rc.3",
+  "coreModified": false,
+  "unit": {
+    "tests": 55,
+    "pass": 52,
+    "skip": 3,
+    "fail": 0,
+    "skips": "Windows-specific symlink/process/other-user fixture coverage; not counted as passes"
+  },
+  "pythonTests": {
+    "buildInputs": 1,
+    "runtimePreparation": 3,
+    "allPassed": true
+  },
+  "windows": {
+    "restoredFeatures": {
+      "status": "PASS",
+      "version": "R11.6",
+      "actualHostAndAgent": true,
+      "messagesOnlyForkPreservesOriginal": true,
+      "unconfirmedFileRestoreRejected": true,
+      "checkpointPreview": true,
+      "ragDisabledMakesNoRequest": true,
+      "childReusesParentMaterials": true,
+      "noDuplicateTools": true,
+      "physicalKylinTested": false,
+      "desktopUiVerified": true
+    },
+    "prompt": {
+      "status": "PASS",
+      "prompt": {
+        "baseline": {
+          "systemChars": 51510,
+          "systemUtf8Bytes": 55220,
+          "wireToolCount": 1,
+          "containsFullSdkMap": true,
+          "containsLazyCatalog": false
+        },
+        "compact": {
+          "systemChars": 8789,
+          "systemUtf8Bytes": 12069,
+          "wireToolCount": 1,
+          "containsFullSdkMap": false,
+          "containsLazyCatalog": true
+        }
+      },
+      "removedSystemCharacters": 42721,
+      "exactModelTokensMeasured": false,
+      "sourceCount": 0,
+      "realAgentToolLoop": true,
+      "safetyAndToolPermissionsUnchanged": true,
+      "desktopUiVerified": true
+    },
+    "schedule": {
+      "status": "PASS",
+      "version": "R11.6",
+      "features": {
+        "status": "PASS",
+        "toolNames": [
+          "skill_new",
+          "skill_validate",
+          "skill_package",
+          "skill_improve_description",
+          "schedule_create",
+          "schedule_list",
+          "schedule_delete",
+          "schedule_update"
+        ],
+        "timerDelivered": true,
+        "agentSkillCreated": true,
+        "retiredPdfParserAbsent": true
+      },
+      "restart": {
+        "status": "PASS",
+        "persistedTaskRestored": true,
+        "coldSessionDelivered": true,
+        "generatedSkillDiscoverableAfterRestart": true
+      },
+      "model": "local synthetic fixture",
+      "nativeKylinTested": false
+    },
+    "realBundledPythonExecution": true,
+    "uiRewindRestoredDraft": true
+  },
+  "linuxArm64": {
+    "environment": "Ubuntu 20.04 ARM64 QEMU",
+    "restoredFeatures": {
+      "status": "PASS",
+      "version": "R11.6",
+      "actualHostAndAgent": true,
+      "messagesOnlyForkPreservesOriginal": true,
+      "unconfirmedFileRestoreRejected": true,
+      "checkpointPreview": true,
+      "ragDisabledMakesNoRequest": true,
+      "childReusesParentMaterials": true,
+      "noDuplicateTools": true,
+      "physicalKylinTested": false,
+      "desktopUiVerified": true
+    },
+    "registeredInternalSources": 15,
+    "physicalKylinTested": false,
+    "electronUiUsedXvfbAndNoSandboxForValidationOnly": true,
+    "prompt": {
+      "status": "PASS",
+      "prompt": {
+        "baseline": {
+          "systemChars": 50374,
+          "systemUtf8Bytes": 54080,
+          "wireToolCount": 1,
+          "containsFullSdkMap": true,
+          "containsLazyCatalog": false
+        },
+        "compact": {
+          "systemChars": 8622,
+          "systemUtf8Bytes": 11902,
+          "wireToolCount": 1,
+          "containsFullSdkMap": false,
+          "containsLazyCatalog": true
+        }
+      },
+      "removedSystemCharacters": 41752,
+      "exactModelTokensMeasured": false,
+      "sourceCount": 15,
+      "realAgentToolLoop": true,
+      "safetyAndToolPermissionsUnchanged": true,
+      "desktopUiVerified": true
+    },
+    "schedule": {
+      "status": "PASS",
+      "version": "R11.6",
+      "features": {
+        "status": "PASS",
+        "toolNames": [
+          "skill_new",
+          "skill_validate",
+          "skill_package",
+          "skill_improve_description",
+          "schedule_create",
+          "schedule_list",
+          "schedule_delete",
+          "schedule_update"
+        ],
+        "timerDelivered": true,
+        "agentSkillCreated": true,
+        "retiredPdfParserAbsent": true
+      },
+      "restart": {
+        "status": "PASS",
+        "persistedTaskRestored": true,
+        "coldSessionDelivered": true,
+        "generatedSkillDiscoverableAfterRestart": true
+      },
+      "model": "local synthetic fixture",
+      "nativeKylinTested": false
+    },
+    "realBundledPythonExecution": true,
+    "uiRewindRestoredDraft": true
+  },
+  "configuration": {
+    "publicOrganizationConfigurationEmpty": true,
+    "internalUsesPrivateLocalInput": true,
+    "secretsNotPrinted": true,
+    "privateModelRagAndConnectionValuesExcludedFromCandidateSource": true
+  },
+  "coverageNotes": [
+    "Real root Agents use a local synthetic model; child RAG policy is a synthetic child-header fixture.",
+    "ISU endpoint fallback is covered by synthetic configuration tests; live organization services, SSO and DingTalk are not tested.",
+    "Final archive hashes and publication status belong to GitHub Release r11.6."
+  ],
+  "evidenceKind": "Frozen R11.6 release evidence; modified local rebuilds need fresh verification",
+  "archiveValidation": {
+    "publicKylin": "PASS",
+    "publicWindows": "PASS",
+    "assetHashes": "GitHub Release r11.6 notes",
+    "internal": "PASS",
+    "internalModelRagAndInterfaceFilesMatchPrivateInput": true,
+    "allAssetsUnder500000000Bytes": true,
+    "coreAndPluginMembersDisjoint": true,
+    "coreHashesUnmodified": true
+  },
+  "pythonRuntimeCompatibility": {
+    "pluginVersion": "1.1.0",
+    "developmentLinuxMinorFixture": "3.12",
+    "releaseLinuxMinorFixture": "3.11",
+    "systemPythonFallback": false,
+    "sharedRuntimePublicExportTested": true
+  }
+}

@@ -2,7 +2,7 @@
 
 ## 开发入口与版本
 
-根目录是唯一当前开发源码。当前开发目标为应用R11.5 / DSH 0.2.1-rc.3；已发布R11.4使用0.2.0-rc.2。不要手工修改core依赖文件。全局APP规则模板在config/workspace-rules.md，源码协作规则在根目录AGENTS.md。
+根目录是唯一当前开发源码。当前开发目标为应用R11.6 / DSH 0.2.1-rc.3；上一版R11.5同用此内核，R11.4使用0.2.0-rc.2。不要手工修改core依赖文件。全局APP规则模板在config/workspace-rules.md，源码协作规则在根目录AGENTS.md。
 
 构建机可以联网准备依赖；内网安装阶段不执行npm/pip下载。使用随包Node24运行构建工具。
 
@@ -107,3 +107,13 @@ python scripts/package-plugin-manager.py --output /build/Neiwang-Offline-Plugin-
 ```
 
 新构建流程已自动放入管理器及启动协调代码；历史 R11.3 安装包不被悄悄改写，现有用户使用上述小型接入包。每个平台的GitHub Release安装资产继续使用Core/Plugins拆分，管理器源码和本文保留在仓库。
+
+## 功能来源和回归验收
+
+检索与业务适配源码在extensions/@deepseek-ai/neiwang-business；Python注册在@neiwang/python-tools；tool-catalog负责按需参数；browser-automation仅压缩生成的tools:sdk段，保留安全与业务系统规则。回退源码在@anionex/dsh-turn-rewind/src，固定原始包及SHA512见同目录upstream.json；lib由prepare:plugins生成，依赖使用锁文件npm ci。官方内核文件不修改。发布组合入口脚本沿用build-r115-release.py文件名，实际版本由其VERSION指定为R11.6。
+
+运行node --test scripts/test-feature-boot.cjs验证两包首次启动、缺包和损坏阻断。scripts/test-restored-runtime.py在独立APP副本运行真实Host/Agent、按需目录、RAG关闭与父子复用、检查点预览、消息分支和未确认文件恢复拒绝；scripts/test-browser-host.py验证SDK精简前后的实际请求和工具回环。两者均使用本机合成模型，不调用组织服务；UI测试操作实际检索开关、侧边栏和设置。测试不能在发布暂存目录或用户在用APP执行。
+
+回退适配版目前只扩展兼容声明，运行时代码来自固定上游包；src供审阅，lib按SHA512校验的原始包恢复。回退验收的合成WORK必须放在任何Git检出目录之外，以免普通目录测试扫描到源码仓库；实际Git工作区的检查点遵循其真实仓库边界。Windows工具沙箱验收需要能设置工作区ACL的正常用户权限，不应为了测试关闭APP的沙箱规则。
+
+PythonTools 1.1.0的runtime.cjs公开导出供业务插件共用；业务/RAG扩展依赖PythonTools ^1.1.0，离线更新应一并封装。运行时只在APP/runtime/python中选择，支持发行3.11与开发3.12，不查询系统PATH；两平台真实Agent的local_python调用已验收。

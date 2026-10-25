@@ -6,6 +6,16 @@ function packages(modules){const result=[];for(const entry of fs.readdirSync(mod
 function link(target,dest){fs.mkdirSync(path.dirname(dest),{recursive:true});try{const info=fs.lstatSync(dest);if(!info.isSymbolicLink())return;const current=path.resolve(path.dirname(dest),fs.readlinkSync(dest));if(current===path.resolve(target))return;fs.unlinkSync(dest);}catch(e){if(e.code!=='ENOENT')throw e;}fs.symlinkSync(process.platform==='win32'?path.resolve(target):path.relative(path.dirname(dest),target),dest,process.platform==='win32'?'junction':'dir');}
 function prepare(){
  require('./plugin-profile.cjs').assertReady(root);
+ // The two offline archives form one APP. Verify/install the local pack before
+ // constructing its profile, in this process so the running-process guard holds.
+ const initial=read(path.join(root,'config/app.json'));
+ if(initial.edition==='core'){
+  const installer=path.join(root,'plugin-pack/install.cjs');
+  if(!fs.existsSync(installer))throw Error('缺少离线插件包。请将同版本 Core 与 Plugins 解压到同一目录后重新启动。');
+  const install=require(installer).install;
+  if(typeof install!=='function')throw Error('插件安装器版本不匹配，请使用同版本 Core 与 Plugins。');
+  install();
+ }
  const deployment=read(path.join(root,'config/app.json'));
  const core=path.join(root,'core',deployment.coreVersion),modules=path.join(core,'node_modules'),extensions=path.join(root,'extensions/node_modules');
  const data=process.env.NEIWANG_DATA_DIR||path.join(root,'data'),home=path.join(data,'dsh');

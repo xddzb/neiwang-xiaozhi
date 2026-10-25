@@ -5,7 +5,9 @@ const { app, BrowserWindow, shell, Menu, dialog, ipcMain } = require('electron')
 const fs = require('node:fs');
 const path = require('node:path');
 const ragPolicy=require('./rag-policy.cjs');
-const fullFeatures=JSON.parse(fs.readFileSync(path.join(process.env.NEIWANG_APP_ROOT,"config/app.json"),"utf8")).bundles.includes("@deepseek-ai/neiwang-business");
+// The local policy switch remains visible even with an incomplete profile;
+// bootstrap validates the offline feature pack before the window is opened.
+const fullFeatures=true;
 const deploymentBrand=JSON.parse(fs.readFileSync(path.join(process.env.NEIWANG_APP_ROOT,'config/brand.json'),'utf8'));
 const desktopData=path.join(process.env.NEIWANG_DATA_DIR||path.join(process.env.NEIWANG_APP_ROOT,'data'),'desktop');
 fs.mkdirSync(desktopData,{recursive:true});

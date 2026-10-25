@@ -60,7 +60,7 @@ try:
   report=get(opener,origin+'/r115-test/features');print(json.dumps(report),flush=True);assert report['status']=='PASS'
   ready=get(opener,origin+'/r115-test/prepare-restart');assert ready['status']=='READY';stop();opener,origin,url=start()
  restored=get(opener,origin+'/r115-test/restored');assert restored['status']=='PASS';print(json.dumps(restored),flush=True)
- result={'status':'PASS','version':'R11.5','features':report,'restart':restored,'model':'local synthetic fixture','nativeKylinTested':False}
+ result={'status':'PASS','version':json.loads((APP/'config/app.json').read_text(encoding='utf8'))['version'],'features':report,'restart':restored,'model':'local synthetic fixture','nativeKylinTested':False}
  (WORK/'runtime-result.json').write_text(json.dumps(result,indent=2));print('PASS R11.5 actual Agent, skills, timer delivery and restart recovery',flush=True)
 finally:
  stop();mock.shutdown()

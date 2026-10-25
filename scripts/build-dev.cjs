@@ -50,7 +50,7 @@ function build({dependencies=path.join(source,'node_modules'),output,coreOnly=fa
  if(fs.existsSync(nodeLicense))copy(nodeLicense,path.join(dest,'runtime/node/LICENSE'));
  const app=JSON.parse(fs.readFileSync(path.join(dest,'config/app.json'),'utf8'));
  app.platform=platform;app.bundles=['@neiwang/deployment','@neiwang/brand'];
- if(!coreOnly)app.bundles.push('@dingtalk-real-ai/dsh-dingtalk','@deepseek-ai/neiwang-dingtalk-ui','@neiwang/dws-aitable','@neiwang/python-tools','@neiwang/skill-incubator','dsh-better-sidebar','@neiwang/browser-automation');
+ if(!coreOnly)app.bundles.push('@dingtalk-real-ai/dsh-dingtalk','@deepseek-ai/neiwang-dingtalk-ui','@neiwang/dws-aitable','@neiwang/python-tools','@deepseek-ai/neiwang-business','@deepseek-ai/neiwang-tool-catalog','@anionex/dsh-turn-rewind','@neiwang/skill-incubator','dsh-better-sidebar','@neiwang/browser-automation');
  if(!coreOnly&&!fs.existsSync(path.join(source,'extensions/dsh-better-sidebar/lib/index.js')))throw Error('Run npm run prepare:plugins in the approved build environment first.');
  for(const name of app.bundles.filter(n=>!['@dingtalk-real-ai/dsh-dingtalk'].includes(n)))copy(path.join(source,'extensions',name),path.join(dest,'extensions/node_modules',name));
  copy(path.join(source,'config/workspace-rules.md'),path.join(dest,'workspace/AGENTS.md'));
@@ -64,7 +64,7 @@ function build({dependencies=path.join(source,'node_modules'),output,coreOnly=fa
   copy(path.join(materials,'python'),path.join(dest,'runtime/python'));
   if(process.platform==='linux')copy(path.join(materials,'sandbox'),path.join(dest,'runtime/sandbox'));
   copy(path.join(materials,'dws'),path.join(dest,'extensions/dws'));
-  for(const name of ['python_tool.py','package_tool.py','dws-login.cjs','dws-readonly-app.ps1'])copy(path.join(source,'tools',name),path.join(dest,'tools',name));
+  for(const name of ['python_tool.py','package_tool.py','dws-login.cjs','dws-readonly-app.ps1','tool_entry.py','api_tool.py','browser_session.py','once_response.py','rag_tool.py','model_config.py','local_aead.py','setup_rag.py'])copy(path.join(source,'tools',name),path.join(dest,'tools',name));
   fs.writeFileSync(path.join(dest,'登录AI表格.cmd'),'@echo off\r\ncd /d "%~dp0"\r\n"runtime\\node\\node.exe" "tools\\dws-login.cjs"\r\n');
   fs.writeFileSync(path.join(dest,'登录AI表格.sh'),'#!/bin/sh\nset -eu\ncd "$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"\nexec ./runtime/node/bin/node ./tools/dws-login.cjs\n',{mode:0o755});
   const dws=path.join(dest,'extensions/dws',process.platform==='win32'?'dws.exe':'dws');

@@ -2,6 +2,7 @@ import {defineTool} from '@deepseek-ai/dsh-tools';
 import {spawn} from 'node:child_process';
 import {resolve,join} from 'node:path';
 import {statSync} from 'node:fs';
+import runtime from './runtime.cjs';
 export const inject=['tools','systemPrompt'];
 function workspace(exec){
  const p=resolve(exec.agent?.session?.header?.cwd||exec.agent?.session?.meta?.cwd||join(process.env.NEIWANG_APP_ROOT,'workspace'));
@@ -9,7 +10,7 @@ function workspace(exec){
 }
 function run(tool,args,exec){
  const root=process.env.NEIWANG_APP_ROOT;
- const executable=join(root,process.platform==='win32'?'runtime/python/python.exe':'runtime/python/bin/python3');
+ const executable=process.env.NEIWANG_PYTHON||runtime.pythonExecutable(root);
  return new Promise(done=>{
   if(exec.signal.aborted)return done(JSON.stringify({ok:false,status:'cancelled'}));
   let output='',ended=false;

@@ -16,5 +16,8 @@ window.__ModuleLoader__.load({id:'@neiwang/brand',factory:(require)=>{
   ctx.slots.inject('sidebar.brand.mark',()=>ctx.slots.register({name:'sidebar.brand.mark'},Mark));
   ctx.slots.inject('sidebar.brand.name',()=>ctx.slots.register({name:'sidebar.brand.name'},Name));
   ctx.slots.inject('conversation.hero.brand.mark',()=>ctx.slots.register({name:'conversation.hero.brand.mark'},Mark));
+  // Stable host slot: the isolated preload owns IPC and the switch DOM.
+  // No renderer receives Node access or model/RAG credentials.
+  ctx.slots.inject('sidebar.footer.action',()=>ctx.slots.register({name:'sidebar.footer.action'},()=>h('div',{'data-neiwang-rag-slot':'',style:{width:'100%'}})));
  }};
 }});
