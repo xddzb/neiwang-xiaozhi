@@ -814,6 +814,7 @@ window.__ModuleLoader__.load({id:'@neiwang/brand',factory:(require)=>{
  // 页签开得多了以后，内核 tab 条的横向滚动条几乎看不见。这里把条带做细，
  // 并允许普通滚轮直接横向滚动；不改内核产物（容器本身已是 overflow-x:auto）。
  function ensureTabScrollStyles(){
+  if(typeof document==='undefined')return;
   if(document.querySelector('style[data-plugin-tab-scroll]')!==null)return;
   const tag=document.createElement('style');
   tag.dataset.pluginTabScroll='';
@@ -827,6 +828,7 @@ window.__ModuleLoader__.load({id:'@neiwang/brand',factory:(require)=>{
  // 普通滚轮在页签条上直接横向滚动；触控板的横向手势仍交给原生处理。
  // 用 requestAnimationFrame 匀速推进到目标位置，避免每次事件大小不同导致忽快忽慢。
  function installTabWheelScroll(){
+  if(typeof document==='undefined')return;
   if(document.documentElement.dataset.pluginTabWheel==='1')return;
   document.documentElement.dataset.pluginTabWheel='1';
   let target=null,frame=0;
