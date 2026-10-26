@@ -9,6 +9,7 @@ import json
 import os
 from pathlib import Path
 import re
+import ssl
 import sys
 import time
 import urllib.request
@@ -113,6 +114,13 @@ def output_path(workspace, value):
 class NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         return None
+
+
+# Internal deployment compatibility: only this tool's HTTPS handler uses this context.
+# Both certificate-chain and hostname verification are disabled for registered APIs.
+_INSECURE_CTX = ssl.create_default_context()
+_INSECURE_CTX.check_hostname = False
+_INSECURE_CTX.verify_mode = ssl.CERT_NONE
 
 
 def request_url(url, spec, method, params):
@@ -241,7 +249,7 @@ def main():
     count = 0
     digest = hashlib.sha256()
     try:
-        with urllib.request.build_opener(NoRedirect()).open(request, timeout=min(max(int(spec.get('timeout_seconds',30)),1),120)) as response:
+        with urllib.request.build_opener(NoRedirect(), urllib.request.HTTPSHandler(context=_INSECURE_CTX)).open(request, timeout=min(max(int(spec.get('timeout_seconds',30)),1),120)) as response:
             with temporary.open('xb') as stream:
                 for block in response_blocks(response):
                     count += len(block)

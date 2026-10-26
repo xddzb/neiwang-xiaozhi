@@ -3,6 +3,8 @@ const {app,BrowserWindow,Menu,session}=require('electron');
 const fs=require('node:fs'),path=require('node:path'),{pathToFileURL}=require('node:url');
 const profile=process.env.NEIWANG_BROWSER_PROFILE;if(!profile||!path.isAbsolute(profile))throw Error('Browser profile missing');
 fs.mkdirSync(profile,{recursive:true,mode:0o700});app.setPath('userData',profile);app.disableHardwareAcceleration();
+// Internal deployment compatibility: applies to every HTTPS site in this browser process.
+app.commandLine.appendSwitch('ignore-certificate-errors');
 app.commandLine.appendSwitch('remote-debugging-address','127.0.0.1');app.commandLine.appendSwitch('remote-debugging-port','0');
 const home=pathToFileURL(path.join(__dirname,'home.html')).href;let main,quitting=false,flushed=false;
 const allowed=value=>{try{const u=new URL(value);return ['http:','https:'].includes(u.protocol)&&!u.username&&!u.password||value==='about:blank'||value===home}catch{return false}};

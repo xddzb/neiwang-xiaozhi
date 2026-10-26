@@ -24,6 +24,19 @@
 - **验证**：Windows x64 实测结束快照落盘（`turn=6 phase=end round=2`）、轮次封口显示结束时间、轮次结束后的手动修改单独成条目；发送消息后 +2 秒显示「第 N 轮 · 进行中」、+17 秒自动封口；PNG 等二进制文件不再触发行级比较。`tsc` 对 16 个服务端源文件类型检查零错误。未运行 `npm test`、`scripts/check_source.py`，也未做麒麟平台回归。
 - **发布状态**：仅源码与本地开发构建，未重建或替换安装包；与 GitHub R11.6 已发布资产无关。
 
+### 未发布 — 内网自签名证书兼容（2026-10-26）
+
+- **合并同事分支**：合并QiuYun753推送的 `feat/restore-legacy-plugins`（4a58fc1），保留其附件解析/OCR插件恢复、模型设置页 `__jsExpr` 修复及右栏文件树在左邻分栏打开的改动。后文R11.5条目中同事新增记录保留为开发历史，不代表R11.6安装包已包含这些改动。
+- **整合修复**：继续使用已验证的回退插件本地适配版0.3.10-neiwang.1，移除同事分支的重复自动兼容豁免，避免将未来内核版本自动加入例外；用户已有compatibility.json不改写。模型用户层补齐支持带注释的空列表，保留已有provider/model条目，重复启动不重复追加。附件恢复现已接入开发构建；历史R11.6发行脚本仍按原版清单排除附件插件，下一次发行前必须统一清单、重验离线资源与包大小，不能直接声称旧Release包含附件恢复。
+- **合并验证**：基础Node回归25项通过，另新增侧栏左邻分栏/显式目标/搬移/卸载回归通过；附件多会话隔离6项、Python运行时准备3项及自签名HTTPS含真实Electron4项均通过。源码语法和私有值排除检查通过。保留现有CI工作流，新增侧栏回归随npm test执行，TLS及附件会话隔离使用上述本地验证；无桌面Electron路径时TLS脚本明确跳过真实浏览器项。本次未重建附件依赖与离线包，附件端到端解析/OCR及物理麒麟仍待下次发行验收。
+
+- **变更**：按部署方要求，`extensions/@neiwang/browser-automation/browser-main.cjs` 在业务浏览器进程启动前加入 `ignore-certificate-errors`。范围是该业务浏览器访问的所有HTTPS站点，不限某个组织或证书；不修改APP主窗口启动参数。业务浏览器需完全退出后重新启动。
+- **变更**：`tools/api_tool.py` 为本工具的HTTPSHandler指定模块级SSLContext，关闭证书链及主机名验证。适用于该工具所有已登记HTTPS接口，不仅单一接口；保留NoRedirect、只读接口限制、参数和输出路径验证、响应大小限制及流式下载。不修改Python全局默认TLS策略，不影响模型、RAG、钉钉等其他客户端的证书策略。
+- **保留**：不改连接文件、接口源、模型/RAG配置、钉钉绑定、用户文件及官方内核；不新增凭据或Cookie的读取与输出。真实业务访问和用户列举的下载产物属于现场运行结果，本次未访问组织系统、未重现这些产物。
+- **部署注意**：这是显式接受无法校验HTTPS服务身份的兼容方案，通信仍使用TLS，但不能验证对端身份。后续拿到组织CA证书时，应改为信任组织CA并恢复校验。源码插件路径发布到APP后为 `extensions/node_modules/@neiwang/browser-automation/browser-main.cjs`；工具仍为 `tools/api_tool.py`。修改前的代码与文档已在本地忽略目录 `backups/certificate-compat-<时间>/` 中按原路径备份，备份不提交Git。
+- **验证**：本机临时自签名证书且主机名不匹配的HTTPS服务上，真实Electron业务浏览器打开成功，sandbox/contextIsolation/webSecurity保持启用、nodeIntegration保持关闭；business_api实际查询下载、JSON验证和SHA256核对成功；302重定向仍被拒绝且没有访问跳转目标；Python默认HTTPS客户端仍拒绝该证书。共4项集成测试通过。测试只用合成数据，未读取真实业务凭据或登录态；实体麒麟与组织SSO仍需现场验证。
+- **发布状态**：仅当前源码修改，GitHub R11.6已发布安装包尚不包含此修复；本次未重建或替换现用APP。测试入口 `scripts/test_api_certificate.py`，需OpenSSL生成临时证书；设置 `NEIWANG_TEST_ELECTRON` 后运行真实桌面浏览器测试，未设置时该项明确跳过。
+
 ### R11.6 — 功能恢复与离线完整性（2026-10-26）
 
 - **修复**：发布包曾从历史基线继承业务/RAG扩展，当前开发构建没有同一来源；通用实现恢复到 `extensions/@deepseek-ai/neiwang-business`，源码与发布构建统一。真实接口定义与凭据仍只进入Internal，不进入GitHub。
