@@ -13,7 +13,3 @@
   config: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"compaction-basic\").config"
 - id: workspace-controller
   config: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"workspace-controller\").config"
-- id: agent-default-model
-  config: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"agent-default-model\").config"
-- id: llm-pi-ai
-  config: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"llm-pi-ai\").config"
