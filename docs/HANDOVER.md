@@ -50,6 +50,10 @@
 - **文档**：docs收敛为本技术交接、安装与使用、开发与插件维护三个入口，修改日志集中在这里。
 - **验证**：Windows x64与Linux ARM64虚拟机均通过实际Host/Agent、技能创建、定时触发及冷启动恢复，以及Electron首页、侧边栏与设置入口。首次预设加载、已有模型保护与补齐RAG时密钥兼容测试通过；Public/Internal归档配置隔离和内容一致性检查通过，四个Public上传文件的服务器SHA256与本机一致。物理麒麟、组织SSO及真实服务联调尚未验收。
 - **发布状态**：安装包已构建，麒麟和Windows的Public包已通过归档散列与实际私有值排除检查；Internal包单独本地交付。GitHub下载入口为Release r11.5，以其实际发布状态为准；源码提交不等于安装资产自动更新。
+- **修复**：模型设置页添加模型报 `Config field "__jsExpr" is not volatile`。部署插件的 `llm-pi-ai` 与 `agent-default-model` 默认值原先由 `!!js` 表达式提供，设置页会把未求值表达式当成配置键拒绝写入；现改为首次启动把这两项部署默认值写入 profile 用户层 patch，已存在的用户条目保持不变。
+- **验证**：`npm test`（5 项）与 `scripts/check_source.py` 通过；`dsh --dump-config` 确认组合树中 `llm-pi-ai` 为 `{}`、`agent-default-model` 为显式 provider/model，不再含 `__jsExpr`。**发布状态**：仅源码修复，未重建安装包。
+- **新增**：按需求恢复 R11.5 移除的两项插件能力：`dsh-attachment-formats`（PDF/Office 附件解析、图片转 PNG、中英文 OCR）与 `@anionex/dsh-turn-rewind` 0.3.10（会话回退）。附件插件随包准备 132 个运行时依赖与中英文 OCR 训练数据；会话回退插件 vendor 到 `extensions/@anionex/` 并记录来源，因其上游只声明到 DSH 0.2.1-rc.2，改由启动器写入精确版本豁免 `compatibility.json`，升级内核后豁免自动失效。
+- **验证**：`npm test`（5 项）、`scripts/check_source.py`（345 个源文件）通过；`dsh --dump-config` 确认 `turn-rewind` 与 `attachment-formats` 均已挂载，两个宿主入口可直接加载。附件按钮与会话回退按钮的界面表现待人工确认。**发布状态**：仅源码与本地开发构建，未重建安装包。
 
 ### R11.4 文档维护 — 已合并（2026-10-24）
 

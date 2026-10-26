@@ -1,0 +1,118 @@
+{
+  "name": "dsh-attachment-formats",
+  "version": "0.12.4-neiwang.1",
+  "description": "DeepSeek Harness (dsh) web plugin — Codex-style attachment expansion: PDF text-layer (pymupdf4llm/pdfjs), Office (docx/xlsx/pptx) to Markdown, TIFF/epub/odt/rtf, long-document spill to index cards, scanned-PDF OCR (tesseract.js + 8 cloud providers inc. DeepSeek Vision), and browser image to PNG. dsh-plugin for the DeepSeek Harness Web GUI.",
+  "type": "module",
+  "main": "lib/index.js",
+  "homepage": "https://github.com/linkingoscar/dsh-attachment-formats#readme",
+  "author": "linkingoscar <https://github.com/linkingoscar>",
+  "funding": "https://github.com/sponsors/linkingoscar",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "README.zh.md",
+    "ROADMAP.md"
+  ],
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "slots",
+        "sessions"
+      ]
+    }
+  },
+  "scripts": {
+    "test": "npm run smoke:all",
+    "build:client": "tsdown",
+    "prepublishOnly": "npm run build:client",
+    "pretest": "npm run build:client",
+    "verify:build": "tsdown && git diff --exit-code -- lib/client.js && echo \"lib/client.js 与源码同步 ✓\"",
+    "typecheck": "tsc --noEmit",
+    "smoke": "node scripts/smoke-host.mjs",
+    "smoke:route": "node scripts/smoke-route.mjs",
+    "smoke:client": "node scripts/smoke-client.mjs && node --test scripts/multisession-client.test.mjs",
+    "smoke:ocr": "node scripts/smoke-ocr.mjs",
+    "smoke:p0": "node scripts/smoke-p0.mjs",
+    "smoke:all": "npm run smoke && npm run smoke:route && npm run smoke:client && npm run smoke:ocr && npm run smoke:p0 && npm run test:document-order",
+    "check:harness": "node scripts/check-harness-contract.mjs",
+    "lint": "eslint .",
+    "test:document-order": "node --test scripts/document-order.test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@joplin/turndown-plugin-gfm": "^1.0.67",
+    "@xmldom/xmldom": "^0.8.15",
+    "exceljs": "^4.4.0",
+    "jszip": "^3.10.1",
+    "mammoth": "^1.9.0",
+    "pdfjs-dist": "^4.10.38",
+    "tesseract.js": "^5.1.1",
+    "turndown": "^7.2.4"
+  },
+  "optionalDependencies": {
+    "@napi-rs/canvas": "^0.1.80",
+    "sharp": "^0.35.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "eslint": "^9.39.0",
+    "globals": "^16.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tsdown": "^0.22.14",
+    "typescript": "^5.9.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/linkingoscar/dsh-attachment-formats.git"
+  },
+  "bugs": {
+    "url": "https://github.com/linkingoscar/dsh-attachment-formats/issues"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek",
+    "deepseek-harness",
+    "deepseek-harness-plugin",
+    "cordis",
+    "attachment",
+    "attachments",
+    "pdf",
+    "pdf-extraction",
+    "docx",
+    "xlsx",
+    "pptx",
+    "office",
+    "tiff",
+    "epub",
+    "odt",
+    "ocr",
+    "tesseract",
+    "tesseract.js",
+    "vision",
+    "deepseek-vision",
+    "files-api",
+    "web",
+    "web-ui",
+    "index-card",
+    "long-document"
+  ],
+  "license": "Apache-2.0"
+}
