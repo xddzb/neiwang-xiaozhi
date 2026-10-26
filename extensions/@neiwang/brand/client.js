@@ -811,6 +811,47 @@ window.__ModuleLoader__.load({id:'@neiwang/brand',factory:(require)=>{
    h('div',{key:'scroll',className:'nwchg-scroll'},body),
   ]);
  }
+ // 页签开得多了以后，内核 tab 条的横向滚动条几乎看不见。这里把条带做细，
+ // 并允许普通滚轮直接横向滚动；不改内核产物（容器本身已是 overflow-x:auto）。
+ function ensureTabScrollStyles(){
+  if(document.querySelector('style[data-plugin-tab-scroll]')!==null)return;
+  const tag=document.createElement('style');
+  tag.dataset.pluginTabScroll='';
+  tag.textContent='[class*="_stripTabs_"]{overflow-x:auto;overflow-y:hidden;scroll-behavior:auto!important;scrollbar-width:thin;scrollbar-color:rgba(128,128,128,.18) transparent}'
+   +'[class*="_stripTabs_"]::-webkit-scrollbar{height:2px}'
+   +'[class*="_stripTabs_"]::-webkit-scrollbar-thumb{background:rgba(128,128,128,.18);border-radius:1px}'
+   +'[class*="_stripTabs_"]:hover::-webkit-scrollbar-thumb{background:rgba(128,128,128,.55)}'
+   +'[class*="_stripTabs_"]::-webkit-scrollbar-track{background:transparent}';
+  document.head.appendChild(tag);
+ }
+ // 普通滚轮在页签条上直接横向滚动；触控板的横向手势仍交给原生处理。
+ // 用 requestAnimationFrame 匀速推进到目标位置，避免每次事件大小不同导致忽快忽慢。
+ function installTabWheelScroll(){
+  if(document.documentElement.dataset.pluginTabWheel==='1')return;
+  document.documentElement.dataset.pluginTabWheel='1';
+  let target=null,frame=0;
+  const SPEED=12;
+  const animate=()=>{
+   if(target===null){frame=0;return;}
+   const strip=target.strip,diff=target.left-strip.scrollLeft;
+   if(Math.abs(diff)<=0.5){strip.scrollLeft=target.left;target=null;frame=0;return;}
+   strip.scrollLeft+=Math.sign(diff)*Math.min(Math.abs(diff),SPEED);
+   frame=requestAnimationFrame(animate);
+  };
+  document.addEventListener('wheel',(event)=>{
+   const node=event.target;
+   if(!(node instanceof Element))return;
+   const strip=node.closest('[class*="_stripTabs_"]');
+   if(strip===null||strip.scrollWidth<=strip.clientWidth)return;
+   if(Math.abs(event.deltaY)<=Math.abs(event.deltaX))return;
+   const max=strip.scrollWidth-strip.clientWidth;
+   const base=target!==null&&target.strip===strip?target.left:strip.scrollLeft;
+   const step=Math.max(-60,Math.min(60,event.deltaY));
+   target={strip,left:Math.max(0,Math.min(max,base+step))};
+   if(frame===0)frame=requestAnimationFrame(animate);
+   event.preventDefault();
+  },{capture:true,passive:false});
+ }
  function changesDefinition(){
   return {
    id:CHANGES_ID,
@@ -827,6 +868,8 @@ window.__ModuleLoader__.load({id:'@neiwang/brand',factory:(require)=>{
  }
 
  return {inject:['slots','locale'],apply(ctx){
+  ensureTabScrollStyles();
+  installTabWheelScroll();
   // 回退/分叉后要能切到新会话：优先会话服务，其次工作区导航。
   const openSession=(sessionId)=>{
    try{
