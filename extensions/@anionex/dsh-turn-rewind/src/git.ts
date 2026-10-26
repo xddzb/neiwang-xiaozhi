@@ -115,9 +115,11 @@ export async function discoverRepositoryRootOptional(cwd: string, signal?: Abort
  * three-way check (code, exit status, message) cannot swallow a real failure.
  */
 function isNotRepositoryError(error: unknown): boolean {
-  return error instanceof ChangeLedgerError
-    && error.code === 'GIT_COMMAND_FAILED'
-    && gitExitCode(error.cause) === 128
+  if (!(error instanceof ChangeLedgerError) || error.code !== 'GIT_COMMAND_FAILED') return false
+  // git 不可用（未安装或不在 PATH）时没有任何仓库可以认领，按“不在任何仓库内”
+  // 处理，让工作区回退到普通目录快照，而不是让回退功能整条失败。
+  if ((error.cause as NodeJS.ErrnoException | undefined)?.code === 'ENOENT') return true
+  return gitExitCode(error.cause) === 128
     && error.message.includes('not a git repository')
 }
 

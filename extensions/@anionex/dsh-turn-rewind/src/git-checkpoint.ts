@@ -74,6 +74,8 @@ export async function captureGitTurnCheckpoint(options: {
   readonly sessionId: string
   readonly turn: number
   readonly turnStartSeq: number
+  readonly roundId?: number
+  readonly phase?: 'start' | 'end'
   readonly config: ResolvedChangeLedgerConfig
   readonly signal?: AbortSignal
 }): Promise<GitCheckpointCapture> {
@@ -278,6 +280,8 @@ export async function captureGitTurnCheckpoint(options: {
       label: `Before turn ${String(options.turn)} checkpoint`,
       turn: options.turn,
       turnStartSeq: options.turnStartSeq,
+      ...(options.roundId === undefined ? {} : { roundId: options.roundId }),
+      ...(options.phase === 'end' ? { phase: 'end' as const } : {}),
       createdAt: Date.now(),
       treeHash: hashTree(entries),
       fileCount: Object.keys(entries).length,

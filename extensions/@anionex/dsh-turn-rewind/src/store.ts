@@ -1,8 +1,5 @@
-import { execFileSync } from 'node:child_process'
 import { createHash, randomUUID } from 'node:crypto'
-import { readFileSync } from 'node:fs'
 import { link, mkdir, open, readFile, readdir, rename, rmdir, unlink } from 'node:fs/promises'
-import { arch, platform } from 'node:os'
 import { basename, dirname, isAbsolute, join } from 'node:path'
 import { ChangeLedgerError, errorMessage } from './errors.js'
 import { isNodeError, pathExists, processExists, readJson, syncDirectory, writeJsonAtomic } from './path-utils.js'
@@ -1309,46 +1306,14 @@ async function deleteLockReclaimState(journalPath: string, lockPath: string, sta
 function hostIdentity(): string {
   if (hostIdValue !== undefined) return hostIdValue
   const configured = process.env.DSH_TURN_REWIND_HOST_ID
-  if (configured !== undefined) {
-    if (!/^[0-9a-f]{64}$/.test(configured)) {
-      throw new ChangeLedgerError('HOST_ID_UNAVAILABLE', 'DSH_TURN_REWIND_HOST_ID must be 64 lowercase hexadecimal characters')
-    }
-    hostIdValue = configured
-    return configured
-  }
-  let machine = ''
-  try {
-    if (platform() === 'darwin') {
-      const output = execFileSync('/usr/sbin/ioreg', ['-rd1', '-c', 'IOPlatformExpertDevice'], {
-        encoding: 'utf8', timeout: 1_000, maxBuffer: 64 * 1024,
-      })
-      machine = output.match(/"IOPlatformUUID"\s*=\s*"([^"]+)"/)?.[1] ?? ''
-    } else if (platform() === 'win32') {
-      const output = execFileSync('reg', ['query', 'HKLM\\SOFTWARE\\Microsoft\\Cryptography', '/v', 'MachineGuid'], {
-        encoding: 'utf8', timeout: 1_000, maxBuffer: 64 * 1024,
-      })
-      machine = output.match(/MachineGuid\s+REG_SZ\s+(\S+)/)?.[1] ?? ''
-    } else {
-      for (const path of ['/etc/machine-id', '/var/lib/dbus/machine-id']) {
-        try {
-          machine = readFileSync(path, 'utf8').trim()
-          if (machine !== '') break
-        } catch {
-          // Try the next machine-id location.
-        }
-      }
-    }
-  } catch {
-    // Fall through to the fail-closed check below.
-  }
-  if (machine === '') {
+  if (configured === undefined || !/^[0-9a-f]{64}$/.test(configured)) {
     throw new ChangeLedgerError(
       'HOST_ID_UNAVAILABLE',
-      'a stable operating-system machine identity is unavailable; configure DSH_TURN_REWIND_HOST_ID explicitly',
+      'DSH_TURN_REWIND_HOST_ID is not set; the launcher must provide a 64-character lowercase hexadecimal host id',
     )
   }
-  hostIdValue = createHash('sha256').update(JSON.stringify({ machine, platform: platform(), arch: arch() })).digest('hex')
-  return hostIdValue
+  hostIdValue = configured
+  return configured
 }
 
 function parseGitCheckpointJournal(value: unknown): GitCheckpointJournal {

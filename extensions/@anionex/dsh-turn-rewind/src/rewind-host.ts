@@ -1,4 +1,6 @@
 import { randomUUID } from 'node:crypto'
+import { readFile } from 'node:fs/promises'
+import { isAbsolute, relative, resolve } from 'node:path'
 import type { Context } from '@deepseek-ai/cordis'
 import { createDeadline } from './deadline.js'
 import { ChangeLedgerError, errorMessage } from './errors.js'
@@ -158,6 +160,8 @@ declare module '@deepseek-ai/cordis' {
 }
 
 export const REWIND_HTTP_PATH = '/turn-rewind'
+/** Same-origin change-review endpoint (file list, old content, keep/revert). */
+export const REVIEW_HTTP_PATH = '/turn-rewind/review'
 const BODY_LIMIT = 64 * 1024
 const INITIAL_CHANGE_PREVIEW_LIMIT = 8
 const MAX_CHANGE_PAGE_SIZE = 200
@@ -179,12 +183,74 @@ export class TurnCheckpointCoordinator {
       return next()
     }, { prepend: true })
 
+    // Closing snapshots are best-effort sidecar work too: they separate manual
+    // edits made after a turn from the turn's own changes. `agent/status` is an
+    // agent-scoped event carrying only `{ status }`, so each agent's own context
+    // supplies the identity.
+    const listen = ctx.on.bind(ctx) as (
+      name: string,
+      listener: (payload: unknown) => void,
+      options?: { readonly prepend?: boolean },
+    ) => unknown
+    const attachStatus = (agent: AgentLike): void => {
+      const agentCtx = (agent as { readonly ctx?: Context }).ctx
+      if (agentCtx === undefined) return
+      const onStatus = agentCtx.on.bind(agentCtx) as (
+        name: string,
+        listener: (payload: unknown) => void,
+      ) => unknown
+      onStatus('agent/status', (payload) => {
+        const event = payload as { readonly status?: string }
+        if (event.status === 'idle') void this.captureEnd(agent)
+      })
+    }
+    const liveAgents = ctx.get('agents') as AgentsLike | undefined
+    for (const agent of liveAgents?.list() ?? []) attachStatus(agent)
+    listen('agent/created', (payload) => {
+      const event = payload as { readonly agent?: AgentLike }
+      if (event.agent !== undefined) attachStatus(event.agent)
+    }, { prepend: true })
+
     ctx.on('tools/execute', async (exec, next) => {
       if (exec.agent !== undefined && exec.parent === undefined) {
         await this.waitForOpenTurn(exec.agent, exec.signal)
       }
       return next()
     }, { prepend: true })
+  }
+
+  /**
+   * Capture the tree once the agent goes idle, so the review can show what was
+   * changed between two turns instead of folding it into the earlier one.
+   */
+  private async captureEnd(agent: AgentLike): Promise<void> {
+    const cwd = agent.session.header.cwd
+    if (cwd === undefined) return
+    const events = getSessionEvents(agent.session)
+    const start = events.findLast(event => event.type === 'turn/start')
+    if (start === undefined) return
+    const turn = start.data.turn
+    if (!Number.isSafeInteger(turn) || (turn as number) < 0) return
+    try {
+      const opening = await this.engine.findTurnCheckpoint({ cwd, sessionId: agent.id, turn: turn as number })
+      if (opening === undefined) return
+      const points = await this.engine.list({ cwd, includeTurnCheckpoints: true })
+      const closed = points.some(point => point.kind === 'turn'
+        && point.phase === 'end'
+        && point.sessionId === agent.id
+        && point.turn === turn)
+      if (closed) return
+      await this.engine.createTurnCheckpoint({
+        cwd,
+        sessionId: agent.id,
+        turn: turn as number,
+        turnStartSeq: start.seq,
+        phase: 'end',
+        ...(opening.roundId === undefined ? {} : { roundId: opening.roundId }),
+      })
+    } catch {
+      // Sidecar capture: a failure here must not surface in the conversation.
+    }
   }
 
   /** Current capture state for a session turn when no durable checkpoint exists yet. */
@@ -198,7 +264,7 @@ export class TurnCheckpointCoordinator {
   }
 
   private startCapture(
-    ctx: Pick<Context, 'logger'>,
+    ctx: Pick<Context, 'logger' | 'get'>,
     agent: AgentLike,
     turn: number,
     signal: AbortSignal,
@@ -212,7 +278,7 @@ export class TurnCheckpointCoordinator {
   }
 
   private async capture(
-    ctx: Pick<Context, 'logger'>,
+    ctx: Pick<Context, 'logger' | 'get'>,
     agent: AgentLike,
     turn: number,
     signal: AbortSignal,
@@ -239,6 +305,12 @@ export class TurnCheckpointCoordinator {
       const capture = (async () => {
         try {
           const workspace = await discoverWorkspaceRoot(cwd, captureSignal)
+          // A round stays open while any other Session is still working here, so
+          // this checkpoint joins that round instead of opening a new one.
+          const agents = ctx.get('agents') as AgentsLike | undefined
+          const activeSessionIds = (agents?.list() ?? [])
+            .filter(other => other.status === 'running' && other.session.id !== agent.id)
+            .map(other => other.session.id)
           await this.serializeWorkspace(workspace, captureSignal, async () => {
             try {
               await this.engine.createTurnCheckpoint({
@@ -246,6 +318,7 @@ export class TurnCheckpointCoordinator {
                 sessionId: agent.id,
                 turn,
                 turnStartSeq: start.seq,
+                activeSessionIds,
                 signal: captureSignal,
               })
             } catch (error) {
@@ -397,6 +470,252 @@ export function installRewindHttp(
     path: REWIND_HTTP_PATH,
     handler: createRewindHttpHandler(ctx, engine, coordinator),
   }), 'change-ledger.rewindHttp')
+  ctx.effect(() => ctx.webServer.register({
+    kind: 'exact',
+    path: REVIEW_HTTP_PATH,
+    handler: createReviewHttpHandler(ctx, engine),
+  }), 'change-ledger.reviewHttp')
+}
+
+/**
+ * Change-review endpoint: the latest checkpoint's file-level diff against the
+ * working tree, one file's captured content, and the keep/revert actions.
+ *
+ * "Keep" captures the current tree as a new user restore point, which becomes
+ * the baseline the next review compares against; "revert" restores the
+ * checkpoint's files.
+ */
+export function createReviewHttpHandler(
+  ctx: Context & { readonly agents?: AgentsLike },
+  engine: ChangeLedgerEngine,
+): (request: HttpRequestLike, response: HttpResponseLike) => Promise<void> {
+  return async (request, response) => {
+    try {
+      if (request.method === 'GET') {
+        const url = new URL(request.url ?? REVIEW_HTTP_PATH, 'http://dsh.local')
+        const sessionId = requiredText(url.searchParams.get('sessionId'), 'sessionId')
+        const cwd = await sessionWorkspace(ctx, sessionId)
+        if (url.searchParams.get('timeline') === '1') {
+          const points = await engine.list({ cwd, includeTurnCheckpoints: true })
+          // Snapshots and confirmations are different things: a round is the span
+          // a conversation turn covered, a checkpoint is a state the user pinned.
+          // Both are listed side by side; automatic snapshots only supply bounds.
+          const all = points
+            .filter(point => point.kind === 'turn' || point.kind === 'user')
+            .sort((left, right) => left.createdAt - right.createdAt)
+          const eventsBySession = new Map<string, readonly SessionEventLike[]>()
+          const eventsOf = async (id: string | undefined): Promise<readonly SessionEventLike[]> => {
+            if (id === undefined) return []
+            const cached = eventsBySession.get(id)
+            if (cached !== undefined) return cached
+            let events: readonly SessionEventLike[] = []
+            try {
+              events = getSessionEvents(await readSession(ctx, id))
+            } catch {
+              // A deleted Session leaves its checkpoints readable but unaddressable.
+            }
+            eventsBySession.set(id, events)
+            return events
+          }
+          const changesBetween = async (
+            from: { readonly id: string } | undefined,
+            to: { readonly id: string } | undefined,
+          ): Promise<readonly { readonly path: string; readonly kind: string }[]> => {
+            if (from === undefined || to === undefined) return []
+            return engine.compare({ cwd, fromRestorePointId: from.id, toRestorePointId: to.id })
+          }
+
+          // Rounds are opened by `start` snapshots (legacy points each stand
+          // alone) and closed by the `end` snapshot of the same turn.
+          const groups: { readonly round: number; readonly points: typeof all }[] = []
+          let lastKey: string | null = null
+          for (const point of all) {
+            if (point.kind !== 'turn' || point.phase === 'end') continue
+            const key = point.roundId === undefined ? `legacy:${point.id}` : `round:${String(point.roundId)}`
+            if (groups.length === 0 || key !== lastKey) {
+              groups.push({ round: groups.length + 1, points: [point] })
+              lastKey = key
+            } else {
+              const last = groups[groups.length - 1]
+              groups[groups.length - 1] = { round: last.round, points: [...last.points, point] }
+            }
+          }
+          const closingOf = (points: typeof all): (typeof all)[number] | undefined => {
+            const keys = new Set(points.map(point => `${point.sessionId ?? ''}\0${String(point.turn ?? -1)}`))
+            return all
+              .filter(point => point.kind === 'turn'
+                && point.phase === 'end'
+                && keys.has(`${point.sessionId ?? ''}\0${String(point.turn ?? -1)}`))
+              .sort((left, right) => right.createdAt - left.createdAt)[0]
+          }
+          const entries: Record<string, unknown>[] = []
+          for (let index = 0; index < groups.length; index += 1) {
+            const group = groups[index]
+            const from = group.points[0]
+            const next = groups[index + 1]
+            const nextStart = next === undefined ? undefined : next.points[0]
+            const closing = closingOf(group.points)
+            const to = closing ?? nextStart
+            const changes = to === undefined
+              ? (await engine.inspect({ cwd, restorePointId: from.id })).changes
+                .map(change => ({ path: change.path, kind: change.kind }))
+              : await changesBetween(from, to)
+            entries.push({
+              kind: 'round',
+              round: group.round,
+              fromId: from.id,
+              toId: to === undefined ? null : to.id,
+              createdAt: from.createdAt,
+              endedAt: (closing ?? nextStart)?.createdAt ?? null,
+              // The node's own Session addresses its rewind, not the caller's.
+              sessionId: from.sessionId ?? null,
+              messageSeq: openingMessageSeq(await eventsOf(from.sessionId), from.turnStartSeq),
+              changes,
+            })
+            // Everything between the closing snapshot and the next round's start
+            // was edited outside a turn: show it on its own.
+            if (closing !== undefined) {
+              const after = nextStart
+              const between = after === undefined
+                ? (await engine.inspect({ cwd, restorePointId: closing.id })).changes
+                  .map(change => ({ path: change.path, kind: change.kind }))
+                : (after.id === closing.id ? [] : await changesBetween(closing, after))
+              if (between.length > 0) {
+                entries.push({
+                  kind: 'between',
+                  fromId: closing.id,
+                  toId: after === undefined ? null : after.id,
+                  createdAt: closing.createdAt + 1,
+                  changes: between,
+                })
+              }
+            }
+          }
+
+          // Checkpoints: user confirmations, each compared to the previous one.
+          const confirmations = all.filter(point => point.kind === 'user')
+          for (let index = 0; index < confirmations.length; index += 1) {
+            const point = confirmations[index]
+            const previous = index === 0 ? undefined : confirmations[index - 1]
+            entries.push({
+              kind: 'checkpoint',
+              label: point.label ?? null,
+              fromId: previous === undefined ? null : previous.id,
+              toId: point.id,
+              createdAt: point.createdAt,
+              changes: await changesBetween(previous, point),
+            })
+          }
+
+          entries.sort((left, right) => Number(left.createdAt) - Number(right.createdAt))
+          json(response, 200, { status: 'ready', entries })
+          return
+        }
+        const wantedPath = url.searchParams.get('path')
+        if (wantedPath !== null) {
+          if (url.searchParams.get('current') === '1') {
+            const absolute = resolve(cwd, wantedPath)
+            const inside = relative(cwd, absolute)
+            if (inside === '' || inside.startsWith('..') || isAbsolute(inside)) {
+              throw new ChangeLedgerError('INVALID_ARGUMENTS', 'path must stay inside the workspace')
+            }
+            const current = await readFile(absolute, 'utf8').catch(() => undefined)
+            json(response, 200, { status: 'content', path: wantedPath, current: true, content: current ?? null })
+            return
+          }
+          const explicit = url.searchParams.get('checkpointId')
+          const sourceId = explicit === null ? (await latestReviewCheckpoint(engine, cwd))?.id : explicit
+          if (sourceId === undefined) {
+            json(response, 200, { status: 'empty', changes: [] })
+            return
+          }
+          const content = await engine.readRestorePointFile({ cwd, restorePointId: sourceId, path: wantedPath })
+          json(response, 200, { status: 'content', path: wantedPath, checkpointId: sourceId, content: content ?? null })
+          return
+        }
+        const checkpoint = await latestReviewCheckpoint(engine, cwd)
+        if (checkpoint === undefined) {
+          json(response, 200, { status: 'empty', changes: [] })
+          return
+        }
+        const inspection = await engine.inspect({ cwd, restorePointId: checkpoint.id })
+        json(response, 200, {
+          status: 'ready',
+          checkpointId: checkpoint.id,
+          checkpointKind: checkpoint.kind,
+          createdAt: checkpoint.createdAt,
+          changes: inspection.changes.map((change) => ({ path: change.path, kind: change.kind })),
+        })
+        return
+      }
+      if (request.method === 'POST') {
+        const body = objectBody(await readBody(request))
+        const sessionId = requiredText(body.sessionId, 'sessionId')
+        const cwd = await sessionWorkspace(ctx, sessionId)
+        // Restoring files while another Session is writing this workspace would
+        // overwrite work in flight; the caller has to retry once it is idle.
+        if (body.mode === 'restoreFile' || body.mode === 'revert') {
+          const activeSessionIds = await sharedWorkspaceSessions(ctx.agents, cwd)
+          if (activeSessionIds.length > 0) {
+            throw new ChangeLedgerError(
+              'WORKSPACE_IN_USE',
+              `project files are being written by running sessions: ${activeSessionIds.slice(0, 5).join(', ')}`,
+            )
+          }
+        }
+        if (body.mode === 'keep') {
+          const checkpoint = await engine.create({ cwd, sessionId, label: '保留更改' })
+          json(response, 200, { status: 'completed', mode: 'keep', checkpointId: checkpoint.id })
+          return
+        }
+        if (body.mode === 'restoreFile') {
+          const checkpointId = requiredText(body.checkpointId, 'checkpointId')
+          const wantedPath = requiredText(body.path, 'path')
+          const plan = await engine.planRestore({ cwd, restorePointId: checkpointId, sessionId, paths: [wantedPath] })
+          const result = await engine.applyRestore({ planId: plan.id, confirmation: plan.confirmation, sessionId })
+          json(response, 200, { status: 'completed', mode: 'restoreFile', ...result })
+          return
+        }
+        if (body.mode === 'revert') {
+          const checkpointId = requiredText(body.checkpointId, 'checkpointId')
+          const plan = await engine.planRestore({ cwd, restorePointId: checkpointId, sessionId })
+          const result = await engine.applyRestore({ planId: plan.id, confirmation: plan.confirmation, sessionId })
+          json(response, 200, { status: 'completed', mode: 'revert', ...result })
+          return
+        }
+        throw new ChangeLedgerError('INVALID_ARGUMENTS', 'mode must be "keep" or "revert"')
+      }
+      json(response, 405, { error: 'method not allowed' })
+    } catch (error) {
+      const status = error instanceof ChangeLedgerError && error.code === 'RESTORE_POINT_NOT_FOUND' ? 404 : 409
+      json(response, status, { error: errorMessage(error), code: error instanceof ChangeLedgerError ? error.code : 'REVIEW_FAILED' })
+    }
+  }
+}
+
+/** The session's working directory, or a clear refusal. */
+async function sessionWorkspace(ctx: Context, sessionId: string): Promise<string> {
+  const session = await readSession(ctx, sessionId)
+  const cwd = session.header.cwd
+  if (cwd === undefined || cwd === '') throw new ChangeLedgerError('INVALID_ARGUMENTS', 'the session has no working directory')
+  return cwd
+}
+
+/**
+ * The baseline "pending" compares against: the newest confirmation the user
+ * pinned, falling back to the newest automatic snapshot when nothing has been
+ * confirmed yet. File changes are measured between confirmations, not between
+ * snapshots.
+ */
+async function latestReviewCheckpoint(
+  engine: ChangeLedgerEngine,
+  cwd: string,
+): Promise<{ readonly id: string; readonly kind: string; readonly createdAt: number } | undefined> {
+  const points = await engine.list({ cwd, includeTurnCheckpoints: true })
+  const mine = points.filter(point => point.kind === 'turn' || point.kind === 'user')
+  const newest = [...mine].sort((left, right) => (left.createdAt < right.createdAt ? 1 : left.createdAt > right.createdAt ? -1 : 0))
+  const chosen = newest.find(point => point.kind === 'user') ?? newest[0]
+  return chosen === undefined ? undefined : { id: chosen.id, kind: chosen.kind, createdAt: chosen.createdAt }
 }
 
 /** Build the exact-route handler as a testable unit. */
@@ -751,6 +1070,23 @@ function isDirectUserMessage(event: SessionEventLike): boolean {
   const source = event.data.source
   return source !== null && typeof source === 'object' && !Array.isArray(source)
     && (source as Record<string, unknown>).kind === 'user'
+}
+
+/**
+ * The user message that opened one turn, which is how the rewind endpoint names
+ * a turn. `undefined` when the log no longer carries that boundary.
+ */
+function openingMessageSeq(
+  events: readonly SessionEventLike[],
+  turnStartSeq: number | undefined,
+): number | undefined {
+  if (turnStartSeq === undefined) return undefined
+  const start = events.find(event => event.type === 'turn/start' && event.seq === turnStartSeq)
+  if (start === undefined) return undefined
+  const message = events.find(event => (
+    event.type === 'user/message' && event.seq > start.seq && isDirectUserMessage(event)
+  ))
+  return message === undefined ? undefined : message.seq
 }
 
 function checkpointKey(sessionId: string, turn: number): string {

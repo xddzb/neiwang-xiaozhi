@@ -272,6 +272,12 @@ export class ChangeLedgerEngine {
     readonly sessionId: string
     readonly turn: number
     readonly turnStartSeq: number
+    /** Sessions still running in this workspace; a non-empty list keeps their round open. */
+    readonly activeSessionIds?: readonly string[]
+    /** `end` marks the snapshot taken after the agent went idle. */
+    readonly phase?: 'start' | 'end'
+    /** Reuse the opening snapshot's round instead of allocating a new one. */
+    readonly roundId?: number
     readonly signal?: AbortSignal
   }): Promise<RestorePointSummary> {
     const deadline = createDeadline(this.config.turnCheckpointTimeoutMs)
@@ -291,6 +297,7 @@ export class ChangeLedgerEngine {
       if (!Number.isSafeInteger(options.turnStartSeq) || options.turnStartSeq < 0) {
         throw new ChangeLedgerError('INVALID_ARGUMENTS', 'turnStartSeq must be a non-negative safe integer')
       }
+      const phase = options.phase ?? 'start'
       try {
         const source = await discoverWorkspace(options.cwd, this.config, signal)
         await this.assertStorageSeparated(source.state.root)
@@ -300,7 +307,8 @@ export class ChangeLedgerEngine {
           const duplicate = existing.find(manifest => manifest.kind === 'turn'
             && manifest.sessionId === options.sessionId
             && manifest.turn === options.turn
-            && manifest.turnStartSeq === options.turnStartSeq)
+            && manifest.turnStartSeq === options.turnStartSeq
+            && (manifest.phase ?? 'start') === phase)
           if (duplicate !== undefined) {
             if (duplicate.version === 2) await verifyGitCheckpoint(duplicate, signal)
             await this.store.deleteTurnCheckpointSkip(
@@ -313,6 +321,26 @@ export class ChangeLedgerEngine {
           }
 
           throwIfAborted(signal)
+          // A round stays open until its closing snapshot is written: while the
+          // newest opening snapshot has no closing one, a new turn joins its round.
+          const rounds = existing
+            .filter(point => point.kind === 'turn' && point.roundId !== undefined)
+            .map(point => point.roundId as number)
+          const closedKeys = new Set(existing
+            .filter(point => point.kind === 'turn' && point.phase === 'end')
+            .map(point => `${point.sessionId ?? ''}\0${String(point.turn ?? -1)}`))
+          const newestStart = existing
+            .filter(point => point.kind === 'turn' && point.phase !== 'end')
+            .sort((left, right) => right.createdAt - left.createdAt)[0]
+          const openRound = newestStart !== undefined
+            && newestStart.roundId !== undefined
+            && !closedKeys.has(`${newestStart.sessionId ?? ''}\0${String(newestStart.turn ?? -1)}`)
+            ? newestStart.roundId
+            : undefined
+          const roundId = options.roundId
+            ?? (openRound !== undefined
+              ? openRound
+              : (rounds.length === 0 ? 0 : Math.max(...rounds)) + 1)
           let manifest: RestorePointManifest
           // Git-native checkpoints live in the repository object database, so an
           // ordinary directory always uses the ledger's own content-addressed store.
@@ -329,6 +357,8 @@ export class ChangeLedgerEngine {
               label: `Before turn ${String(options.turn)} checkpoint`,
               turn: options.turn,
               turnStartSeq: options.turnStartSeq,
+              roundId,
+              phase,
               signal,
               deferGarbageCollection: true,
             })
@@ -341,6 +371,8 @@ export class ChangeLedgerEngine {
                 sessionId: options.sessionId,
                 turn: options.turn,
                 turnStartSeq: options.turnStartSeq,
+                roundId,
+                phase,
                 config: this.config,
                 signal,
               })).manifest
@@ -360,6 +392,7 @@ export class ChangeLedgerEngine {
                 label: `Before turn ${String(options.turn)} checkpoint`,
                 turn: options.turn,
                 turnStartSeq: options.turnStartSeq,
+                roundId,
                 signal,
                 deferGarbageCollection: true,
               })
@@ -538,6 +571,63 @@ export class ChangeLedgerEngine {
         operationChanged: workspaceOperationChanged(manifest.repository, currentState),
         changes: filterUnobservedChanges(manifest, diffTrees(manifest.entries, current.entries, manifest.entries, currentEntries)),
       }
+    } finally {
+      await release()
+    }
+  }
+
+  /**
+   * Read one file's content as captured by a restore point.
+   *
+   * Used by the change-review view to render line-level diffs against the
+   * working tree. Git-native checkpoints keep their content in the repository
+   * object database, which the ledger store cannot read directly, so those
+   * return undefined and the caller falls back to a file-level view.
+   */
+  async readRestorePointFile(options: {
+    readonly cwd: string
+    readonly restorePointId: string
+    readonly path: string
+    readonly signal?: AbortSignal
+  }): Promise<string | undefined> {
+    await this.ready
+    const source = await discoverWorkspace(options.cwd, this.config, options.signal)
+    await this.assertStorageSeparated(source.state.root)
+    const release = await this.acquireWorkspace(source.state, options.signal)
+    try {
+      const manifest = await this.store.readManifest(source.state.root, options.restorePointId)
+      const entry = manifest.entries[options.path]
+      if (entry === undefined || entry.kind !== 'file' || entry.provider === 'git') return undefined
+      const content = await this.store.readBlob(manifest.workspace, entry.blob)
+      return content.toString('utf8')
+    } finally {
+      await release()
+    }
+  }
+
+  /**
+   * Compare two restore points (or one against an empty tree) without touching
+   * the working tree. Used by the per-turn timeline, where each round is the
+   * difference between the previous checkpoint and its own.
+   */
+  async compare(options: {
+    readonly cwd: string
+    readonly toRestorePointId: string
+    readonly fromRestorePointId?: string
+    readonly signal?: AbortSignal
+  }): Promise<readonly { readonly path: string; readonly kind: string }[]> {
+    await this.ready
+    const source = await discoverWorkspace(options.cwd, this.config, options.signal)
+    await this.assertStorageSeparated(source.state.root)
+    const release = await this.acquireWorkspace(source.state, options.signal)
+    try {
+      const to = await this.store.readManifest(source.state.root, options.toRestorePointId)
+      const from = options.fromRestorePointId === undefined
+        ? undefined
+        : await this.store.readManifest(source.state.root, options.fromRestorePointId)
+      const before = from === undefined ? {} : from.entries
+      return diffTrees(before, to.entries, before, to.entries)
+        .map((change) => ({ path: change.path, kind: change.kind }))
     } finally {
       await release()
     }
@@ -957,6 +1047,8 @@ export class ChangeLedgerEngine {
     readonly turn?: number
     readonly turnStartSeq?: number
     readonly turnEndSeq?: number
+    readonly roundId?: number
+    readonly phase?: 'start' | 'end'
     readonly signal?: AbortSignal
     readonly deferGarbageCollection?: boolean
   }): Promise<RestorePointManifest> {
@@ -996,6 +1088,8 @@ export class ChangeLedgerEngine {
         ...(options.turn === undefined ? {} : { turn: options.turn }),
         ...(options.turnStartSeq === undefined ? {} : { turnStartSeq: options.turnStartSeq }),
         ...(options.turnEndSeq === undefined ? {} : { turnEndSeq: options.turnEndSeq }),
+        ...(options.roundId === undefined ? {} : { roundId: options.roundId }),
+        ...(options.phase === 'end' ? { phase: 'end' as const } : {}),
         createdAt: Date.now(),
         treeHash: tree.treeHash,
         fileCount: tree.fileCount,
@@ -1206,6 +1300,8 @@ function summarize(manifest: RestorePointManifest): RestorePointSummary {
     ...(manifest.turn === undefined ? {} : { turn: manifest.turn }),
     ...(manifest.turnStartSeq === undefined ? {} : { turnStartSeq: manifest.turnStartSeq }),
     ...(manifest.turnEndSeq === undefined ? {} : { turnEndSeq: manifest.turnEndSeq }),
+    ...(manifest.roundId === undefined ? {} : { roundId: manifest.roundId }),
+    ...(manifest.phase === undefined ? {} : { phase: manifest.phase }),
     createdAt: manifest.createdAt,
     treeHash: manifest.treeHash,
     fileCount: manifest.fileCount,

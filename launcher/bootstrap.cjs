@@ -82,6 +82,18 @@ function prepare(){
   const url=new URL(model.base_url);if(!['http:','https:'].includes(url.protocol)||url.username||url.password||url.search||url.hash)throw Error('Invalid model endpoint');
  }
  if(model)env.NEIWANG_MODEL_KEY=model.api_key;
+ // Turn Rewind 需要稳定的主机标识；受控机器上 `reg query MachineGuid` 可能取不到，
+ // 因此在数据目录里生成并持久化一个 64 位十六进制 ID，跨启动保持不变。
+ if(!env.DSH_TURN_REWIND_HOST_ID){
+  const hostIdFile=path.join(data,'config/turn-rewind-host-id');
+  let hostId='';
+  try{hostId=fs.readFileSync(hostIdFile,'utf8').trim();}catch(e){if(e.code!=='ENOENT')throw e;}
+  if(!/^[0-9a-f]{64}$/.test(hostId)){
+   hostId=crypto.randomBytes(32).toString('hex');
+   fs.writeFileSync(hostIdFile,hostId+'\n',{mode:0o600});
+  }
+  env.DSH_TURN_REWIND_HOST_ID=hostId;
+ }
  const overrides=read(path.join(root,'config/overrides.json'));
  const patches=[...overrides,
   {id:'workspace-controller',config:{documentsDirectory:process.env.NEIWANG_WORKSPACE_DIR||path.join(root,'workspace')}},
