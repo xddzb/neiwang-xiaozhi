@@ -87,6 +87,18 @@ export interface RestorePointManifestV1 {
   readonly turnStartSeq?: number
   /** Legacy inclusive `turn/end` event sequence used by checkpoints created before prompt-anchored rewind. */
   readonly turnEndSeq?: number
+  /**
+   * Workspace-level round this checkpoint opened, shared by every Session that
+   * was running when it was captured. `turn` alone cannot name a round in a
+   * shared workspace: each Session numbers its own turns from one.
+   */
+  readonly roundId?: number
+  /**
+   * Which side of a round this snapshot marks: `start` (default) is taken before
+   * the turn runs, `end` after the agent went idle. The pair isolates manual
+   * edits made between two turns.
+   */
+  readonly phase?: 'start' | 'end'
   readonly createdAt: number
   readonly treeHash: string
   readonly fileCount: number
@@ -169,6 +181,10 @@ export interface RestorePointSummary {
   readonly turn?: number
   readonly turnStartSeq?: number
   readonly turnEndSeq?: number
+  /** Workspace-level round shared by every Session running at capture time. */
+  readonly roundId?: number
+  /** `start` before the turn runs, `end` after the agent went idle. */
+  readonly phase?: 'start' | 'end'
   readonly createdAt: number
   readonly treeHash: string
   readonly fileCount: number

@@ -75,6 +75,12 @@ export function parseManifest(value: unknown): RestorePointManifest {
   const turn = optionalNonNegativeInteger(record, 'turn')
   const turnStartSeq = optionalNonNegativeInteger(record, 'turnStartSeq')
   const turnEndSeq = optionalNonNegativeInteger(record, 'turnEndSeq')
+  const roundId = optionalNonNegativeInteger(record, 'roundId')
+  const phaseValue = record.phase
+  if (phaseValue !== undefined && phaseValue !== 'start' && phaseValue !== 'end') {
+    corrupt('phase must be "start" or "end"')
+  }
+  const phase = phaseValue as 'start' | 'end' | undefined
   if (kind === 'turn') {
     if (sessionId === undefined || turn === undefined || (turnStartSeq === undefined) === (turnEndSeq === undefined)) {
       corrupt('turn restore points require sessionId, turn, and exactly one turn boundary')
@@ -107,6 +113,8 @@ export function parseManifest(value: unknown): RestorePointManifest {
     ...(turn === undefined ? {} : { turn }),
     ...(turnStartSeq === undefined ? {} : { turnStartSeq }),
     ...(turnEndSeq === undefined ? {} : { turnEndSeq }),
+    ...(roundId === undefined ? {} : { roundId }),
+    ...(phase === undefined ? {} : { phase }),
     createdAt,
     treeHash,
     fileCount,
