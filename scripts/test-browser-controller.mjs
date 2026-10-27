@@ -29,7 +29,7 @@ test('missing URL is rejected before launching a browser',async()=>{
 });
 
 test('real Electron browser preserves hash and snapshots a delayed SPA',{skip:!process.env.NEIWANG_TEST_ELECTRON},async()=>{
- const root=await fs.mkdtemp(join(tmpdir(),'nw-spa-')),controller=new BrowserController({root,electron:process.env.NEIWANG_TEST_ELECTRON});
+ const root=await fs.mkdtemp(join(tmpdir(),'nw-spa-')),controller=new BrowserController({root,electron:process.env.NEIWANG_TEST_ELECTRON,extraArgs:JSON.parse(process.env.NEIWANG_TEST_ELECTRON_ARGS||'[]')});
  const server=createServer((_req,res)=>{res.setHeader('Content-Type','text/html; charset=utf-8');res.end('<!doctype html><html><head><title>Local SPA fixture</title></head><body><script>setTimeout(()=>{if(!location.hash)location.hash="/homeIndex";document.body.innerHTML="<button>SYNTHETIC_SPA_READY</button>"},400)</script></body></html>')});
  try{
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const base='http://127.0.0.1:'+server.address().port;

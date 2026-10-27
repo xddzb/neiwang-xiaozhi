@@ -14,7 +14,7 @@
     "package": "node scripts/package-dev.cjs",
     "check": "node scripts/python-dev.cjs check_source.py",
     "test:runtime": "node scripts/python-dev.cjs test_runtime_prepare.py",
-    "test": "node --test scripts/test-dev.cjs scripts/test-release-config.cjs scripts/test-feature-boot.cjs scripts/test-business-config.cjs scripts/test-browser-patch.cjs scripts/test-python-runtime.cjs",
+    "test": "node --test scripts/test-dev.cjs scripts/test-release-config.cjs scripts/test-feature-boot.cjs scripts/test-business-config.cjs scripts/test-browser-patch.cjs scripts/test-python-runtime.cjs scripts/test-browser-url-patch.cjs",
     "test:plugins": "node --test scripts/test-plugin-manager.cjs scripts/test-dev.cjs",
     "verify:app": "node scripts/verify-dev-app.cjs"
   },
