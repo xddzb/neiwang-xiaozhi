@@ -1,5 +1,35 @@
 # 内网小智 —— 安装与使用
 
+## 浏览器参数离线补丁
+
+`Neiwang-Kylin-ARM64-Browser-Fix-1.0.1.tar.gz` 是已有APP的增量补丁，不是Core/Plugins首次安装包。适用于麒麟Linux ARM64、随包Node 24、DSH 0.2.1-rc.3，要求浏览器插件已安装、Playwright 1.56.1已随包存在，并保留 `plugin-pack/payload` 和 `pack.json`。无需联网、sudo、npm、Python或重装APP。不适用旧内核0.2.0-rc.2；兼容检查失败时不会覆盖文件。
+
+1. 完全退出APP及业务浏览器（定时任务也会随APP停止），将tar.gz和对应sha256文件放在同一目录。
+2. 在普通用户终端运行，示例中的APP路径替换为你原来实际使用的目录：
+
+```sh
+sha256sum -c Neiwang-Kylin-ARM64-Browser-Fix-1.0.1.tar.gz.sha256
+tar -xzf Neiwang-Kylin-ARM64-Browser-Fix-1.0.1.tar.gz
+cd Neiwang-Kylin-ARM64-Browser-Fix-1.0.1
+sha256sum -c SHA256SUMS.txt
+sh 检查补丁.sh "/原来使用的内网小智APP目录"
+sh 安装补丁.sh "/原来使用的内网小智APP目录"
+```
+
+显示 `INSTALLED` 后按原方式启动APP。重复安装返回 `UNCHANGED`。不需要配置或迁移模型、RAG、钉钉，也不切换data/workspace目录。默认只更新浏览器的controller、工具入口、精简提示、启动入口和package/lock版本（1.0.1），同时写入运行副本、本地打包载荷和 `plugin-pack/pack.json` 散列；若浏览器已登记到独立插件管理器，同步其版本/treeHash。Playwright依赖、其余插件、接口源、登录态、模型、RAG、钉钉绑定和工作区文件不改动。
+
+补丁包含现有业务浏览器忽略证书校验的启动参数，作用于该浏览器所有HTTPS目标；不会改变Python接口、模型或RAG的TLS策略。它不能验证服务身份，取得组织CA后应恢复校验。此补丁不更新 `api_tool.py`。
+
+原始字节、文件权限和变更清单自动备份到APP的 `extensions/.plugin-manager/transactions/browser-url-*/browser-journal.json`，位置不含用户模型等配置副本。请保留该目录和补丁解压目录，以便回退。若提示运行目录、打包载荷、原清单不一致，先停止，不要手工删校验或强制覆盖。
+
+需要回退时，先退出APP，再运行：
+
+```sh
+sh 回退补丁.sh "/原来使用的内网小智APP目录"
+```
+
+断电/终端被强制关闭后，先退出APP，运行 `sh 恢复补丁.sh "/原来使用的内网小智APP目录"`，它恢复本次修改前的字节与清单；然后重新检查和安装。普通安装错误会自动尝试还原。补丁完成后若又改动了受保护文件或升级了其他插件，回退将拒绝覆盖，须先还原后续改动。本补丁使用随包的回退脚本，不使用通用插件管理器的rollback来撤销此增量事务。
+
 R11.6为本次构建版本，提供麒麟 ARM64 和 Windows 10/11 x64。每个平台分为 Core 核心包与 Plugins 插件包：**内网钉钉只允许上传 500MB 以内的文件**，所以拆成两包。它们是同一个 APP 的两个部分，必须匹配平台、版本和 Public/Internal 版本类型；不是分卷压缩，不能用 `cat` 拼接。
 
 Core 包含未修改的 DSH 0.2.1-rc.3 内核、桌面壳、Node/Python、模型/RAG配置入口和迁移工具；Plugins 包含业务接口、钉钉机器人、AI表格、better-sidebar、技能孵化器和 Playwright。原生定时任务随内核提供；APP关闭、休眠或关机时不执行，不保证补投递业务恰好一次。
