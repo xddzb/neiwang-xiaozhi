@@ -2,6 +2,19 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),fs=requir
 const {install:installImpl,rollback:rollbackImpl}=require('../tools/install-browser-patch.cjs'),{build}=require('./build-offline-plugin.cjs'),{hash}=require('../tools/offline-plugin-manager.cjs');
 const install=(root,kit)=>installImpl(root,kit,{stopped:()=>{}}),rollback=root=>rollbackImpl(root,{stopped:()=>{}});
 const repo=path.resolve(__dirname,'..');
+test('browser fixes remain identical in runtime and offline payload after verified installation',t=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'nw-browser-sync-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+ const put=(rel,data)=>{const file=path.join(root,rel);fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,data)};
+ put('config/app.json',JSON.stringify({version:'fixture',platform:process.platform,edition:'core',bundles:[]}));
+ const files=['controller.mjs','index.mjs','compact.mjs'].map(name=>{
+  const bytes=fs.readFileSync(path.join(repo,'extensions/@neiwang/browser-automation',name)),rel='extensions/node_modules/@neiwang/browser-automation/'+name;
+  put('plugin-pack/payload/'+rel,bytes);return {path:rel,sha256:hash(bytes),mode:0o644};
+ });
+ put('plugin-pack/pack.json',JSON.stringify({release:'fixture',platform:process.platform,os:process.platform,arch:process.arch,bundles:[],links:[],files}));
+ put('plugin-pack/install.cjs',fs.readFileSync(path.join(repo,'scripts/install-feature-pack.cjs')));
+ require(path.join(root,'plugin-pack/install.cjs')).install();
+ for(const file of files){assert.equal(hash(fs.readFileSync(path.join(root,file.path))),file.sha256);assert.deepEqual(fs.readFileSync(path.join(root,file.path)),fs.readFileSync(path.join(root,'plugin-pack/payload',file.path)))}
+});
 function fixture(t){const home=fs.mkdtempSync(path.join(os.tmpdir(),'nw-browser-patch-'));t.after(()=>fs.rmSync(home,{recursive:true,force:true}));const root=path.join(home,'app'),kit=path.join(home,'kit');fs.mkdirSync(kit);const put=(rel,v)=>{const p=path.join(root,rel);fs.mkdirSync(path.dirname(p),{recursive:true});fs.writeFileSync(p,typeof v==='string'?v:JSON.stringify(v))};
  put('launcher/shell/rag-control-preload.cjs','// synthetic original preload\n');fs.copyFileSync(path.join(repo,'launcher/shell/brand-ui.js'),path.join(kit,'brand-ui.js'));
  put('config/app.json',{version:'R11.3',coreVersion:'0.2.0-rc.2',bundles:[]});put('launcher/bootstrap.cjs',fs.readFileSync(path.join(repo,'scripts/fixtures/legacy-launcher.cjs'),'utf8'));put('tools/browser_session.py','class SessionError(Exception): pass\ndef cookie_header(settings, url, unprotect=None):\n    return "old-adapter"\n');fs.mkdirSync(path.join(root,'extensions/node_modules'),{recursive:true});

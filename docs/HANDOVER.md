@@ -9,6 +9,15 @@
 
 ## 语义化修改日志
 
+### 未发布 — 浏览器参数诊断与SPA导航（2026-10-27）
+
+- **修复**：`httpURL`先校验类型和空白，缺少URL明确提示在 `arguments_json` 中传入url；格式错误给出无敏感值的说明，保持拒绝非HTTP(S)与URL内嵌凭据。合法URL去除首尾空白并保留hash；open参数错误在启动浏览器前拒绝。
+- **修复**：浏览器工具顶层只允许 `operation` 与 `arguments_json`，无论JSON是否存在都明确拒绝额外的url/selector等字段，避免静默丢弃；JSON必须为编码后的对象字符串，解析错误不回显其内容。不兼容合并顶层参数，避免两处重复字段优先级不明。
+- **改进**：工具参数说明、help与精简SDK提示词统一给出JSON.stringify示例；open继续使用domcontentloaded，返回loadState及SPA可能尚未就绪的说明，不把它当成业务页面已渲染完成，也不强制使用可能永不空闲的networkidle。
+- **验证**：8项控制器回归全部通过，包含真实Electron本机SPA的显式hash路由、根地址延迟自动补hash及渲染后快照，另含缺URL提前拒绝、顶层字段/坏JSON诊断、密码隐藏与登录态桥接访问限制。7项补丁/提示词回归通过，其中独立安装夹具对3个修复文件执行真实离线安装器校验，确认payload与runtime副本逐字节一致、SHA256一致；源码语法与私有值排除检查通过。未访问真实组织网址或读取业务凭据；现场真实系统恢复的结论来自用户反馈，本次不重复宣称真实系统联调。
+- **同步与发布边界**：源文件在 `extensions/@neiwang/browser-automation/`，发行脚本从此处生成 `plugin-pack/payload/extensions/node_modules/@neiwang/browser-automation/`，首次安装复制为 `extensions/node_modules/@neiwang/browser-automation/`。修复涉及controller.mjs、index.mjs、compact.mjs，两个副本必须同源且更新pack.json中的SHA256；不能只覆盖运行文件或直接改tar/zip而保留旧散列。本次保留工作区其他未提交改动、原有应用和归档；仅源码修复及独立夹具验收，尚未重建安装包或修改远端内网电脑。
+
+
 条目按“新增 / 变更 / 修复 / 移除 / 验证 / 发布状态”记录；安装包没有重建发布时必须标记未发布。以下为应用版本日志，不是官方DSH内核版本日志。
 
 ### 未发布 — 变更审阅与回退轮次（2026-10-27）
