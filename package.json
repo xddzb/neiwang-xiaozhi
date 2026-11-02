@@ -16,7 +16,8 @@
     "test:runtime": "node scripts/python-dev.cjs test_runtime_prepare.py",
     "test": "node --test scripts/test-dev.cjs scripts/test-release-config.cjs scripts/test-feature-boot.cjs scripts/test-business-config.cjs scripts/test-browser-patch.cjs scripts/test-python-runtime.cjs scripts/test-browser-url-patch.cjs",
     "test:plugins": "node --test scripts/test-plugin-manager.cjs scripts/test-dev.cjs",
-    "verify:app": "node scripts/verify-dev-app.cjs"
+    "verify:app": "node scripts/verify-dev-app.cjs",
+    "test:browser-auth": "node --test scripts/test-browser-session-auth.mjs scripts/test-isu-browser-session.mjs scripts/test-browser-controller.mjs"
   },
   "dependencies": {
     "@deepseek-ai/dsh": "0.2.1-rc.3",

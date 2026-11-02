@@ -38,7 +38,7 @@ const output={schema:{type:'string'},render:(_args,value)=>[{type:'text',text:va
 export function apply(ctx) {
  ctx.systemPrompt.section({name:'neiwang:visible-language',order:3300,text:'用户可见的自然语言输出统一使用简体中文，包括最终回答、进度说明、操作解释、工具结果的说明以及结果摘要。代码、命令、文件路径、接口字段、专有名词和必要的原文引用保留其原始形式，不为满足语言规则而改写可执行内容或数据。用户明确要求翻译或生成其他语言内容时，仅所要求的内容使用目标语言，其余说明仍使用中文。直接提供结论、必要的依据和可核验的操作结果，不展示内部思考过程、思维链、自我对话或反复推演；此规则约束用户可见输出，不要求改变或公开模型内部推理。子智能体面向用户的报告同样遵循此规则。'});
  installScheduler(ctx,run);
- ctx.systemPrompt.section({name:'neiwang:isu-instruments',order:3201,text:'ISU 智慧调试平台的仪表实时值使用 business_api，source 为 isu-instruments，params_json 为 {"points":["点名"],"limit":50}。这是只读子串匹配快照，不使用 RAG 缓存；先核对 PN/GN，多个匹配不能擅自选一个。报告 AV、EU、原始 DS/TM 和查询时间；采样时间过旧或质量异常不能描述为正常实时值。凭证缺失或过期应提示用户更新本机登录配置，不打印或索要聊天中的令牌。'});
+ ctx.systemPrompt.section({name:'neiwang:isu-instruments',order:3201,text:'ISU 智慧调试平台的仪表实时值使用 business_api，source 为 isu-instruments，params_json 为 {"points":["点名"],"limit":50}。这是只读子串匹配快照，不使用 RAG 缓存；先核对 PN/GN，多个匹配不能擅自选一个。报告 AV、EU、原始 DS/TM 和查询时间；采样时间过旧或质量异常不能描述为正常实时值。预置浏览器连接时自动使用内置浏览器捕获的ISU Token和Cookie，不回退到旧凭据文件；凭证缺失或过期提示用户登录ISU并打开/刷新实时值页面，不打印或索要聊天中的令牌。'});
  ctx.systemPrompt.section({name:'neiwang:rag-default',order:3200,text:'知识查询遵守 neiwang-rag 状态和用户开关。同聊天优先复用资料，存在明确业务知识缺口时才补充 knowledge_query；子智能体不自动重复检索；文件编辑、闲聊和自动续轮不必检索。实时业务数据使用 business_api。关闭状态禁止知识查询，不反复播报跳过状态。'});
  ctx.systemPrompt.section({name:'neiwang:pyinstaller',order:3203,text:'使用应用内置PyInstaller。打包工作区Python脚本使用python_package；Windows生成Windows程序，麒麟ARM64生成Linux ARM64程序，不能跨平台编译。先用local_python验证源脚本；打包后运行产物验收。不自动下载未知依赖。'});
  ctx.tools.register(defineTool({name:'knowledge_materials',description:'查看当前聊天及其子智能体已检索的问题、材料摘要、来源与未解决问题；assess 记录 Agent 对材料充分性的判断，不调用 Dify。',
