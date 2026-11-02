@@ -112,3 +112,18 @@ def cookie_header(settings, url, unprotect=None):
         raise
     except Exception:
         raise SessionError('browser_session_read_failed') from None
+
+
+def auth_headers(settings, url, connection, unprotect=None):
+    """Obtain fresh credentials locally; caller must never expose these headers."""
+    if settings.get('driver') != 'playwright':
+        return {'Cookie': cookie_header(settings, url, unprotect)}
+    try:
+        import importlib.util
+        adapter_file = Path(__file__).resolve().parents[1]/'extensions/node_modules/@neiwang/browser-automation/session_adapter.py'
+        spec = importlib.util.spec_from_file_location('_neiwang_session_auth', adapter_file)
+        adapter = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(adapter)
+        return adapter.auth_headers(settings, url, connection)
+    except Exception:
+        raise SessionError('playwright_session_unavailable') from None

@@ -7,7 +7,8 @@ function fixture(t,{registered=true}={}){
  const home=fs.mkdtempSync(path.join(os.tmpdir(),'nw-browser-delta-'));t.after(()=>fs.rmSync(home,{recursive:true,force:true}));
  const root=path.join(home,'app'),kit=path.join(home,'kit');fs.mkdirSync(kit);
  const put=(base,rel,data)=>{const file=path.join(base,rel);fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,data);fs.chmodSync(file,0o640)};
- const files=[];for(const name of FILES){const data=fs.readFileSync(path.join(repo,'extensions/@neiwang/browser-automation',name));put(kit,'payload/'+name,data);files.push({path:name,sha256:hash(data)});
+ // This transaction fixture models the historical 1.0.1 kit, independent of the current plugin version.
+ const files=[];for(const name of FILES){const data=Buffer.from(name==='package.json'?JSON.stringify({name:NAME,version:'1.0.1'}):name==='package-lock.json'?JSON.stringify({name:NAME,version:'1.0.1',lockfileVersion:3,packages:{'':{name:NAME,version:'1.0.1'}}}):'// synthetic historical 1.0.1 payload: '+name+'\n');put(kit,'payload/'+name,data);files.push({path:name,sha256:hash(data)});
   const before=name==='package.json'?Buffer.from(JSON.stringify({name:NAME,version:'1.0.0'})):Buffer.from('original '+name+'\n');
   put(root,prefix+name,before);put(root,'plugin-pack/payload/'+prefix+name,before);
  }
