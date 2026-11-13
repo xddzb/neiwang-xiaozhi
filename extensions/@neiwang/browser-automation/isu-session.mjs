@@ -27,7 +27,10 @@ export class IsuSession {
   }catch{throw Error('isu_browser_not_configured')}
   let u;try{u=new URL(c.base_url)}catch{throw Error('isu_browser_not_configured')}
   if(source.enabled!==true||source.read_only!==true||source.transport!=='isu-engineio3'||u.protocol!=='https:'||u.username||u.password||u.search||u.hash||c.browser_session?.driver!=='playwright'||!c.browser_session.allowed_origins?.includes(u.origin))throw Error('isu_browser_not_configured');
-  return {origin:u.origin,verify_tls:c.verify_tls!==false};
+  if(c.verify_tls!==undefined&&typeof c.verify_tls!=='boolean')throw Error('isu_browser_not_configured');
+  let pageURL;
+  if(c.browser_session.isu_realtime_url){try{const p=new URL(c.browser_session.isu_realtime_url);if(p.origin!==u.origin||p.username||p.password||p.pathname===ROUTE||[...p.searchParams.keys()].some(k=>/token|ticket|secret|password|authorization|session|^code$/i.test(k))||/token|ticket|secret|password|authorization/i.test(p.hash))throw Error();pageURL=p.href}catch{throw Error('isu_browser_page_not_configured')}}
+  return {origin:u.origin,verify_tls:c.verify_tls===true,pageURL};
  }
  attach(context){
   if(this.attached.has(context))return;this.attached.add(context);
@@ -51,6 +54,7 @@ export class IsuSession {
   if(page.isClosed?.())return;
   if((this.records.get(page)?.serial||0)>serial)return;
   this.records.set(page,{...token,origin:c.origin,cookieHash:fingerprint(cookies),serial});
+  const p=new URL(page.url());if(p.pathname!==ROUTE&&!p.username&&!p.password&&![...p.searchParams.keys()].some(k=>/token|ticket|secret|password|authorization|session|^code$/i.test(k))&&!/token|ticket|secret|password|authorization/i.test(p.hash))this.lastPageURL=p.href;
  }
  async rejectRequest(value){
   let url;try{url=new URL(value)}catch{return}
@@ -58,6 +62,33 @@ export class IsuSession {
   const token=url.searchParams.get('token')?.replace(/^opgview-/,'');this.invalidate(token);
  }
  invalidate(token){if(typeof token!=='string')return;this.rejected.add(fingerprint(token));for(const [page,row]of this.records)if(row.token===token)this.records.delete(page)}
+ async refresh(context,{timeout=25000,createPage=()=>context.newPage()}={}){
+  await Promise.all([...this.pending]);const c=await this.config();
+  const pages=context.pages().filter(p=>{try{return !p.isClosed()&&new URL(p.url()).origin===c.origin}catch{return false}});
+  const recorded=pages.filter(p=>this.records.has(p));
+  if(recorded.length>1&&new Set(recorded.map(p=>this.records.get(p).token)).size>1)throw Error('isu_browser_accounts_ambiguous');
+  const target=c.pageURL||(this.lastPageURL&&new URL(this.lastPageURL).origin===c.origin?this.lastPageURL:null);
+  let page=recorded.sort((a,b)=>this.records.get(b).serial-this.records.get(a).serial)[0]||pages.find(p=>target&&p.url()===target);
+  if(!page&&!target)throw Error('isu_browser_page_not_configured');
+  const before=page?this.records.get(page)?.token:undefined,created=!page;
+  if(!page)page=await createPage();
+  let start=this.sequence;const deadline=Date.now()+timeout;this.records.delete(page);
+  // A real top-level navigation must begin before a capture may satisfy this refresh.
+  let navigated=false;const onNavigation=frame=>{if(frame===page.mainFrame()){navigated=true;start=this.sequence;this.records.delete(page)}};page.on('framenavigated',onNavigation);
+  try{
+   try{if(created)await page.goto(target,{waitUntil:'domcontentloaded',timeout:Math.min(timeout,10000)});else await page.reload({waitUntil:'domcontentloaded',timeout:Math.min(timeout,10000)})}catch{if(!navigated)throw Error('isu_browser_navigation_failed')}
+   while(Date.now()<deadline){
+    if(page.isClosed())throw Error('isu_browser_page_closed');
+    await Promise.all([...this.pending]);const row=this.records.get(page);
+    if(navigated&&row&&row.serial>start){
+     const result=await this.credentials(context);
+     return {...result,refresh:{action:created?'opened':'reloaded',captured:true,token_changed:before===undefined?null:before!==result.token}};
+    }
+    await new Promise(r=>setTimeout(r,200));
+   }
+   throw Error('isu_browser_refresh_timeout');
+  }finally{page.off('framenavigated',onNavigation)}
+ }
  async credentials(context){
   await Promise.all([...this.pending]);const c=await this.config();
   const cookies=cookiePair(await context.cookies(c.origin+ROUTE)),hash=fingerprint(cookies),tokens=new Map();

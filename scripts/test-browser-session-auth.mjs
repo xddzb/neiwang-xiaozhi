@@ -79,7 +79,7 @@ test('real Electron login -> Python query, rotation, POST, 401 and redirect boun
   for(const name of ['api_tool.py','browser_session.py'])await fs.copyFile(app?join(app,'tools',name):new URL('../tools/'+name,import.meta.url),join(root,'tools',name));
   await fs.copyFile(moduleURL('session_adapter.py'),join(root,'extensions/node_modules/@neiwang/browser-automation/session_adapter.py'));
   await controller.listen();await controller.run('open',{url:base+'/login'});
-  const page=controller.browser.contexts()[0].pages()[0];await page.waitForFunction(()=>!!localStorage.getItem('login'));
+  const page=controller.browser.contexts()[0].pages().find(p=>!p.url().includes('/browser-toolbar.html')&&!/^(devtools|chrome-devtools):/.test(p.url()));await page.waitForFunction(()=>!!localStorage.getItem('login'));
   async function query(output,source='fixture',operation='query'){
    const result=await exec(process.env.NEIWANG_TEST_PYTHON||'python',[join(root,'tools/api_tool.py'),operation,'--source',source,'--workspace',join(root,'workspace'),'--output',output],{env:{...process.env,NEIWANG_APP_ROOT:root,NEIWANG_DATA_DIR:join(root,'data')},windowsHide:true});
    assert(!/synthetic-one|synthetic-two|synthetic-cookie|Bearer /.test(result.stdout+result.stderr));return JSON.parse(result.stdout);

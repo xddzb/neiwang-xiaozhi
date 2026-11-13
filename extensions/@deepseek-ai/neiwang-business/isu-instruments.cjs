@@ -25,7 +25,7 @@ class Client {
   return new Promise((resolve,reject)=>{
    const headers={Accept:'*/*',Cookie:this.creds.baseCookie+'; sid='+this.creds.sidCookie,Referer:new URL('/opgview/dataView',this.origin).href,Origin:this.origin.origin};
    if(body!=null){headers['Content-Type']='text/plain;charset=UTF-8';headers['Content-Length']=Buffer.byteLength(body);}
-   const r=this.request({hostname:this.origin.hostname,port:this.origin.port||443,path:'/opgview/socket.io/?'+q,method,headers,rejectUnauthorized:this.creds.verify_tls!==false},res=>{
+   const r=this.request({hostname:this.origin.hostname,port:this.origin.port||443,path:'/opgview/socket.io/?'+q,method,headers,rejectUnauthorized:this.creds.verify_tls===true},res=>{
     let size=0;const chunks=[];
     res.on('data',b=>{size+=b.length;if(size>2*1024*1024)r.destroy(Error('response_too_large'));else chunks.push(b);});
     res.on('error',()=>reject(Error('transport_error')));
@@ -41,7 +41,7 @@ class Client {
    });
    this.pending.add(r);const abort=()=>r.destroy(Error('cancelled'));this.signal?.addEventListener('abort',abort,{once:true});
    r.on('close',()=>{this.pending.delete(r);this.signal?.removeEventListener('abort',abort);});
-   r.on('error',e=>reject(Error(e.message==='cancelled'?'cancelled':e.code==='SELF_SIGNED_CERT_IN_CHAIN'||e.code==='DEPTH_ZERO_SELF_SIGNED_CERT'?'certificate_error':'transport_error')));
+   r.on('error',e=>reject(Error(e.message==='cancelled'?'cancelled':['SELF_SIGNED_CERT_IN_CHAIN','DEPTH_ZERO_SELF_SIGNED_CERT','UNABLE_TO_VERIFY_LEAF_SIGNATURE','UNABLE_TO_GET_ISSUER_CERT_LOCALLY','CERT_HAS_EXPIRED','ERR_TLS_CERT_ALTNAME_INVALID'].includes(e.code)?'certificate_error':'transport_error')));
    r.setTimeout(10000,()=>r.destroy(Error('timeout')));r.end(body);
   });
  }
@@ -94,7 +94,7 @@ async function execute(args,exec,root,workspace){
  let client,timer,credential,browserMode=false;
  try{
   browserMode=browserSession.browserConfigured(root);
-  const c=browserMode?validate(await browserSession.credentials(root,exec.signal)):load(root);credential=c;
+  const c=browserMode?validate(await browserSession.credentials(root,exec.signal,args.operation==='query')):load(root);credential=c;
   if(args.operation==='session-check')return {ok:true,status:'credentials_present',note:browserMode?'已从内置浏览器取得ISU登录态，尚未验证服务端查询权限。':'仅本机配置检查，尚未验证服务端登录。'};
   if(args.operation!=='query')throw Error('unsupported_operation');
   const p=JSON.parse(args.params_json||'{}');
@@ -110,10 +110,10 @@ async function execute(args,exec,root,workspace){
   timer=setTimeout(abort,90000);client=new Client(c,control.signal);
   const results=[];try{await client.connect();for(const pnt of [...new Set(p.points)])results.push(await client.query(pnt.trim(),limit));}
   finally{exec.signal?.removeEventListener('abort',abort);}
-  const result={ok:true,source:spec.id,queried_at:new Date().toISOString(),results,note:'当前查询快照；TM 是源系统采样时间。子串匹配须核对点名，不将超时/坏质量当正常值。'};
+  const result={ok:true,source:spec.id,session_refresh:c.refresh,queried_at:new Date().toISOString(),results,note:'当前查询快照；TM 是源系统采样时间。子串匹配须核对点名，不将超时/坏质量当正常值。'};
   fs.writeFileSync(dest,JSON.stringify(result,null,2),{flag:'wx',mode:0o600});
   return {...result,results:results.map(r=>({...r,rows:r.rows.slice(0,5)})),output:dest,preview_only:true};
- }catch(e){if(browserMode&&e.message==='auth_required'&&credential)await browserSession.invalidate(root,credential.token);return {ok:false,source:spec.id,message:browserMode?'请在内置业务浏览器登录ISU并打开或刷新实时值页面；无需复制Token/Cookie。账号无权限时请核对权限。':undefined,status:/^(isu_|invalid_|auth_required|http_|transport_error|certificate_error|response_timeout|cancelled|unsupported_operation)/.test(e.message)?e.message:'isu_query_failed'};}
+ }catch(e){if(browserMode&&e.message==='auth_required'&&credential)await browserSession.invalidate(root,credential.token);return {ok:false,source:spec.id,message:browserMode?(e.message==='certificate_error'?'已取得登录凭据，但HTTPS证书校验失败，请检查ISU连接的证书信任配置。':e.message==='transport_error'?'已取得登录凭据，但接口网络连接失败；刷新Token不能修复网络故障。':e.message==='isu_browser_page_not_configured'?'请先打开一次ISU实时值页面，或配置browser_session.isu_realtime_url以便重启后自动新建页面。':'自动刷新或重新打开实时值页面后仍未取得可用凭据，或查询失败。若登录已过期请完成登录；无需复制Token/Cookie。'):undefined,status:/^(isu_|invalid_|auth_required|http_|transport_error|certificate_error|response_timeout|cancelled|unsupported_operation)/.test(e.message)?e.message:'isu_query_failed'};}
  finally{clearTimeout(timer);client?.close();}
 }
 module.exports={spec,frames,Client,load,execute};
