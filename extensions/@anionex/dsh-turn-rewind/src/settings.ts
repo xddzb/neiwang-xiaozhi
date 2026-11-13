@@ -51,7 +51,8 @@ export interface TurnRewindSettings {
 
 /** Older Schemastery releases have no volatile marker; their settings provider owns updates. */
 function volatileWhenSupported<T>(schema: z<T>): z<T> {
-  const compatible = schema as z<T> & { volatile?: () => z<T> }
+  // The marker changes Schemastery's type brand, not the parsed setting value.
+  const compatible = schema as unknown as { volatile?: () => z<T> }
   return typeof compatible.volatile === 'function' ? compatible.volatile() : schema
 }
 

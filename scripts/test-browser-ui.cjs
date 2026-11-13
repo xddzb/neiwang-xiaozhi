@@ -55,6 +55,18 @@ async function click(win,labels,selector='button'){
   if(!listed)throw Error('Sidebar file tree did not show the synthetic workspace file');
   await delay(750);
   fs.writeFileSync(process.env.BROWSER_UI_OUTPUT.replace('.png','-sidebar.png'),(await win.webContents.capturePage()).toPNG());
+  if(process.env.NEIWANG_CHANGES_UI==='1'){
+   if(!await click(win,['变更']))throw Error('Changes tab missing');
+   let changes;
+   for(let i=0;i<100;i++){
+    changes=await win.webContents.executeJavaScript(`(()=>{const e=document.querySelector('[data-neiwang-changes]');return e?{text:e.innerText,error:e.querySelector('.nwchg-error')?.innerText}:null})()`);
+    if(changes&&!changes.text.includes('读取中'))break;
+    await delay(500);
+   }
+   if(!changes||changes.error||!changes.text.includes('轮次与检查点'))throw Error('Changes pane failed: '+JSON.stringify(changes));
+   fs.writeFileSync(process.env.BROWSER_UI_OUTPUT.replace('.png','-changes.png'),(await win.webContents.capturePage()).toPNG());
+   console.log('PASS actual compiled changes pane and sidebar');
+  }
  }
  if(!await click(win,['设置','Settings'])){
   if(!await click(win,['更多','More']))throw Error('More menu missing');
