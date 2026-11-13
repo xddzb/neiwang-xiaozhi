@@ -502,6 +502,7 @@ export class ChangeLedgerEngine {
     try {
       const manifest = (await this.store.listManifests(source.state.root)).find(point =>
         point.kind === 'turn'
+        && point.phase !== 'end'
         && point.sessionId === options.sessionId
         && point.turn === options.turn
         && point.turnStartSeq !== undefined)

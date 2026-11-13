@@ -103,7 +103,7 @@ def build(baseline, output, date, volume_bytes=480_000_000):
         app.update(edition='full',buildId='Kylin-ARM64-'+date+'-Full',buildDate=date,bundles=list(dict.fromkeys(app['bundles']+pack['bundles'])))
         emit('config/app.json',encode(app))
         emit('config/feature-pack.json',encode({'version':pack['release'],'platform':pack['platform'],'bundles':pack['bundles'],'preinstalled':True}))
-        emit('解压后启动说明.txt','这是已预装插件的完整麒麟 ARM64 应用。进入本目录运行：bash 启动.sh\n请解压到新目录，不要覆盖旧应用或复制旧程序文件。\n'.encode())
+        emit('解压后启动说明.txt','这是已预装插件的完整麒麟 ARM64 应用。进入本目录运行：bash start.sh\n请解压到新目录，不要覆盖旧应用或复制旧程序文件。\n'.encode())
     print('Full archive composed; verifying runtime, payload and official core',flush=True)
     verified={}
     with tarfile.open(target,'r:gz') as t:
@@ -123,7 +123,7 @@ def build(baseline, output, date, volume_bytes=480_000_000):
             volumes.append({'name':part.name,'bytes':len(chunk),'sha256':sha(chunk)});i+=1
     checksum=file_sha(target)
     (output/'SHA256SUMS.txt').write_text(''.join(r['sha256']+'  '+r['name']+'\n' for r in volumes),encoding='ascii',newline='\n')
-    (output/'解压.sh').write_text('#!/bin/sh\nset -eu\nHERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)\ncd "$HERE"\nsha256sum -c SHA256SUMS.txt\nDEST=${1:-"$HERE/解压后的APP"}\nif [ -e "$DEST" ]; then echo "目标目录已存在，请指定新目录。"; exit 1; fi\nmkdir -p "$DEST"\ncat '+prefix+'.tar.gz.[0-9][0-9][0-9] | tar -xzf - -C "$DEST"\nprintf "解压完成，进入应用目录运行：bash 启动.sh\\n"\n',encoding='utf8',newline='\n')
+    (output/'解压.sh').write_text('#!/bin/sh\nset -eu\nHERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)\ncd "$HERE"\nsha256sum -c SHA256SUMS.txt\nDEST=${1:-"$HERE/解压后的APP"}\nif [ -e "$DEST" ]; then echo "目标目录已存在，请指定新目录。"; exit 1; fi\nmkdir -p "$DEST"\ncat '+prefix+'.tar.gz.[0-9][0-9][0-9] | tar -xzf - -C "$DEST"\nprintf "解压完成，进入应用目录运行：bash start.sh\\n"\n',encoding='utf8',newline='\n')
     (output/'构建验证.json').write_bytes(encode({'sourceCommit':subprocess.check_output(['git','-c','safe.directory=*','rev-parse','HEAD'],cwd=ROOT).decode().strip(),'localSourceHashes':updated,'rewindCompiler':evidence['compiler'],'officialCoreFilesVerified':len(original_core),'installedPayloadFilesVerified':len(payload),'archiveSha256':checksum,'volumes':volumes,'publicUploadAllowed':False}))
     target.unlink()
     print(json.dumps({'volumes':len(volumes),'officialCoreFiles':len(original_core),'payloadFiles':len(payload)}),flush=True)
