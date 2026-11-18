@@ -55,6 +55,7 @@ async function click(win,labels,selector='button'){
   if(!listed)throw Error('Sidebar file tree did not show the synthetic workspace file');
   await delay(750);
   fs.writeFileSync(process.env.BROWSER_UI_OUTPUT.replace('.png','-sidebar.png'),(await win.webContents.capturePage()).toPNG());
+
  }
  if(!await click(win,['设置','Settings'])){
   if(!await click(win,['更多','More']))throw Error('More menu missing');
@@ -64,9 +65,16 @@ async function click(win,labels,selector='button'){
  let settingsReady=false;
  for(let i=0;i<120;i++){if(await click(win,['业务浏览器与接口'])){settingsReady=true;break}await delay(500)}
  if(!settingsReady){fs.writeFileSync(process.env.BROWSER_UI_OUTPUT+'.dom.json',JSON.stringify(await win.webContents.executeJavaScript(`({text:document.body.innerText,buttons:[...document.querySelectorAll('button')].map(e=>({text:e.innerText,label:e.getAttribute('aria-label'),title:e.title}))})`),null,2));throw Error('Browser settings entry missing')}
- await delay(1500);
- const text=await win.webContents.executeJavaScript('document.body.innerText');
- if(!text.includes('已登记接口源：'+(process.env.NEIWANG_EXPECTED_SOURCES||15))||!text.includes('精简工具提示词'))throw Error('Browser configuration UI mismatch');
+ let settingsText='',settingsLoaded=false;
+ for(let i=0;i<100;i++){
+  settingsText=await win.webContents.executeJavaScript('document.body.innerText');
+  settingsLoaded=settingsText.includes('已登记接口源：'+(process.env.NEIWANG_EXPECTED_SOURCES||15))&&settingsText.includes('精简工具提示词');
+  if(settingsLoaded)break;await delay(500);
+ }
+ if(!settingsLoaded){
+  fs.writeFileSync(process.env.BROWSER_UI_OUTPUT+'.dom.json',JSON.stringify({expectedSources:process.env.NEIWANG_EXPECTED_SOURCES||15,text:settingsText}));
+  throw Error('Browser configuration UI mismatch');
+ }
  fs.writeFileSync(process.env.BROWSER_UI_OUTPUT,(await win.webContents.capturePage()).toPNG());
  console.log('PASS actual homepage branding, sidebar, no Edit/preview badge, browser configuration and source count');
  app.exit(0);

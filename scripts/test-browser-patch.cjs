@@ -6,7 +6,7 @@ test('browser fixes remain identical in runtime and offline payload after verifi
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'nw-browser-sync-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
  const put=(rel,data)=>{const file=path.join(root,rel);fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,data)};
  put('config/app.json',JSON.stringify({version:'fixture',platform:process.platform,edition:'core',bundles:[]}));
- const files=['controller.mjs','index.mjs','compact.mjs'].map(name=>{
+ const files=['controller.mjs','index.mjs','compact.mjs','session-auth.mjs','isu-session.mjs','session_adapter.py'].map(name=>{
   const bytes=fs.readFileSync(path.join(repo,'extensions/@neiwang/browser-automation',name)),rel='extensions/node_modules/@neiwang/browser-automation/'+name;
   put('plugin-pack/payload/'+rel,bytes);return {path:rel,sha256:hash(bytes),mode:0o644};
  });

@@ -46,6 +46,7 @@ try:
   match=re.search(r'http://127\.0\.0\.1:\d+/\?token=[A-Za-z0-9_-]+',buf)
   if match:url=match.group();break
  if not url:raise AssertionError(re.sub(r'token=[A-Za-z0-9_-]+','token=REDACTED',buf[-6000:]))
+ print('PASS actual Host started',flush=True)
  opener=urllib.request.build_opener(urllib.request.ProxyHandler({}),urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()));opener.open(url,timeout=90).read();origin=url.split('/?')[0]
  def open_json(url,timeout=600):
   try:return json.load(opener.open(url,timeout=timeout))
@@ -55,6 +56,7 @@ try:
   return json.load(opener.open(req,timeout=30))
  fixture=open_json(origin+'/restored-test/prepare')
  assert fixture['status']=='PASS'
+ print('PASS actual Agent tools and durable checkpoint',flush=True)
  target={'sessionId':fixture['sessionId'],'messageSeq':fixture['messageSeq']}
  import urllib.parse
  preview=open_json(origin+'/turn-rewind?'+urllib.parse.urlencode(target))
@@ -89,6 +91,10 @@ try:
   (WORK/'synthetic-backend-error.log').write_text(re.sub(r'token=[A-Za-z0-9_-]+','token=REDACTED',buf[-20000:]),encoding='utf-8');raise
  report['desktopUiVerified']=True
  (WORK/'restored-result.json').write_text(json.dumps(report,indent=2));print(json.dumps(report),flush=True)
+except BaseException:
+ while not q.empty():buf+=q.get_nowait()
+ (WORK/'synthetic-backend-error.log').write_text(re.sub(r'token=[A-Za-z0-9_-]+','token=REDACTED',buf[-20000:]),encoding='utf-8')
+ raise
 finally:
  if proc.poll() is None:
   if os.name=='nt':subprocess.run(['taskkill','/PID',str(proc.pid),'/T','/F'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)

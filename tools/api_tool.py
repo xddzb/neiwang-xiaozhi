@@ -200,17 +200,18 @@ def main():
         raise ValueError('接口路径必须是登记的相对路径，不含查询参数')
     url = credential['base_url']+path
     browser = credential.get('browser_session')
-    session_cookie = None
+    session_headers = {}
     if browser:
-        from browser_session import cookie_header, SessionError
+        from browser_session import auth_headers, SessionError
         try:
-            session_cookie = cookie_header(browser, url, crypt)
+            session_headers = auth_headers(browser, url, connection, crypt)
         except SessionError as error:
             return {'ok':False, 'status':str(error), 'source':source,
-                    'message':'登录态读取未通过；未修改浏览器或输出 Cookie'}
+                    'message':'请在内置业务浏览器登录；无需复制 Cookie 或 Token。若仍失败，请检查接口认证映射。'}
     if args.operation == 'session-check':
-        return {'ok':bool(session_cookie), 'status':'session_readable' if session_cookie else 'browser_session_not_configured',
-                'note':'仅检查本机读取；没有访问接口，不代表服务端登录仍有效'}
+        return {'ok':bool(session_headers), 'status':'session_readable' if session_headers else 'browser_session_not_configured',
+                'auth_header_names':sorted(session_headers),
+                'note':'仅检查本机读取；没有访问接口，不代表服务端登录仍有效。若文档要求Token而这里只有cookie，需按已有接口文档补齐固定存储映射，不会监听请求或登记新接口。'}
     headers = {'Accept':'*/*', 'Accept-Encoding':'gzip, deflate'}
     for key,value in {**spec.get('headers',{}), **credential.get('headers',{})}.items():
         if not re.fullmatch(r'[A-Za-z0-9-]+',key) or key.lower() in ('host','content-length','connection'):
@@ -218,11 +219,16 @@ def main():
         if not isinstance(value,str) or '\r' in value or '\n' in value:
             raise ValueError('附加 Header 值无效')
         headers[key] = value
-    if credential['auth_mode'] != 'none':
+    browser_auth = browser and browser.get('driver') == 'playwright'
+    if not browser_auth and credential['auth_mode'] != 'none':
         headers[credential['header']] = ('Bearer ' if credential['auth_mode']=='bearer' else '')+credential['token']
-    if session_cookie:
-        headers = {k:v for k,v in headers.items() if k.lower() != 'cookie'}
-        headers['Cookie'] = session_cookie
+    if session_headers:
+        dynamic_names = {k.lower() for k in session_headers}
+        if browser_auth:
+            dynamic_names.update(['authorization','token','x-auth-token','x-csrf-token','x-xsrf-token'])
+            dynamic_names.add(credential.get('header','Authorization').lower())
+        headers = {k:v for k,v in headers.items() if k.lower() not in dynamic_names}
+        headers.update(session_headers)
     body = None
     params = dict(params)
     for target, origin in spec.get('parameter_aliases',{}).items():
@@ -284,6 +290,9 @@ def main():
                     json_status = 'saved_unvalidated_large_json'
             os.rename(temporary, output)
     except urllib.error.HTTPError as error:
+        if browser and error.code in (401,403):
+            return {'ok':False,'status':'browser_login_or_permission_required','http_status':error.code,'source':source,
+                    'message':'登录已失效或账号无查询权限。请在内置业务浏览器重新登录或核对权限；无需复制凭据，不会自动重试本次请求。'}
         return {'ok':False,'status':'http_error','http_status':error.code,'source':source}
     except Exception:
         return {'ok':False,'status':'request_failed','source':source,
