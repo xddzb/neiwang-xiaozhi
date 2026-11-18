@@ -8,6 +8,7 @@ let win;
 async function pick(labels){return win.webContents.executeJavaScript(`(()=>{const e=[...document.querySelectorAll('button,[role=button],[role=menuitem],[role=treeitem]')].filter(${visible}).find(e=>${JSON.stringify(labels)}.some(t=>(e.innerText||'').trim().split(String.fromCharCode(10))[0]===t||e.getAttribute('aria-label')===t||e.getAttribute('title')===t));if(e)e.click();return !!e})()`)}
 async function waitFor(fn,label,tries=180){for(let i=0;i<tries;i++){if(await fn())return;await delay(500)}throw Error(label)}
 async function fail(e){
+ fs.writeFileSync(process.env.BROWSER_UI_OUTPUT+'.error.txt',String(e.stack||e));
  if(win){fs.writeFileSync(process.env.BROWSER_UI_OUTPUT+'.diagnostic.json',JSON.stringify(await win.webContents.executeJavaScript(`({text:document.body.innerText,buttons:[...document.querySelectorAll('button')].filter(${visible}).map(e=>({text:e.innerText,label:e.getAttribute('aria-label'),title:e.title}))})`),null,2));fs.writeFileSync(process.env.BROWSER_UI_OUTPUT+'.failure.png',(await win.webContents.capturePage()).toPNG())}
  console.error(e);app.exit(1);
 }
@@ -26,7 +27,7 @@ async function fail(e){
  fs.writeFileSync(process.env.BROWSER_UI_OUTPUT.replace('.png','-changes.png'),(await win.webContents.capturePage()).toPNG());
  console.log('PASS visible changes pane loaded actual persisted rounds');
  if(!await pick(['设置','Settings'])){
-  if(!await pick(['Account menu','账户菜单']))throw Error('Account menu missing');
+  if(!await pick(['Account menu','账户菜单','账号菜单']))throw Error('Account menu missing');
   await waitFor(()=>pick(['设置','Settings','偏好设置','Preferences']),'Settings control missing');
  }
  await waitFor(()=>pick(['业务浏览器与接口']),'Browser settings section missing');
