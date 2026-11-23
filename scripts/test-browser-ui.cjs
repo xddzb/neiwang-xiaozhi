@@ -18,8 +18,16 @@ async function click(win,labels,selector='button'){
  if(!ready)throw Error('Main UI not ready');
  if(process.platform==='linux')await delay(15000);
  if(Menu.getApplicationMenu()!==null)throw Error('Edit menu returned');
- const home=await win.webContents.executeJavaScript(`({text:document.body.innerText,sidebar:!!document.querySelector('[data-dsh-better-sidebar]'),title:document.title})`);
- if(!home.text.includes('你说我做')||home.text.includes('预览版')||home.title!=='内网小智')throw Error('Home branding mismatch');
+ let home;
+ for(let i=0;i<60;i++){
+  home=await win.webContents.executeJavaScript(`({text:document.body.innerText,sidebar:!!document.querySelector('[data-dsh-better-sidebar]'),title:document.title})`);
+  if(home.text.includes('你说我做')&&!home.text.includes('预览版')&&home.title==='内网小智')break;
+  await delay(500);
+ }
+ if(!home.text.includes('你说我做')||home.text.includes('预览版')||home.title!=='内网小智'){
+  fs.writeFileSync(process.env.BROWSER_UI_OUTPUT+'.dom.json',JSON.stringify(home,null,2));
+  throw Error('Home branding mismatch');
+ }
  if(process.env.NEIWANG_EXPECT_SIDEBAR==='1'&&(!home.sidebar||home.text.includes('PDF解析大师')))throw Error('Sidebar/parser mismatch');
  const toggle=await win.webContents.executeJavaScript(`(async()=>{const b=document.querySelector('#neiwang-rag-toggle');if(!b)return {found:false};const before=b.getAttribute('aria-checked');b.click();for(let i=0;i<100&&b.disabled;i++)await new Promise(r=>setTimeout(r,30));const changed=b.getAttribute('aria-checked')!==before;b.click();for(let i=0;i<100&&b.disabled;i++)await new Promise(r=>setTimeout(r,30));return {found:true,changed,restored:b.getAttribute('aria-checked')===before}})()`);
  if(!toggle.found||!toggle.changed||!toggle.restored)throw Error('RAG switch missing or not functional: '+JSON.stringify(toggle));

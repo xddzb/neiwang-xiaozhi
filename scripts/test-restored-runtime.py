@@ -16,7 +16,7 @@ class Mock(BaseHTTPRequestHandler):
  def do_POST(self):
   request=json.loads(self.rfile.read(int(self.headers['Content-Length'])));messages=request['messages'];human=[i for i,m in enumerate(messages) if m['role']=='user' and 'BROWSER_PATCH_' in str(m)];last=human[-1] if human else max(i for i,m in enumerate(messages) if m['role']=='user');text=str(messages[last]);label='compact' if 'COMPACT' in text else 'baseline'
   if request.get('tools') and not any(m['role']=='tool' for m in messages[last+1:]):
-   system='\n'.join(str(m['content']) for m in messages if m['role']=='system');observed[label]={'systemChars':len(system),'systemUtf8Bytes':len(system.encode()),'wireToolCount':len(request['tools']),'containsFullSdkMap':'interface ToolArgsMap' in system,'containsLazyCatalog':'工具按需发现' in system}
+   system='\n'.join(str(m['content']) for m in messages if m['role']=='system');observed[label]={'systemChars':len(system),'systemUtf8Bytes':len(system.encode()),'wireToolCount':len(request['tools']),'containsFullSdkMap':'interface ToolArgsMap' in system,'containsLazyCatalog':'工具按需发现' in system,'maxOutputTokens':request.get('max_tokens',request.get('max_completion_tokens'))}
   if request.get('tools') and not any(m['role']=='tool' for m in messages[last+1:]):
    code="console.log(await tools.local_python({script:'python-runtime-fixture.py'}));console.log(await tools.tool_catalog({operation:'describe',name:'knowledge_query'}));console.log(await tools.knowledge_materials({operation:'inspect'}));console.log(await tools.mcp__browser__automation({operation:'help'}));console.log(await tools.business_api({operation:'list'}));"
    chunks=[({'role':'assistant','tool_calls':[{'index':0,'id':'browser-fixture-'+uuid.uuid4().hex,'type':'function','function':{'name':'run_code','arguments':json.dumps({'code':code,'description':'Inspect offline tools and registered local sources'})}}]},None),({},'tool_calls')]
@@ -56,6 +56,11 @@ try:
   return json.load(opener.open(req,timeout=30))
  fixture=open_json(origin+'/restored-test/prepare')
  assert fixture['status']=='PASS'
+ for sample in observed.values():
+  assert sample['systemChars']<16000 and not sample['containsFullSdkMap'],sample
+  assert sample['containsLazyCatalog'] and sample['wireToolCount']<=2,sample
+  assert sample['maxOutputTokens']==8192,sample
+ assert observed, 'No actual model request captured'
  print('PASS actual Agent tools and durable checkpoint',flush=True)
  target={'sessionId':fixture['sessionId'],'messageSeq':fixture['messageSeq']}
  import urllib.parse
@@ -76,6 +81,7 @@ try:
  except urllib.error.HTTPError as e:assert e.code==409
  assert Path(fixture['userFile']).read_text()=='synthetic current'
  report={'status':'PASS','version':json.loads((APP/'config/app.json').read_text(encoding='utf8'))['version'],'actualHostAndAgent':True,'messagesOnlyForkPreservesOriginal':True,'unconfirmedFileRestoreRejected':True,'checkpointPreview':True,'ragDisabledMakesNoRequest':True,'childReusesParentMaterials':True,'noDuplicateTools':True,'physicalKylinTested':False}
+ report['actualRequestBudgets']=observed
  (WORK/'restored-result.json').write_text(json.dumps(report,indent=2));print(json.dumps(report),flush=True)
  ui_env={**env,'DSH_URL':url,'BROWSER_UI_OUTPUT':str(WORK/'browser-settings.png'),'NEIWANG_REWIND_UI':'1'}
  if os.name!='nt':

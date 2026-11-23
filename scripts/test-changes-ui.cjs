@@ -36,7 +36,7 @@ async function fail(e){
  console.log('PASS visible browser settings loaded actual source count');
  if(process.env.NEIWANG_MODELS_UI==='1'){
   await waitFor(()=>pick(['模型','Models']),'Models settings entry missing');
-  await waitFor(()=>pick(['添加提供商','添加模型提供商','添加','Add provider','Add']),'Add model provider control missing');
+  await waitFor(()=>pick(['添加提供商','添加模型提供商','添加','Add model provider','Add provider','Add']),'Add model provider control missing');
   await waitFor(()=>pick(['自定义模型 API','Custom model API']),'Custom API mode missing');
   await waitFor(()=>win.webContents.executeJavaScript(`['Provider ID','API 地址','API 密钥'].every((label,i)=>[...document.querySelectorAll('input')].filter(${visible}).some(e=>[label,['Provider ID','Base URL','API key'][i]].includes(e.getAttribute('aria-label'))&&!e.disabled))`),'Editable API fields missing');
   await delay(750); // Let the selected tab finish painting before saving evidence.

@@ -34,6 +34,7 @@ try:
  command=([str(APP/'launcher/electron/electron.exe')] if os.name=='nt' else ['xvfb-run','-a',str(APP/'launcher/electron/electron')])+['--no-sandbox','--disable-gpu',str(HERE/'test-changes-ui.cjs')]
  subprocess.run(command,env=ui,cwd=APP,check=True,timeout=600)
  result=json.loads((WORK/'restored-result.json').read_text());result.update(desktopUiVerified=True,changesPaneVerified=True)
+ if os.environ.get('NEIWANG_MODELS_UI')=='1':result['manualModelApiFormVerified']=True
  (WORK/'restored-result.json').write_text(json.dumps(result,indent=2));print(json.dumps(result),flush=True)
 finally:
  if proc.poll() is None:
