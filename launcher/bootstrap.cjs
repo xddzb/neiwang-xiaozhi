@@ -95,6 +95,12 @@ function prepare(){
   env.DSH_TURN_REWIND_HOST_ID=hostId;
  }
  const overrides=read(path.join(root,'config/overrides.json'));
+ // Older Internal packages hid Models in their deployment defaults. An encrypted
+ // default provider must not remove the user's entry for adding other APIs.
+ // Only normalize this deployment flag; explicit profile settings still win.
+ const modelSettings=overrides.find(row=>row.id==='ui-settings-models');
+ if(modelSettings)modelSettings.disabled=false;
+ else overrides.push({id:'ui-settings-models',disabled:false});
  const patches=[...overrides,
   {id:'workspace-controller',config:{documentsDirectory:process.env.NEIWANG_WORKSPACE_DIR||path.join(root,'workspace')}},
   {id:'agent-default-model',config:model?{provider:'neiwang',model:model.default_model}:{provider:'deepseek-official',model:'deepseek-flash'}},

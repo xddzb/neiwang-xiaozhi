@@ -33,5 +33,15 @@ async function fail(e){
  await waitFor(()=>pick(['业务浏览器与接口']),'Browser settings section missing');
  await waitFor(()=>win.webContents.executeJavaScript(`document.body.innerText.includes(${JSON.stringify('已登记接口源：'+process.env.NEIWANG_EXPECTED_SOURCES)})&&document.body.innerText.includes('精简工具提示词')`),'Browser settings did not load source count',180);
  fs.writeFileSync(process.env.BROWSER_UI_OUTPUT,(await win.webContents.capturePage()).toPNG());
- console.log('PASS visible browser settings loaded actual source count');app.exit(0);
+ console.log('PASS visible browser settings loaded actual source count');
+ if(process.env.NEIWANG_MODELS_UI==='1'){
+  await waitFor(()=>pick(['模型','Models']),'Models settings entry missing');
+  await waitFor(()=>pick(['添加提供商','添加模型提供商','添加','Add provider','Add']),'Add model provider control missing');
+  await waitFor(()=>pick(['自定义模型 API','Custom model API']),'Custom API mode missing');
+  await waitFor(()=>win.webContents.executeJavaScript(`['Provider ID','API 地址','API 密钥'].every((label,i)=>[...document.querySelectorAll('input')].filter(${visible}).some(e=>[label,['Provider ID','Base URL','API key'][i]].includes(e.getAttribute('aria-label'))&&!e.disabled))`),'Editable API fields missing');
+  await delay(750); // Let the selected tab finish painting before saving evidence.
+  fs.writeFileSync(process.env.BROWSER_UI_OUTPUT.replace('.png','-models.png'),(await win.webContents.capturePage()).toPNG());
+  console.log('PASS manual model API entry and editable provider, URL and key fields');
+ }
+ app.exit(0);
 })().catch(fail);

@@ -69,14 +69,30 @@ test('complete explicit environment adds a default provider',()=>withoutModelEnv
 
 test('Internal first boot loads seeds and missing RAG uses existing key without replacing model',()=>withoutModelEnv(()=>{
  const {root,bootstrap}=fixture(),crypto=require('node:crypto'),seed=path.join(root,'config/defaults');fs.mkdirSync(seed);
+ const overridesFile=path.join(root,'config/overrides.json'),legacy=JSON.parse(fs.readFileSync(overridesFile));
+ legacy.find(row=>row.id==='ui-settings-models').disabled=true;
+ fs.writeFileSync(overridesFile,JSON.stringify(legacy));const originalOverrides=fs.readFileSync(overridesFile);
  const key=crypto.randomBytes(32);fs.writeFileSync(path.join(seed,'.local-key'),key);
  function encode(value,format){const nonce=crypto.randomBytes(12),c=crypto.createCipheriv('aes-256-gcm',key,nonce);c.setAAD(Buffer.from(format));return JSON.stringify({format,payload:Buffer.concat([nonce,c.update(JSON.stringify(value)),c.final(),c.getAuthTag()]).toString('base64')})}
  fs.writeFileSync(path.join(seed,'model.enc'),encode({version:1,base_url:'http://synthetic.invalid/v1',api_key:'synthetic-private-fixture',models:['fixture'],default_model:'fixture'},'NEIWANG-MODEL-1'));
  fs.writeFileSync(path.join(seed,'dify.enc'),encode({base_url:'http://rag.synthetic.invalid/v1',api_key:'synthetic-rag-fixture'},'NEIWANG-DIFY-1'));
  let p=bootstrap.prepare();assert.equal(p.env.NEIWANG_MODEL_KEY,'synthetic-private-fixture');assert(!fs.readFileSync(p.patchFile,'utf8').includes('synthetic-private-fixture'));
+ assert.equal(JSON.parse(fs.readFileSync(p.patchFile)).find(row=>row.id==='ui-settings-models').disabled,false);
+ assert.deepEqual(fs.readFileSync(overridesFile),originalOverrides);
+ const profileFile=path.join(p.profile,'cordis.patch.yml');
+ const providers={neiwang:{api:'openai-completions',baseURL:'http://synthetic.invalid/v1',apiKeyEnv:'NEIWANG_MODEL_KEY',models:[{id:'fixture'}]},manual:{api:'openai-completions',baseURL:'http://manual.invalid/v1',apiKeyEnv:'MANUAL_TEST_KEY',models:[{id:'manual-model'}]}};
+ const manualPatch='- id: llm-pi-ai\n  config: '+JSON.stringify({providers})+'\n- id: agent-default-model\n  config: {"provider":"manual","model":"manual-model"}\n';
+ fs.writeFileSync(profileFile,manualPatch);
  const dir=path.join(root,'data/config'),model=fs.readFileSync(path.join(dir,'model.enc')),rag=fs.readFileSync(path.join(dir,'dify.enc'));
  const {convert}=require('../tools/migrate-settings.cjs'),userKey=crypto.randomBytes(32);fs.writeFileSync(path.join(dir,'.local-key'),userKey);fs.writeFileSync(path.join(dir,'model.enc'),convert(model,key,userKey));fs.unlinkSync(path.join(dir,'dify.enc'));
  const original=fs.readFileSync(path.join(dir,'model.enc'));p=bootstrap.prepare();assert.deepEqual(fs.readFileSync(path.join(dir,'model.enc')),original);assert.deepEqual(fs.readFileSync(path.join(dir,'.local-key')),userKey);
  const restored=JSON.parse(convert(fs.readFileSync(path.join(dir,'dify.enc')),userKey,key)),b=Buffer.from(restored.payload,'base64'),d=crypto.createDecipheriv('aes-256-gcm',key,b.subarray(0,12));d.setAAD(Buffer.from(restored.format));d.setAuthTag(b.subarray(-16));assert.deepEqual(JSON.parse(Buffer.concat([d.update(b.subarray(12,-16)),d.final()])),{base_url:'http://rag.synthetic.invalid/v1',api_key:'synthetic-rag-fixture'});
  assert.equal(p.env.NEIWANG_MODEL_KEY,'synthetic-private-fixture');
+ assert.equal(fs.readFileSync(profileFile,'utf8'),manualPatch);
+}));
+
+test('legacy deployment without a Models flag still exposes model settings',()=>withoutModelEnv(()=>{
+ const {root,bootstrap}=fixture(),file=path.join(root,'config/overrides.json');
+ const overrides=JSON.parse(fs.readFileSync(file)).filter(row=>row.id!=='ui-settings-models');fs.writeFileSync(file,JSON.stringify(overrides));
+ const p=bootstrap.prepare();assert.equal(JSON.parse(fs.readFileSync(p.patchFile)).find(row=>row.id==='ui-settings-models').disabled,false);
 }));
