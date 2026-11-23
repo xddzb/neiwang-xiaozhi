@@ -1,6 +1,7 @@
 """Build a preinstalled Windows ZIP from local reviewed archives; no downloads."""
 import argparse, hashlib, json, subprocess, zipfile
 from pathlib import Path
+from deployment_defaults import merge_defaults
 from urllib.parse import urlsplit
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -38,6 +39,7 @@ def build(baseline,output,date,page_url):
             for n in z.namelist():
                 rel=n.partition('/')[2]
                 if rel=='config/app.json':app=json.loads(z.read(n))
+                if rel=='config/overrides.json':sources[rel]=merge_defaults(z.read(n))
                 if rel=='plugin-pack/pack.json':pack=json.loads(z.read(n))
                 if rel==PAYLOAD+'extensions/apis/connections/weekly-isu.json':
                     value=json.loads(z.read(n));origin=urlsplit(value['base_url']);page=urlsplit(page_url)

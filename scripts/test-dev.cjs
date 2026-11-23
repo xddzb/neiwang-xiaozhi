@@ -51,6 +51,20 @@ test('partial environment model configuration is rejected clearly',()=>withoutMo
  const {bootstrap}=fixture();process.env.NEIWANG_MODEL_ID='test-model';assert.throws(()=>bootstrap.prepare(),/Provide all NEIWANG_MODEL/);
 }));
 
+test('legacy offline compaction defaults migrate without changing user settings',()=>withoutModelEnv(()=>{
+ const {root,bootstrap}=fixture(),file=path.join(root,'config/overrides.json');
+ const legacy=JSON.parse(fs.readFileSync(file));
+ Object.assign(legacy.find(row=>row.id==='compaction-basic'),{disabled:true,config:{headroomTokens:65536}});
+ fs.writeFileSync(file,JSON.stringify(legacy));
+ const p=bootstrap.prepare(),profileFile=path.join(p.profile,'cordis.patch.yml');
+ const custom=fs.readFileSync(profileFile,'utf8')+'- id: compaction-basic\n  config: {"thresholdRatio":0.85}\n';
+ fs.writeFileSync(profileFile,custom);bootstrap.prepare();
+ const policy=JSON.parse(fs.readFileSync(p.patchFile)).find(row=>row.id==='compaction-basic');
+ assert.deepEqual(policy,JSON.parse(fs.readFileSync(path.join(repo,'config/overrides.json'))).find(row=>row.id==='compaction-basic'));
+ assert.equal(fs.readFileSync(profileFile,'utf8'),custom);
+ assert.deepEqual(JSON.parse(fs.readFileSync(file)),legacy);
+}));
+
 test('model settings retain explicit user providers and commented empty patches stay valid',()=>withoutModelEnv(()=>{
  const {bootstrap}=fixture(),p=bootstrap.prepare(),file=path.join(p.profile,'cordis.patch.yml');
  const content='# user-owned settings\n- id: llm-pi-ai\n  config: {"providers":{"custom":{}}}\n- id: agent-default-model\n  config: {"provider":"custom","model":"chosen"}\n';
