@@ -1,0 +1,45 @@
+{
+  "checkedDate": "2026-11-24",
+  "registry": "https://registry.npmjs.org/@deepseek-ai%2Fdsh",
+  "releaseNotes": "https://github.com/deepseek-ai/deepseek-harness/releases",
+  "productionCore": "0.2.1-rc.3",
+  "npmLatest": "0.2.2-rc.5",
+  "npmAlpha": "0.2.3-alpha.2",
+  "alphaNodeRequirement": "^24.22.3 || >=26.13.1",
+  "candidate": {
+    "core": "0.2.2-rc.5",
+    "platform": "win32-x64",
+    "node": "24.9.0",
+    "directReplacementPassed": false,
+    "initialFailures": [
+      "tools.mode=ptc is obsolete",
+      "local rewind peer range does not include this core"
+    ],
+    "isolatedAdaptations": [
+      "Replace tools config with an empty object",
+      "Disable tool-executor-native and enable tool-executor-ptc in deployment patch",
+      "Extend only the candidate rewind package's dsh-settings peer range with 0.2.2-rc.5",
+      "Keep ui-settings-general.welcomeNoticeVersion at the verified upstream value 2026-09-28.1"
+    ],
+    "checksPassed": [
+      "Host and actual Agent tool loop",
+      "Python execution and tool discovery",
+      "Checkpoint preview and messages-only fork",
+      "Unconfirmed file restore rejected",
+      "RAG disabled prevents retrieval and child reuses parent material",
+      "No duplicate tools",
+      "No preview notice observed with a fresh user profile",
+      "Restarted changes pane and custom model API editable form"
+    ],
+    "actualRequest": {
+      "maxOutputTokens": 8192,
+      "wireToolCount": 1,
+      "systemCharacters": 9945,
+      "containsFullSdkMap": false
+    },
+    "linuxArm64CoreTested": false,
+    "physicalKylinTested": false,
+    "promotedToProduction": false
+  },
+  "decision": "Keep the preview-notice patch on the verified 0.2.1-rc.3 baseline. Do not label the Windows upgrade candidate as an offline Kylin release. Validate target-platform dependencies and the ARM64 application before promoting the new core."
+}

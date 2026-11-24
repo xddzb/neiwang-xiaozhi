@@ -7,11 +7,12 @@ class ContextModelsPatch{
  constructor(root,kit=__dirname,options={}){
   this.manager=new Manager(root,options);this.root=this.manager.root;this.kit=fs.realpathSync(kit);this.fault=options.fault||(()=>{});
   this.record=safe(this.root,'config/context-models-patch-backup.json');
+  this.allowed=ALLOWED;
  }
  load(){
   if(!fs.existsSync(this.record))return null;
   const j=read(this.record);
-  if(j.version!==1||hash(JSON.stringify(j.changes))!==j.sha256||j.changes.length!==2||j.changes.some((r,i)=>r.path!==ALLOWED[i]||!Number.isInteger(r.mode)))throw Error('补丁备份损坏，未修改文件');
+  if(j.version!==1||hash(JSON.stringify(j.changes))!==j.sha256||j.changes.length!==this.allowed.length||j.changes.some((r,i)=>r.path!==this.allowed[i]||!Number.isInteger(r.mode)))throw Error('补丁备份损坏，未修改文件');
   return j;
  }
  save(j){atomic(this.record,JSON.stringify(j,null,2)+'\n')}

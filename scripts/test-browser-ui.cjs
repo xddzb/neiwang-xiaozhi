@@ -1,6 +1,13 @@
 const fs=require('node:fs'),path=require('node:path');
 process.on('uncaughtException',fail);
 const {app,BrowserWindow,Menu}=require('electron');
+app.on('web-contents-created',(_event,contents)=>{
+ contents.on('dom-ready',()=>contents.executeJavaScript(`(()=>{
+  window.__neiwangPreviewModalSeen=false;
+  const check=()=>{if([...document.querySelectorAll('[role="dialog"],[role="alertdialog"]')].some(e=>e.getClientRects().length&&/预览版说明|Preview Notice/.test(e.innerText||'')))window.__neiwangPreviewModalSeen=true};
+  new MutationObserver(check).observe(document.documentElement,{childList:true,subtree:true,attributes:true});check();
+ })()`).catch(()=>{}));
+});
 app.disableHardwareAcceleration();
 require(path.join(process.env.NEIWANG_APP_ROOT,'launcher/shell/main.js'));
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
@@ -16,6 +23,7 @@ async function click(win,labels,selector='button'){
   await delay(1000);
  }
  if(!ready)throw Error('Main UI not ready');
+ if(await win.webContents.executeJavaScript('window.__neiwangPreviewModalSeen===true'))throw Error('Preview notice appeared on a fresh profile');
  if(process.platform==='linux')await delay(15000);
  if(Menu.getApplicationMenu()!==null)throw Error('Edit menu returned');
  let home;
@@ -85,5 +93,6 @@ async function click(win,labels,selector='button'){
  }
  fs.writeFileSync(process.env.BROWSER_UI_OUTPUT,(await win.webContents.capturePage()).toPNG());
  console.log('PASS actual homepage branding, sidebar, no Edit/preview badge, browser configuration and source count');
+ if(await win.webContents.executeJavaScript('window.__neiwangPreviewModalSeen===true'))throw Error('Preview notice appeared during UI verification');
  app.exit(0);
 })().catch(fail);
