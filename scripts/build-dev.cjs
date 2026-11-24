@@ -21,7 +21,7 @@ function build({dependencies=path.join(source,'node_modules'),output,coreOnly=fa
  if(!dest.startsWith(path.join(source,'builds')+path.sep))throw Error('--output must be a new directory inside this repository builds/ folder.');
  if(fs.existsSync(dest))throw Error('Output already exists. Keep user data safe: move it aside or use a new --output directory.');
  const corePackage=JSON.parse(fs.readFileSync(path.join(dependencies,'@deepseek-ai/dsh/package.json'),'utf8'));
- if(corePackage.version!=='0.2.2-rc.5')throw Error('Unexpected DSH version; run npm ci.');
+ if(corePackage.version!=='0.2.1-rc.3')throw Error('Unexpected DSH version; run npm ci.');
  const electron=path.resolve(electronDist||path.join(dependencies,'electron/dist'));
  const template=JSON.parse(fs.readFileSync(path.join(source,'manifests/interface-template.json'),'utf8'));
  if(require('node:crypto').createHash('sha256').update(fs.readFileSync(path.join(source,template.path))).digest('hex')!==template.sha256)throw Error('The public blank interface template has changed. Keep real interface material in the ignored internal document.');

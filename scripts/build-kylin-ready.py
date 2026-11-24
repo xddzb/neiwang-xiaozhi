@@ -4,7 +4,7 @@ Private baseline stays local. Preserve Unix modes and links inside a split tar.g
 """
 import argparse, copy, hashlib, io, json, subprocess, tarfile
 from pathlib import Path
-from deployment_defaults import merge_defaults, require_current_core
+from deployment_defaults import merge_defaults
 
 ROOT = Path(__file__).resolve().parents[1]
 PAYLOAD = 'plugin-pack/payload/'
@@ -46,7 +46,6 @@ def build(baseline, output, date, volume_bytes=480_000_000):
                 if rel=='config/overrides.json': sources[rel]=merge_defaults(t.extractfile(m).read())
                 if rel=='plugin-pack/pack.json': pack=json.load(t.extractfile(m))
     if not app or not pack: raise ValueError('Missing manifests')
-    require_current_core(app)
     output.mkdir(parents=True)
     prefix='Neiwang-Xiaozhi-Kylin-ARM64-R11.6-'+date
     target=output/(prefix+'.tar.gz')

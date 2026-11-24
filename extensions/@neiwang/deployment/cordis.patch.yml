@@ -16,7 +16,3 @@
   config: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"compaction-basic\").config"
 - id: workspace-controller
   config: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"workspace-controller\").config"
-- id: tool-executor-native
-  disabled: true
-- id: tool-executor-ptc
-  disabled: false
