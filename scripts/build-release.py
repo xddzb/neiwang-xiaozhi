@@ -26,7 +26,7 @@ def plan(config,check_hash=True):
  sources=private if (private/'extensions/apis').is_dir() else private/'plugin-pack/payload'
  if not docs.is_dir() or not (sources/'extensions/apis').is_dir():raise ValueError('Private APP is missing local interface documents or API sources')
  for core in [core_linux,core_windows]:
-  if json.loads((core/'node_modules/@deepseek-ai/dsh/package.json').read_text(encoding='utf-8'))['version']!='0.2.2-rc.5':raise ValueError('Prepared core version mismatch')
+  if json.loads((core/'node_modules/@deepseek-ai/dsh/package.json').read_text(encoding='utf-8'))['version']!='0.2.1-rc.3':raise ValueError('Prepared core version mismatch')
  for core,target in [(core_linux,'linux-arm64-gnu'),(core_windows,'win32-x64-msvc')]:
   if not (core/('node_modules/node-addon-require-builtin-'+target)).is_dir():raise ValueError('Missing required target-platform native package')
  return dict(core_linux=core_linux,core_windows=core_windows,linux=linux,windows=windows,private=private,node=node,output=output,docs=docs,sources=sources)

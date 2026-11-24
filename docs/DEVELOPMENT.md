@@ -2,7 +2,7 @@
 
 ## 开发入口与版本
 
-根目录是唯一当前开发源码。当前开发目标为应用R11.6 / DSH 0.2.2-rc.5；已交付的 R11.5/R11.6 安装包仍为 0.2.1-rc.3，R11.4 使用 0.2.0-rc.2；本次源码升级尚未生成新安装包。不要手工修改core依赖文件。全局APP规则模板在config/workspace-rules.md，源码协作规则在根目录AGENTS.md。
+根目录是唯一当前开发源码。当前开发目标为应用R11.6 / DSH 0.2.1-rc.3；上一版R11.5同用此内核，R11.4使用0.2.0-rc.2。不要手工修改core依赖文件。全局APP规则模板在config/workspace-rules.md，源码协作规则在根目录AGENTS.md。
 
 构建机可以联网准备依赖；内网安装阶段不执行npm/pip下载。使用随包Node24运行构建工具。
 
@@ -23,12 +23,12 @@ build.local.json被Git忽略，只填路径和公开基线SHA256，不把密钥�
 
 Public基线只是已审核的完整平台材料归档；以SHA256锁定，保留运行时与资源。它不是历史源码，更不是新内核来源。新版官方内核在构建机提前准备好，作为独立材料组合；不能从互联网在目标内网补下载。
 
-新内核材料目录优先复制仓库的 package.json / package-lock.json 后执行 `npm ci --ignore-scripts`，保证与已验收依赖一致。下列按版本安装的方式只用于探索性准备，产生的新锁文件必须重新验证，不能冒充已验收材料：
+新内核材料目录由构建机按固定版本准备：
 
 ```sh
 # 各目标平台准备独立目录；省略安装脚本，使用随包预编译原生库
-npm install --prefix /材料/core-win32-x64 --ignore-scripts --os=win32 --cpu=x64 @deepseek-ai/dsh@0.2.2-rc.5 @dingtalk-real-ai/dsh-dingtalk@0.10.2
-npm install --prefix /材料/core-linux-arm64 --ignore-scripts --os=linux --cpu=arm64 @deepseek-ai/dsh@0.2.2-rc.5 @dingtalk-real-ai/dsh-dingtalk@0.10.2
+npm install --prefix /材料/core-win32-x64 --ignore-scripts --os=win32 --cpu=x64 @deepseek-ai/dsh@0.2.1-rc.3 @dingtalk-real-ai/dsh-dingtalk@0.10.2
+npm install --prefix /材料/core-linux-arm64 --ignore-scripts --os=linux --cpu=arm64 @deepseek-ai/dsh@0.2.1-rc.3 @dingtalk-real-ai/dsh-dingtalk@0.10.2
 ```
 
 将两个目录写入本地清单的coreWindows/coreLinux。保留生成的package-lock.json供材料审计；原生模块仍需在对应平台验证，不能把Windows依赖目录冒充ARM64。
@@ -47,7 +47,7 @@ sh 管理插件.sh recover
 sh 管理插件.sh rollback
 ```
 
-同名插件更新必须提高版本；同版本不同内容拒绝覆盖。Core/Plugins是首次安装载荷，不能作为增量插件包。独立包用plugin-package.json声明内核和平台兼容性。旧内核插件不能因名字相同就直接搬到0.2.2-rc.5。
+同名插件更新必须提高版本；同版本不同内容拒绝覆盖。Core/Plugins是首次安装载荷，不能作为增量插件包。独立包用plugin-package.json声明内核和平台兼容性。旧内核插件不能因名字相同就直接搬到0.2.1-rc.3。
 
 ## 验证与提交
 
@@ -91,7 +91,7 @@ Host/Agent、浏览器、定时任务和平台归档测试在独立副本中进�
 node scripts/build-offline-plugin.cjs \
   --source /build/prepared-plugin \
   --output /build/offline-package \
-  --core 0.2.2-rc.5 --os linux --arch arm64
+  --core 0.2.1-rc.3 --os linux --arch arm64
 ```
 
 输出含 `plugin-package.json`、其 SHA256 文件，以及 `payload/<插件名>/`。把整个输出目录打包传入内网，解压后交给管理器。没有指定版本兼容范围、缺少实际依赖或文件被篡改时会拒绝安装。打包器不运行依赖安装，不自动把 Windows 原生模块转换为 ARM64。
@@ -117,10 +117,3 @@ python scripts/package-plugin-manager.py --output /build/Neiwang-Offline-Plugin-
 回退适配版目前只扩展兼容声明，运行时代码来自固定上游包；src供审阅，lib按SHA512校验的原始包恢复。回退验收的合成WORK必须放在任何Git检出目录之外，以免普通目录测试扫描到源码仓库；实际Git工作区的检查点遵循其真实仓库边界。Windows工具沙箱验收需要能设置工作区ACL的正常用户权限，不应为了测试关闭APP的沙箱规则。
 
 PythonTools 1.1.0的runtime.cjs公开导出供业务插件共用；业务/RAG扩展依赖PythonTools ^1.1.0，离线更新应一并封装。运行时只在APP/runtime/python中选择，支持发行3.11与开发3.12，不查询系统PATH；两平台真实Agent的local_python调用已验收。
-
-
-## 0.2.2-rc.5 核心升级验证
-
-`tools.mode` 已由独立的 `tool-executor-ptc` / `tool-executor-native` 开关替代。源部署默认启用 PTC、禁用 native；启动层仅对新核心移除继承的旧 mode 字段，用户层配置不改写。不要直接用新版部署文件覆盖旧核心；完整包构建器会拒绝核心版本与源码不一致的基线。
-
-在各目标平台的独立副本运行 `node scripts/test-core-native.cjs <APP>`，再运行 `test-restored-runtime.py` 和 `test-restored-ui.py`（`NEIWANG_MODELS_UI=1`）。后两项使用合成模型服务，验证实际对话、工具预算、检查点、预览弹框和手动 API 表单。结果范围见 `manifests/core-upgrade-20261124.json`；ARM64 虚拟机验收不等同于物理麒麟桌面或真实内网服务验收。

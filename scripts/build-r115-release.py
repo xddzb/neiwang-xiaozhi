@@ -107,8 +107,6 @@ def compose(app,platform,public_model,public_boot):
  for n in ['client.js','package.json']:put(app,'extensions/node_modules/@neiwang/brand/'+n,(ROOT/'extensions/@neiwang/brand'/n).read_bytes())
  boot=public_boot.decode('utf8')
  put(app,'launcher/bootstrap.cjs',boot.encode('utf8'))
- put(app,'extensions/node_modules/@neiwang/deployment/cordis.patch.yml',(ROOT/'extensions/@neiwang/deployment/cordis.patch.yml').read_bytes())
- if (pack/'payload/extensions/node_modules/@neiwang/deployment').is_dir():put(pack/'payload','extensions/node_modules/@neiwang/deployment/cordis.patch.yml',(ROOT/'extensions/@neiwang/deployment/cordis.patch.yml').read_bytes())
  for name in ['model_config.py','rag_tool.py','local_aead.py','tool_entry.py','api_tool.py','browser_session.py','once_response.py','python_tool.py','package_tool.py']:put(app,'tools/'+name,(ROOT/'tools'/name).read_bytes())
  for rel in ['tools/offline-plugin-manager.cjs','tools/model_config.py','tools/rag_tool.py','tools/local_aead.py','tools/tool_entry.py','tools/api_tool.py','tools/browser_session.py','tools/once_response.py','tools/python_tool.py','tools/package_tool.py']:
   if (pack/'payload'/rel).exists():put(pack/'payload',rel,(app/rel).read_bytes())
@@ -124,7 +122,7 @@ def compose(app,platform,public_model,public_boot):
  if adapter==app/'tools/browser_session.py' and (pack/'payload/tools/browser_session.py').exists():put(pack/'payload','tools/browser_session.py',adapter.read_bytes())
  cfg=json.loads((app/'config/app.json').read_text(encoding='utf8'));cfg.update(version=VERSION,platform=platform,edition='core',businessBrowser=False)
  cfg['bundles']=[n for n in cfg['bundles'] if n not in manifest['bundles'] and n not in RETIRED]
- cfg['coreVersion']='0.2.2-rc.5';cfg['bundles']=list(dict.fromkeys(cfg['bundles']));put(app,'config/app.json',dump(cfg))
+ cfg['coreVersion']='0.2.1-rc.3';cfg['bundles']=list(dict.fromkeys(cfg['bundles']));put(app,'config/app.json',dump(cfg))
  put(pack,'install.cjs',(ROOT/'scripts/install-feature-pack.cjs').read_bytes())
  for name in ['INSTALL.md','DEVELOPMENT.md','HANDOVER.md']:
   put(app,'docs/'+name,(ROOT/'docs'/name).read_bytes())
@@ -133,9 +131,9 @@ def compose(app,platform,public_model,public_boot):
  if evidence.is_file():put(app,'manifests/'+evidence.name,evidence.read_bytes())
  for name in ['README.md','内网接口文档.template.html']:put(app,'private-docs/'+name,(ROOT/'private-docs'/name).read_bytes())
  if linux:
-  put(app,'runtime/node/bin/dsh',b'#!/bin/sh\nset -eu\nHERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)\nAPP=$(CDPATH= cd -- "$HERE/../../.." && pwd)\nexec "$HERE/node" "$APP/core/0.2.2-rc.5/node_modules/@deepseek-ai/dsh/lib/bin.js" "$@"\n')
+  put(app,'runtime/node/bin/dsh',b'#!/bin/sh\nset -eu\nHERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)\nAPP=$(CDPATH= cd -- "$HERE/../../.." && pwd)\nexec "$HERE/node" "$APP/core/0.2.1-rc.3/node_modules/@deepseek-ai/dsh/lib/bin.js" "$@"\n')
  else:
-  put(app,'runtime/node/dsh.cmd',b'@echo off\r\n"%~dp0node.exe" "%~dp0..\\..\\core\\0.2.2-rc.5\\node_modules\\@deepseek-ai\\dsh\\lib\\bin.js" %*\r\n')
+  put(app,'runtime/node/dsh.cmd',b'@echo off\r\n"%~dp0node.exe" "%~dp0..\\..\\core\\0.2.1-rc.3\\node_modules\\@deepseek-ai\\dsh\\lib\\bin.js" %*\r\n')
  if not linux:
   put(app,'配置RAG.cmd','@echo off\r\ncd /d "%~dp0"\r\n"runtime\\python\\python.exe" "tools\\setup_rag.py"\r\npause\r\n'.encode('utf8'))
  instructions=(ROOT/'docs/INSTALL.md').read_bytes()
@@ -149,7 +147,7 @@ def refresh_manifest(app,manifest):
  for p,rel in regulars(app/'plugin-pack/payload'):
   rows.append({'path':rel,'sha256':sha(p),'mode':0o755 if p.suffix=='.sh' or p.read_bytes()[:4]==b'\x7fELF' else 0o644})
  manifest['files']=rows;manifest['links']=[row for row in manifest.get('links',[]) if 'dsh-attachment-formats' not in row['path']];put(app,'plugin-pack/pack.json',dump(manifest))
- release={'version':VERSION,'platform':manifest['platform'],'coreVersion':'0.2.2-rc.5','features':['search-enhancement','turn-rewind','schedule','skill-incubator','better-sidebar','playwright','compact-tool-prompt','dingtalk','dws-aitable','offline-plugin-manager'],'configurationMigration':'tools/migrate-settings.cjs','coreModified':False}
+ release={'version':VERSION,'platform':manifest['platform'],'coreVersion':'0.2.1-rc.3','features':['search-enhancement','turn-rewind','schedule','skill-incubator','better-sidebar','playwright','compact-tool-prompt','dingtalk','dws-aitable','offline-plugin-manager'],'configurationMigration':'tools/migrate-settings.cjs','coreModified':False}
  release['shippedUserFiles']={rel:sha(p) for p,rel in regulars(app) if rel.startswith(('offline-api-tool/','private-docs/'))}
  defaults=app/'config/defaults'
  if defaults.exists():
@@ -212,17 +210,17 @@ def seed_internal(source,app):
 def replace_core(app,material,target_os,target_arch):
  modules=material/'node_modules'
  package=json.loads((modules/'@deepseek-ai/dsh/package.json').read_text(encoding='utf8'))
- if package['version']!='0.2.2-rc.5':raise ValueError('Prepared core version mismatch')
+ if package['version']!='0.2.1-rc.3':raise ValueError('Prepared core version mismatch')
  core=app/'core'
  # app is a fresh build directory created by main(), never an installed APP.
  if core.exists():shutil.rmtree(core)
- dest=core/'0.2.2-rc.5/node_modules';dest.mkdir(parents=True)
+ dest=core/'0.2.1-rc.3/node_modules';dest.mkdir(parents=True)
  for p,rel in regulars(modules):
   if rel.startswith(('.cache/','.bin/')):continue
   put(dest,rel,p.read_bytes())
  for name in ['package.json','package-lock.json']:
-  if (material/name).is_file():put(core/'0.2.2-rc.5',name,(material/name).read_bytes())
- hashes={rel:sha(p) for p,rel in regulars(core/'0.2.2-rc.5')}
+  if (material/name).is_file():put(core/'0.2.1-rc.3',name,(material/name).read_bytes())
+ hashes={rel:sha(p) for p,rel in regulars(core/'0.2.1-rc.3')}
  put(app,'manifests/core-sha256.json',dump(hashes))
  put(app,'manifests/core-material.json',dump({'coreVersion':package['version'],'os':target_os,'arch':target_arch,'officialModulesUnmodified':True}))
 
