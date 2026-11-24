@@ -1,9 +1,7 @@
 [
   {
     "id": "tools",
-    "config": {
-      "mode": "ptc"
-    }
+    "config": {}
   },
   {
     "id": "ui-brand-official",

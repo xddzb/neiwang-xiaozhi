@@ -110,3 +110,13 @@ test('legacy deployment without a Models flag still exposes model settings',()=>
  const overrides=JSON.parse(fs.readFileSync(file)).filter(row=>row.id!=='ui-settings-models');fs.writeFileSync(file,JSON.stringify(overrides));
  const p=bootstrap.prepare();assert.equal(JSON.parse(fs.readFileSync(p.patchFile)).find(row=>row.id==='ui-settings-models').disabled,false);
 }));
+
+
+test('new core migrates inherited tools mode without rewriting deployment or profile files',()=>withoutModelEnv(()=>{
+ const {root,bootstrap}=fixture(),file=path.join(root,'config/overrides.json');
+ const rows=JSON.parse(fs.readFileSync(file));rows.find(v=>v.id==='tools').config={mode:'ptc'};
+ fs.writeFileSync(file,JSON.stringify(rows));const before=fs.readFileSync(file,'utf8');
+ const result=bootstrap.prepare(),patches=JSON.parse(fs.readFileSync(result.patchFile));
+ assert.equal(patches.find(v=>v.id==='tools').config.mode,undefined);
+ assert.equal(fs.readFileSync(file,'utf8'),before);
+}));

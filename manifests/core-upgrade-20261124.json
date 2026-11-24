@@ -6,7 +6,47 @@
   "npmLatest": "0.2.2-rc.5",
   "npmAlpha": "0.2.3-alpha.2",
   "alphaNodeRequirement": "^24.22.3 || >=26.13.1",
-  "candidate": {
+  "decision": "Source pinned to 0.2.2-rc.5 with deployment-only compatibility adaptations. Existing delivered apps and preview-notice patch remain on 0.2.1-rc.3; no core-upgrade installer is included. Linux verification uses an ARM64 Ubuntu QEMU guest, not a physical Kylin desktop.",
+  "previousProductionCore": "0.2.1-rc.3",
+  "sourceUpgrade": {
+    "core": "0.2.2-rc.5",
+    "node": "24.9.0",
+    "officialCoreModified": false,
+    "trialPackagesMatchSourceLockVersionAndIntegrity": true,
+    "unitTests": {
+      "passed": 51,
+      "skipped": 2,
+      "failed": 0
+    },
+    "buildInputAndOldCoreGuardTests": 2,
+    "syntheticKylinArchiveTest": "PASS",
+    "windowsHostAgentFreshUiRestartChangesModelForm": "PASS",
+    "windowsNativeModules": "PASS",
+    "arm64HostAgent": "PASS",
+    "arm64NativeModules": "PASS",
+    "arm64DesktopUi": "PASS",
+    "physicalKylinTested": false,
+    "newOfflineReleaseBuilt": false,
+    "existingPreviewPatchUpgradesCore": false,
+    "arm64RestartChangesModelForm": "PASS",
+    "arm64ActualRequest": {
+      "maxOutputTokens": 8192,
+      "wireToolCount": 1,
+      "systemCharacters": 9778,
+      "containsFullSdkMap": false
+    },
+    "nativeChecks": [
+      "sharp image processing",
+      "koffi native loader",
+      "builtin addon loader",
+      "ripgrep executable",
+      "PTY shell execution"
+    ],
+    "sourceFilesChecked": 355,
+    "promotedToSource": true
+  },
+  "sourceCore": "0.2.2-rc.5",
+  "initialWindowsTrial": {
     "core": "0.2.2-rc.5",
     "platform": "win32-x64",
     "node": "24.9.0",
@@ -16,10 +56,10 @@
       "local rewind peer range does not include this core"
     ],
     "isolatedAdaptations": [
-      "Replace tools config with an empty object",
-      "Disable tool-executor-native and enable tool-executor-ptc in deployment patch",
-      "Extend only the candidate rewind package's dsh-settings peer range with 0.2.2-rc.5",
-      "Keep ui-settings-general.welcomeNoticeVersion at the verified upstream value 2026-09-28.1"
+      "Remove obsolete tools.mode from source defaults and normalize inherited deployment mode at startup for 0.2.2-rc.5",
+      "Disable tool-executor-native and enable tool-executor-ptc in deployment templates",
+      "Add tested 0.2.2-rc.5 to rewind peer and compatibility metadata",
+      "Retain welcomeNoticeVersion 2026-09-28.1"
     ],
     "checksPassed": [
       "Host and actual Agent tool loop",
@@ -40,6 +80,5 @@
     "linuxArm64CoreTested": false,
     "physicalKylinTested": false,
     "promotedToProduction": false
-  },
-  "decision": "Keep the preview-notice patch on the verified 0.2.1-rc.3 baseline. Do not label the Windows upgrade candidate as an offline Kylin release. Validate target-platform dependencies and the ARM64 application before promoting the new core."
+  }
 }

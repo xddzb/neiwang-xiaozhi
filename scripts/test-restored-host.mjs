@@ -5,7 +5,7 @@ import {readFileSync,writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 export const inject=['webServer','agents','agentPresets','agentDefaultModel','tools','workspaceController','workspaceRegistry','sessionQuery','changeLedger'];
-export function apply(ctx){ctx.webServer.register({kind:'prefix',path:'/restored-test',handler:async(req,res)=>{
+export function apply(ctx){const failures=[];ctx.on('agent/error',({error})=>{failures.push(String(error?.stack||error))});ctx.webServer.register({kind:'prefix',path:'/restored-test',handler:async(req,res)=>{
  res.setHeader('Content-Type','application/json');let handle;
  try{
   const url=new URL(req.url,'http://localhost');
@@ -34,7 +34,7 @@ export function apply(ctx){ctx.webServer.register({kind:'prefix',path:'/restored
    agent.followup({id:randomUUID(),role:'user',content:[{type:'text',text}],source:{kind:'user'}});await agent.whenIdle();
   }
   const events=agent.session.snapshotEvents(0),target=events.find(e=>e.type==='user/message'&&JSON.stringify(e.data).includes('BASELINE_REMOVE'));
-  assert(target,'second turn absent');assert(events.some(e=>e.type==='assistant/message'),'model response absent');
+  assert(target,'second turn absent; '+failures.join(' | '));assert(events.some(e=>e.type==='assistant/message'),'model response absent');
   assert(JSON.stringify(events).includes('knowledge_gap'),'real Agent catalog/tool loop absent');
   assert(JSON.stringify(events).includes('PYTHON_RUNTIME_OK'),'bundled Python was not executed through the real Agent');
   const turn=events.findLast(e=>e.type==='turn/start'&&e.seq<target.seq).data.turn;

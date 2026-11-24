@@ -40,17 +40,17 @@ def verify(paths,edition,secrets=(),private_source=None):
    if rel.endswith('@neiwang/dws-aitable/contracts.json'):assert len(json.loads(data))==27
    if edition=='Public':assert not private(rel.removeprefix('plugin-pack/payload/')),rel
    if edition=='Public' and not rel.startswith(('core/','runtime/','launcher/electron/')):assert not any(s in data for s in secrets),'Private credential in '+rel
-   if rel in ['config/app.json','plugin-pack/pack.json','manifests/core-sha256.json','manifests/release.json','core/0.2.1-rc.3/node_modules/@deepseek-ai/dsh/package.json']:files[rel]['json']=json.loads(data)
+   if rel in ['config/app.json','plugin-pack/pack.json','manifests/core-sha256.json','manifests/release.json','core/0.2.2-rc.5/node_modules/@deepseek-ai/dsh/package.json']:files[rel]['json']=json.loads(data)
    if rel.endswith('/canvas-linux-arm64-gnu/skia.linux-arm64-gnu.node'):assert data[:4]==b'\x7fELF' and struct.unpack_from('<H',data,18)[0]==183
    if rel.endswith('/canvas-win32-x64-msvc/skia.win32-x64-msvc.node'):
     assert data[:2]==b'MZ';offset=struct.unpack_from('<I',data,0x3c)[0];assert data[offset:offset+4]==b'PE\0\0' and struct.unpack_from('<H',data,offset+4)[0]==0x8664
- app=files['config/app.json']['json'];pack=files['plugin-pack/pack.json']['json'];assert app['version']==pack['release']=='R11.6';assert app['platform']==pack['platform'];assert app['coreVersion']=='0.2.1-rc.3'
+ app=files['config/app.json']['json'];pack=files['plugin-pack/pack.json']['json'];assert app['version']==pack['release']=='R11.6';assert app['platform']==pack['platform'];assert app['coreVersion']=='0.2.2-rc.5'
  for row in pack['files']:assert files['plugin-pack/payload/'+row['path']]['sha256']==row['sha256'],row['path']
- for rel,h in files['manifests/core-sha256.json']['json'].items():assert files['core/0.2.1-rc.3/'+rel]['sha256']==h,rel
+ for rel,h in files['manifests/core-sha256.json']['json'].items():assert files['core/0.2.2-rc.5/'+rel]['sha256']==h,rel
  assert all(n in pack['bundles'] for n in ['@neiwang/browser-automation','@neiwang/skill-incubator','dsh-better-sidebar','@anionex/dsh-turn-rewind','@deepseek-ai/neiwang-business','@deepseek-ai/neiwang-tool-catalog','@neiwang/python-tools'])
  assert 'dsh-attachment-formats' not in pack['bundles']
  assert '@deepseek-ai/dsh-experimental-schedule-bundle' not in app['bundles']
- assert files['core/0.2.1-rc.3/node_modules/@deepseek-ai/dsh/package.json']['json']['version']=='0.2.1-rc.3'
+ assert files['core/0.2.2-rc.5/node_modules/@deepseek-ai/dsh/package.json']['json']['version']=='0.2.2-rc.5'
  if edition=='Internal':assert all('config/defaults/'+n in files for n in ['model.enc','dify.enc','.local-key']);assert 'offline-api-tool/内网接口文档.html' in files
  if edition=='Internal' and private_source:
   source=Path(private_source);config=source/'data/config' if (source/'data/config/model.enc').exists() else source/'config/defaults'

@@ -1,7 +1,7 @@
 """Build a preinstalled Windows ZIP from local reviewed archives; no downloads."""
 import argparse, hashlib, json, subprocess, zipfile
 from pathlib import Path
-from deployment_defaults import merge_defaults
+from deployment_defaults import merge_defaults, require_current_core
 from urllib.parse import urlsplit
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -47,6 +47,7 @@ def build(baseline,output,date,page_url):
                     value['verify_tls']=False;value['browser_session']['isu_realtime_url']=page_url
                     sources[rel[len(PAYLOAD):]]=encode(value)
     if not app or not pack or pack['platform']!='Win10-x64' or pack.get('links'):raise ValueError('Unsupported Windows baseline')
+    require_current_core(app)
     if 'extensions/apis/connections/weekly-isu.json' not in sources:raise ValueError('Missing ISU browser connection')
     output.mkdir(parents=True)
     prefix='Neiwang-Xiaozhi-Win10-x64-R11.6-'+date

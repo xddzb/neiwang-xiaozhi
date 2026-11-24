@@ -16,3 +16,9 @@ def merge_defaults(raw):
         else:
             rows.append(policy)
     return (json.dumps(rows, ensure_ascii=False, indent=2)+'\n').encode('utf-8')
+
+
+def require_current_core(app):
+    expected=json.loads((Path(__file__).resolve().parents[1]/'config/app.json').read_text(encoding='utf-8'))['coreVersion']
+    if app.get('coreVersion') != expected:
+        raise ValueError('Baseline core differs from source; rebuild Core/Plugins with the pinned official core first')

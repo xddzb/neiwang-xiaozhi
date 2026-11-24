@@ -95,6 +95,11 @@ function prepare(){
   env.DSH_TURN_REWIND_HOST_ID=hostId;
  }
  const overrides=read(path.join(root,'config/overrides.json'));
+ // Release baselines may still carry tools.mode; 0.2.2 uses executor plugins.
+ if(initial.coreVersion==='0.2.2-rc.5'){
+  const tools=overrides.find(row=>row.id==='tools');
+  if(tools?.config)delete tools.config.mode;
+ }
  // Older Internal packages hid Models in their deployment defaults. An encrypted
  // default provider must not remove the user's entry for adding other APIs.
  // Only normalize this deployment flag; explicit profile settings still win.

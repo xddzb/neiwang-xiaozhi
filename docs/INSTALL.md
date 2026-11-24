@@ -1,5 +1,7 @@
 # 内网小智 —— 安装与使用
 
+当前源码已适配 DSH 0.2.2-rc.5，但尚未发布新版安装包或核心升级补丁。以下既有补丁和包说明仍对应已交付的 0.2.1-rc.3；不能把小补丁当作核心升级包使用。
+
 ## 浏览器参数离线补丁
 
 `Neiwang-Kylin-ARM64-Browser-Fix-1.0.1.tar.gz` 是已有APP的增量补丁，不是Core/Plugins首次安装包。适用于麒麟Linux ARM64、随包Node 24、DSH 0.2.1-rc.3，要求浏览器插件已安装、Playwright 1.56.1已随包存在，并保留 `plugin-pack/payload` 和 `pack.json`。无需联网、sudo、npm、Python或重装APP。不适用旧内核0.2.0-rc.2；兼容检查失败时不会覆盖文件。

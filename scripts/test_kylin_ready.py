@@ -11,7 +11,7 @@ class ReadyTest(unittest.TestCase):
             base=Path(temp)/'base';base.mkdir();out=Path(temp)/'out'
             name='工具.sh';data=b'#!/bin/sh\necho fixture\n'
             pack={'release':'R11.6','platform':'Kylin-ARM64','bundles':['@anionex/dsh-turn-rewind'],'files':[{'path':name,'sha256':module.sha(data),'mode':0o755}],'links':[{'path':'tools/example','target':'../工具.sh'}]}
-            filesets={'Core':{'config/app.json':module.encode({'bundles':[]}), 'core/official':b'fixed-core','launcher/bootstrap.cjs':b'old-bootstrap','extensions/node_modules/@neiwang/brand/client.js':b'old-brand'},'Plugins':{'plugin-pack/pack.json':module.encode(pack),'plugin-pack/payload/'+name:data,'plugin-pack/payload/'+module.REWIND+'lib/obsolete.js':b'obsolete'}}
+            filesets={'Core':{'config/app.json':module.encode({'bundles':[], 'coreVersion':json.loads((ROOT/'config/app.json').read_text(encoding='utf-8'))['coreVersion']}), 'core/official':b'fixed-core','launcher/bootstrap.cjs':b'old-bootstrap','extensions/node_modules/@neiwang/brand/client.js':b'old-brand'},'Plugins':{'plugin-pack/pack.json':module.encode(pack),'plugin-pack/payload/'+name:data,'plugin-pack/payload/'+module.REWIND+'lib/obsolete.js':b'obsolete'}}
             assets=[]
             filesets['Core']['config/overrides.json']=module.encode([{'id':'compaction-basic','disabled':True,'config':{'headroomTokens':65536}},{'id':'ui-settings-models','disabled':True},{'id':'unrelated','config':{'keep':True}}])
             for kind,files in filesets.items():
