@@ -51,6 +51,20 @@ test('partial environment model configuration is rejected clearly',()=>withoutMo
  const {bootstrap}=fixture();process.env.NEIWANG_MODEL_ID='test-model';assert.throws(()=>bootstrap.prepare(),/Provide all NEIWANG_MODEL/);
 }));
 
+test('legacy offline compaction defaults migrate without changing user settings',()=>withoutModelEnv(()=>{
+ const {root,bootstrap}=fixture(),file=path.join(root,'config/overrides.json');
+ const legacy=JSON.parse(fs.readFileSync(file));
+ Object.assign(legacy.find(row=>row.id==='compaction-basic'),{disabled:true,config:{headroomTokens:65536}});
+ fs.writeFileSync(file,JSON.stringify(legacy));
+ const p=bootstrap.prepare(),profileFile=path.join(p.profile,'cordis.patch.yml');
+ const custom=fs.readFileSync(profileFile,'utf8')+'- id: compaction-basic\n  config: {"thresholdRatio":0.85}\n';
+ fs.writeFileSync(profileFile,custom);bootstrap.prepare();
+ const policy=JSON.parse(fs.readFileSync(p.patchFile)).find(row=>row.id==='compaction-basic');
+ assert.deepEqual(policy,JSON.parse(fs.readFileSync(path.join(repo,'config/overrides.json'))).find(row=>row.id==='compaction-basic'));
+ assert.equal(fs.readFileSync(profileFile,'utf8'),custom);
+ assert.deepEqual(JSON.parse(fs.readFileSync(file)),legacy);
+}));
+
 test('model settings retain explicit user providers and commented empty patches stay valid',()=>withoutModelEnv(()=>{
  const {bootstrap}=fixture(),p=bootstrap.prepare(),file=path.join(p.profile,'cordis.patch.yml');
  const content='# user-owned settings\n- id: llm-pi-ai\n  config: {"providers":{"custom":{}}}\n- id: agent-default-model\n  config: {"provider":"custom","model":"chosen"}\n';
@@ -69,14 +83,40 @@ test('complete explicit environment adds a default provider',()=>withoutModelEnv
 
 test('Internal first boot loads seeds and missing RAG uses existing key without replacing model',()=>withoutModelEnv(()=>{
  const {root,bootstrap}=fixture(),crypto=require('node:crypto'),seed=path.join(root,'config/defaults');fs.mkdirSync(seed);
+ const overridesFile=path.join(root,'config/overrides.json'),legacy=JSON.parse(fs.readFileSync(overridesFile));
+ legacy.find(row=>row.id==='ui-settings-models').disabled=true;
+ fs.writeFileSync(overridesFile,JSON.stringify(legacy));const originalOverrides=fs.readFileSync(overridesFile);
  const key=crypto.randomBytes(32);fs.writeFileSync(path.join(seed,'.local-key'),key);
  function encode(value,format){const nonce=crypto.randomBytes(12),c=crypto.createCipheriv('aes-256-gcm',key,nonce);c.setAAD(Buffer.from(format));return JSON.stringify({format,payload:Buffer.concat([nonce,c.update(JSON.stringify(value)),c.final(),c.getAuthTag()]).toString('base64')})}
  fs.writeFileSync(path.join(seed,'model.enc'),encode({version:1,base_url:'http://synthetic.invalid/v1',api_key:'synthetic-private-fixture',models:['fixture'],default_model:'fixture'},'NEIWANG-MODEL-1'));
  fs.writeFileSync(path.join(seed,'dify.enc'),encode({base_url:'http://rag.synthetic.invalid/v1',api_key:'synthetic-rag-fixture'},'NEIWANG-DIFY-1'));
  let p=bootstrap.prepare();assert.equal(p.env.NEIWANG_MODEL_KEY,'synthetic-private-fixture');assert(!fs.readFileSync(p.patchFile,'utf8').includes('synthetic-private-fixture'));
+ assert.equal(JSON.parse(fs.readFileSync(p.patchFile)).find(row=>row.id==='ui-settings-models').disabled,false);
+ assert.deepEqual(fs.readFileSync(overridesFile),originalOverrides);
+ const profileFile=path.join(p.profile,'cordis.patch.yml');
+ const providers={neiwang:{api:'openai-completions',baseURL:'http://synthetic.invalid/v1',apiKeyEnv:'NEIWANG_MODEL_KEY',models:[{id:'fixture'}]},manual:{api:'openai-completions',baseURL:'http://manual.invalid/v1',apiKeyEnv:'MANUAL_TEST_KEY',models:[{id:'manual-model'}]}};
+ const manualPatch='- id: llm-pi-ai\n  config: '+JSON.stringify({providers})+'\n- id: agent-default-model\n  config: {"provider":"manual","model":"manual-model"}\n';
+ fs.writeFileSync(profileFile,manualPatch);
  const dir=path.join(root,'data/config'),model=fs.readFileSync(path.join(dir,'model.enc')),rag=fs.readFileSync(path.join(dir,'dify.enc'));
  const {convert}=require('../tools/migrate-settings.cjs'),userKey=crypto.randomBytes(32);fs.writeFileSync(path.join(dir,'.local-key'),userKey);fs.writeFileSync(path.join(dir,'model.enc'),convert(model,key,userKey));fs.unlinkSync(path.join(dir,'dify.enc'));
  const original=fs.readFileSync(path.join(dir,'model.enc'));p=bootstrap.prepare();assert.deepEqual(fs.readFileSync(path.join(dir,'model.enc')),original);assert.deepEqual(fs.readFileSync(path.join(dir,'.local-key')),userKey);
  const restored=JSON.parse(convert(fs.readFileSync(path.join(dir,'dify.enc')),userKey,key)),b=Buffer.from(restored.payload,'base64'),d=crypto.createDecipheriv('aes-256-gcm',key,b.subarray(0,12));d.setAAD(Buffer.from(restored.format));d.setAuthTag(b.subarray(-16));assert.deepEqual(JSON.parse(Buffer.concat([d.update(b.subarray(12,-16)),d.final()])),{base_url:'http://rag.synthetic.invalid/v1',api_key:'synthetic-rag-fixture'});
  assert.equal(p.env.NEIWANG_MODEL_KEY,'synthetic-private-fixture');
+ assert.equal(fs.readFileSync(profileFile,'utf8'),manualPatch);
+}));
+
+test('legacy deployment without a Models flag still exposes model settings',()=>withoutModelEnv(()=>{
+ const {root,bootstrap}=fixture(),file=path.join(root,'config/overrides.json');
+ const overrides=JSON.parse(fs.readFileSync(file)).filter(row=>row.id!=='ui-settings-models');fs.writeFileSync(file,JSON.stringify(overrides));
+ const p=bootstrap.prepare();assert.equal(JSON.parse(fs.readFileSync(p.patchFile)).find(row=>row.id==='ui-settings-models').disabled,false);
+}));
+
+
+test('new core migrates inherited tools mode without rewriting deployment or profile files',()=>withoutModelEnv(()=>{
+ const {root,bootstrap}=fixture(),file=path.join(root,'config/overrides.json');
+ const rows=JSON.parse(fs.readFileSync(file));rows.find(v=>v.id==='tools').config={mode:'ptc'};
+ fs.writeFileSync(file,JSON.stringify(rows));const before=fs.readFileSync(file,'utf8');
+ const result=bootstrap.prepare(),patches=JSON.parse(fs.readFileSync(result.patchFile));
+ assert.equal(patches.find(v=>v.id==='tools').config.mode,undefined);
+ assert.equal(fs.readFileSync(file,'utf8'),before);
 }));

@@ -1,5 +1,7 @@
 # 内网小智 —— 安装与使用
 
+当前源码已适配 DSH 0.2.2-rc.5，但尚未发布新版安装包或核心升级补丁。以下既有补丁和包说明仍对应已交付的 0.2.1-rc.3；不能把小补丁当作核心升级包使用。
+
 ## 浏览器参数离线补丁
 
 `Neiwang-Kylin-ARM64-Browser-Fix-1.0.1.tar.gz` 是已有APP的增量补丁，不是Core/Plugins首次安装包。适用于麒麟Linux ARM64、随包Node 24、DSH 0.2.1-rc.3，要求浏览器插件已安装、Playwright 1.56.1已随包存在，并保留 `plugin-pack/payload` 和 `pack.json`。无需联网、sudo、npm、Python或重装APP。不适用旧内核0.2.0-rc.2；兼容检查失败时不会覆盖文件。
@@ -132,3 +134,14 @@ GitHub 公开包不含组织凭据、内部接口定义或真实本地文档。I
 回退插件的文件检查点需要系统Git在PATH中；仅回溯消息不依赖Git。首次安装会校验并复制本地插件，请等待完成后再启动其他实例。
 
 若首次插件安装被中断：先关闭该APP所有进程，再在APP根目录运行 `./runtime/node/bin/node plugin-pack/install.cjs --recover`（Windows使用 `& .\runtime\node\node.exe .\plugin-pack\install.cjs --recover`）。它重新校验已有文件后续装，不删除用户文件；仍在运行的安装器或损坏的锁记录会被拒绝。增量插件管理器中断仍使用 `管理插件.sh recover`，两种恢复入口不能混用。
+
+
+## ISU实时值：登录后自动复用（浏览器插件1.2.0）
+
+在内置业务浏览器登录ISU，打开或刷新实时值页面，等待页面建立已知socket.io连接，再让小智按点名查询。无需导出请求或复制Token/Cookie；未捕获到连接时会返回isu_browser_token_pending。浏览器关闭后Token不保留，重新打开实时值页面即可重新捕获；服务端登录失效仍需重新登录。
+
+仅针对已有ISU接口监听，不新增接口登记、通用抓包、控制台或任意JS执行操作。其他已登记只读接口只复用Cookie和固定认证字段映射。Token来源不是推测的存储键，而是实际发出的已知ISU连接参数。
+
+此功能需要同时更新浏览器插件、业务插件及配套Python工具，使用本次完整Core/Plugins两包安装到新目录，不覆盖旧APP。内网固定配置、接口资料及安装包仅在组织内交付，GitHub只包含源码和合成测试。
+
+同一站点多标签页使用不同Token时会拒绝选择；关闭旧账号标签页后刷新当前实时值页面。session-check只检查本地登录态可用，不证明服务端查询权限。返回的数据仍需核对PN/GN、DS、TM及是否存在多个匹配。

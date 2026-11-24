@@ -8,8 +8,15 @@
   disabled: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"llm-deepseek-account\").disabled"
 - id: ui-settings-models
   disabled: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"ui-settings-models\").disabled"
+- id: ui-settings-general
+  config:
+    welcomeNoticeVersion: "2026-09-28.1"
 - id: compaction-basic
   disabled: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"compaction-basic\").disabled"
   config: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"compaction-basic\").config"
 - id: workspace-controller
   config: !!js "JSON.parse(process.env.NEIWANG_DEPLOYMENT_CONFIG).find(row=>row.id===\"workspace-controller\").config"
+- id: tool-executor-native
+  disabled: true
+- id: tool-executor-ptc
+  disabled: false

@@ -1,6 +1,13 @@
 const fs=require('node:fs'),path=require('node:path');
 process.on('uncaughtException',fail);
 const {app,BrowserWindow,Menu}=require('electron');
+app.on('web-contents-created',(_event,contents)=>{
+ contents.on('dom-ready',()=>contents.executeJavaScript(`(()=>{
+  window.__neiwangPreviewModalSeen=false;
+  const check=()=>{if([...document.querySelectorAll('[role="dialog"],[role="alertdialog"]')].some(e=>e.getClientRects().length&&/预览版说明|Preview Notice/.test(e.innerText||'')))window.__neiwangPreviewModalSeen=true};
+  new MutationObserver(check).observe(document.documentElement,{childList:true,subtree:true,attributes:true});check();
+ })()`).catch(()=>{}));
+});
 app.disableHardwareAcceleration();
 require(path.join(process.env.NEIWANG_APP_ROOT,'launcher/shell/main.js'));
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
@@ -16,10 +23,19 @@ async function click(win,labels,selector='button'){
   await delay(1000);
  }
  if(!ready)throw Error('Main UI not ready');
+ if(await win.webContents.executeJavaScript('window.__neiwangPreviewModalSeen===true'))throw Error('Preview notice appeared on a fresh profile');
  if(process.platform==='linux')await delay(15000);
  if(Menu.getApplicationMenu()!==null)throw Error('Edit menu returned');
- const home=await win.webContents.executeJavaScript(`({text:document.body.innerText,sidebar:!!document.querySelector('[data-dsh-better-sidebar]'),title:document.title})`);
- if(!home.text.includes('你说我做')||home.text.includes('预览版')||home.title!=='内网小智')throw Error('Home branding mismatch');
+ let home;
+ for(let i=0;i<60;i++){
+  home=await win.webContents.executeJavaScript(`({text:document.body.innerText,sidebar:!!document.querySelector('[data-dsh-better-sidebar]'),title:document.title})`);
+  if(home.text.includes('你说我做')&&!home.text.includes('预览版')&&home.title==='内网小智')break;
+  await delay(500);
+ }
+ if(!home.text.includes('你说我做')||home.text.includes('预览版')||home.title!=='内网小智'){
+  fs.writeFileSync(process.env.BROWSER_UI_OUTPUT+'.dom.json',JSON.stringify(home,null,2));
+  throw Error('Home branding mismatch');
+ }
  if(process.env.NEIWANG_EXPECT_SIDEBAR==='1'&&(!home.sidebar||home.text.includes('PDF解析大师')))throw Error('Sidebar/parser mismatch');
  const toggle=await win.webContents.executeJavaScript(`(async()=>{const b=document.querySelector('#neiwang-rag-toggle');if(!b)return {found:false};const before=b.getAttribute('aria-checked');b.click();for(let i=0;i<100&&b.disabled;i++)await new Promise(r=>setTimeout(r,30));const changed=b.getAttribute('aria-checked')!==before;b.click();for(let i=0;i<100&&b.disabled;i++)await new Promise(r=>setTimeout(r,30));return {found:true,changed,restored:b.getAttribute('aria-checked')===before}})()`);
  if(!toggle.found||!toggle.changed||!toggle.restored)throw Error('RAG switch missing or not functional: '+JSON.stringify(toggle));
@@ -55,6 +71,7 @@ async function click(win,labels,selector='button'){
   if(!listed)throw Error('Sidebar file tree did not show the synthetic workspace file');
   await delay(750);
   fs.writeFileSync(process.env.BROWSER_UI_OUTPUT.replace('.png','-sidebar.png'),(await win.webContents.capturePage()).toPNG());
+
  }
  if(!await click(win,['设置','Settings'])){
   if(!await click(win,['更多','More']))throw Error('More menu missing');
@@ -64,10 +81,18 @@ async function click(win,labels,selector='button'){
  let settingsReady=false;
  for(let i=0;i<120;i++){if(await click(win,['业务浏览器与接口'])){settingsReady=true;break}await delay(500)}
  if(!settingsReady){fs.writeFileSync(process.env.BROWSER_UI_OUTPUT+'.dom.json',JSON.stringify(await win.webContents.executeJavaScript(`({text:document.body.innerText,buttons:[...document.querySelectorAll('button')].map(e=>({text:e.innerText,label:e.getAttribute('aria-label'),title:e.title}))})`),null,2));throw Error('Browser settings entry missing')}
- await delay(1500);
- const text=await win.webContents.executeJavaScript('document.body.innerText');
- if(!text.includes('已登记接口源：'+(process.env.NEIWANG_EXPECTED_SOURCES||15))||!text.includes('精简工具提示词'))throw Error('Browser configuration UI mismatch');
+ let settingsText='',settingsLoaded=false;
+ for(let i=0;i<100;i++){
+  settingsText=await win.webContents.executeJavaScript('document.body.innerText');
+  settingsLoaded=settingsText.includes('已登记接口源：'+(process.env.NEIWANG_EXPECTED_SOURCES||15))&&settingsText.includes('精简工具提示词');
+  if(settingsLoaded)break;await delay(500);
+ }
+ if(!settingsLoaded){
+  fs.writeFileSync(process.env.BROWSER_UI_OUTPUT+'.dom.json',JSON.stringify({expectedSources:process.env.NEIWANG_EXPECTED_SOURCES||15,text:settingsText}));
+  throw Error('Browser configuration UI mismatch');
+ }
  fs.writeFileSync(process.env.BROWSER_UI_OUTPUT,(await win.webContents.capturePage()).toPNG());
  console.log('PASS actual homepage branding, sidebar, no Edit/preview badge, browser configuration and source count');
+ if(await win.webContents.executeJavaScript('window.__neiwangPreviewModalSeen===true'))throw Error('Preview notice appeared during UI verification');
  app.exit(0);
 })().catch(fail);

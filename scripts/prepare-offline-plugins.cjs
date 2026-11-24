@@ -20,7 +20,7 @@ async function prepare(){
  run(process.execPath,[npm,'ci','--omit=dev','--ignore-scripts','--no-audit','--no-fund'],{cwd:path.join(root,'extensions/@neiwang/browser-automation')});
  prepareAttachment(npm);
  await prepareRewind(npm);
- console.log('Prepared pinned offline sidebar 0.28.0, Playwright dependencies, attachment formats with bilingual OCR data and turn-rewind');
+ console.log('Prepared pinned offline sidebar 0.28.0, Playwright dependencies, attachment formats with bilingual OCR data and locally compiled turn-rewind');
 }
 function prepareAttachment(npm){
  run(process.execPath,[npm,'ci','--omit=dev','--ignore-scripts','--no-audit','--no-fund'],{cwd:attachment});
@@ -37,16 +37,7 @@ function prepareAttachment(npm){
  fs.writeFileSync(path.join(attachment,'vendor/assets.json'),JSON.stringify({languages:assets,node:process.versions.node,platform:process.platform,arch:process.arch},null,2));
 }
 async function prepareRewind(npm){
- const dest=path.join(root,'extensions/@anionex/dsh-turn-rewind'),pin=JSON.parse(fs.readFileSync(path.join(dest,'upstream.json'),'utf8'));
- if(pin.version!=='0.3.10'||pin.tarball!=='https://registry.npmjs.org/@anionex/dsh-turn-rewind/-/dsh-turn-rewind-0.3.10.tgz')throw Error('Unexpected rewind artifact');
- const response=await fetch(pin.tarball);if(!response.ok)throw Error('Rewind artifact download failed');const bytes=Buffer.from(await response.arrayBuffer());
- if('sha512-'+crypto.createHash('sha512').update(bytes).digest('base64')!==pin.integrity)throw Error('Rewind integrity mismatch');
- fs.mkdirSync(path.join(root,'tmp'),{recursive:true});
- const temp=fs.mkdtempSync(path.join(root,'tmp/rewind-assets-')),file=path.join(temp,'plugin.tgz');fs.writeFileSync(file,bytes);
- const names=run('tar',['-tzf',file]);if(names.split(/\r?\n/).filter(Boolean).some(n=>!n.startsWith('package/')||n.split('/').includes('..')))throw Error('Unsafe rewind artifact');
- run('tar',['-xzf',file,'-C',temp]);
- require('./build-dev.cjs').copyTree(path.join(temp,'package/lib'),path.join(dest,'lib'));
- run(process.execPath,[npm,'ci','--omit=dev','--ignore-scripts','--legacy-peer-deps','--no-audit','--no-fund'],{cwd:dest});
+ await require('./build-rewind.cjs').prepare(npm);
 }
 if(require.main===module)prepare().catch(e=>{console.error(e.message);process.exitCode=1});
 module.exports={prepare,prepareRewind};

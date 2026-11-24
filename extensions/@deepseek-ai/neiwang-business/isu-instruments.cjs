@@ -4,6 +4,7 @@ const https=require('node:https');
 const fs=require('node:fs');
 const path=require('node:path');
 const zlib=require('node:zlib');
+const browserSession=require('./isu-browser-session.cjs');
 const spec={id:'isu-instruments',enabled:true,description:'ISU 智慧调试平台仪表当前值（只读快照，不使用 RAG 缓存）',
  parameters:{points:{type:'array',required:true,description:'1–20 个点名；子串匹配，结果必须核对 PN/GN'},limit:{type:'integer',default:50,minimum:1,maximum:50}},
  response_notes:'AV 数值、EU 单位、DS 原始状态、TM 原始采样时间；保留 PN/GN/ED。匹配不唯一不得冒充指定仪表。truncated 表示尚有更多匹配。'};
@@ -24,7 +25,7 @@ class Client {
   return new Promise((resolve,reject)=>{
    const headers={Accept:'*/*',Cookie:this.creds.baseCookie+'; sid='+this.creds.sidCookie,Referer:new URL('/opgview/dataView',this.origin).href,Origin:this.origin.origin};
    if(body!=null){headers['Content-Type']='text/plain;charset=UTF-8';headers['Content-Length']=Buffer.byteLength(body);}
-   const r=this.request({hostname:this.origin.hostname,port:this.origin.port||443,path:'/opgview/socket.io/?'+q,method,headers,rejectUnauthorized:this.creds.verify_tls!==false},res=>{
+   const r=this.request({hostname:this.origin.hostname,port:this.origin.port||443,path:'/opgview/socket.io/?'+q,method,headers,rejectUnauthorized:this.creds.verify_tls===true},res=>{
     let size=0;const chunks=[];
     res.on('data',b=>{size+=b.length;if(size>2*1024*1024)r.destroy(Error('response_too_large'));else chunks.push(b);});
     res.on('error',()=>reject(Error('transport_error')));
@@ -40,7 +41,7 @@ class Client {
    });
    this.pending.add(r);const abort=()=>r.destroy(Error('cancelled'));this.signal?.addEventListener('abort',abort,{once:true});
    r.on('close',()=>{this.pending.delete(r);this.signal?.removeEventListener('abort',abort);});
-   r.on('error',e=>reject(Error(e.message==='cancelled'?'cancelled':e.code==='SELF_SIGNED_CERT_IN_CHAIN'||e.code==='DEPTH_ZERO_SELF_SIGNED_CERT'?'certificate_error':'transport_error')));
+   r.on('error',e=>reject(Error(e.message==='cancelled'?'cancelled':['SELF_SIGNED_CERT_IN_CHAIN','DEPTH_ZERO_SELF_SIGNED_CERT','UNABLE_TO_VERIFY_LEAF_SIGNATURE','UNABLE_TO_GET_ISSUER_CERT_LOCALLY','CERT_HAS_EXPIRED','ERR_TLS_CERT_ALTNAME_INVALID'].includes(e.code)?'certificate_error':'transport_error')));
    r.setTimeout(10000,()=>r.destroy(Error('timeout')));r.end(body);
   });
  }
@@ -77,6 +78,9 @@ function load(root){
  if(!c.base_url){
   try{c.base_url=JSON.parse(fs.readFileSync(path.join(root,'extensions/apis/connections/weekly-isu.json'),'utf8')).base_url}catch{throw Error('isu_endpoint_missing')}
  }
+ return validate(c);
+}
+function validate(c){
  let u;try{u=new URL(c.base_url)}catch{throw Error('isu_endpoint_invalid')}
  if(u.protocol!=='https:'||u.username||u.password||u.search||u.hash)throw Error('isu_endpoint_invalid');
  for(const k of ['token','baseCookie','sidCookie'])if(typeof c[k]!=='string'||!c[k]||/[\r\n]/.test(c[k]))throw Error('isu_credentials_invalid');
@@ -87,10 +91,11 @@ function load(root){
 }
 async function execute(args,exec,root,workspace){
  if(args.operation==='describe')return {ok:true,source:spec.id,...spec};
- let client,timer;
+ let client,timer,credential,browserMode=false;
  try{
-  const c=load(root);
-  if(args.operation==='session-check')return {ok:true,status:'credentials_present',note:'仅本机配置检查，尚未验证服务端登录。'};
+  browserMode=browserSession.browserConfigured(root);
+  const c=browserMode?validate(await browserSession.credentials(root,exec.signal,args.operation==='query')):load(root);credential=c;
+  if(args.operation==='session-check')return {ok:true,status:'credentials_present',note:browserMode?'已从内置浏览器取得ISU登录态，尚未验证服务端查询权限。':'仅本机配置检查，尚未验证服务端登录。'};
   if(args.operation!=='query')throw Error('unsupported_operation');
   const p=JSON.parse(args.params_json||'{}');
   if(!p||Array.isArray(p)||Object.keys(p).some(k=>!['points','limit'].includes(k)))throw Error('invalid_parameters');
@@ -105,10 +110,10 @@ async function execute(args,exec,root,workspace){
   timer=setTimeout(abort,90000);client=new Client(c,control.signal);
   const results=[];try{await client.connect();for(const pnt of [...new Set(p.points)])results.push(await client.query(pnt.trim(),limit));}
   finally{exec.signal?.removeEventListener('abort',abort);}
-  const result={ok:true,source:spec.id,queried_at:new Date().toISOString(),results,note:'当前查询快照；TM 是源系统采样时间。子串匹配须核对点名，不将超时/坏质量当正常值。'};
+  const result={ok:true,source:spec.id,session_refresh:c.refresh,queried_at:new Date().toISOString(),results,note:'当前查询快照；TM 是源系统采样时间。子串匹配须核对点名，不将超时/坏质量当正常值。'};
   fs.writeFileSync(dest,JSON.stringify(result,null,2),{flag:'wx',mode:0o600});
   return {...result,results:results.map(r=>({...r,rows:r.rows.slice(0,5)})),output:dest,preview_only:true};
- }catch(e){return {ok:false,source:spec.id,status:/^(isu_|invalid_|auth_required|http_|transport_error|certificate_error|response_timeout|cancelled|unsupported_operation)/.test(e.message)?e.message:'isu_query_failed'};}
+ }catch(e){if(browserMode&&e.message==='auth_required'&&credential)await browserSession.invalidate(root,credential.token);return {ok:false,source:spec.id,message:browserMode?(e.message==='certificate_error'?'已取得登录凭据，但HTTPS证书校验失败，请检查ISU连接的证书信任配置。':e.message==='transport_error'?'已取得登录凭据，但接口网络连接失败；刷新Token不能修复网络故障。':e.message==='isu_browser_page_not_configured'?'请先打开一次ISU实时值页面，或配置browser_session.isu_realtime_url以便重启后自动新建页面。':'自动刷新或重新打开实时值页面后仍未取得可用凭据，或查询失败。若登录已过期请完成登录；无需复制Token/Cookie。'):undefined,status:/^(isu_|invalid_|auth_required|http_|transport_error|certificate_error|response_timeout|cancelled|unsupported_operation)/.test(e.message)?e.message:'isu_query_failed'};}
  finally{clearTimeout(timer);client?.close();}
 }
 module.exports={spec,frames,Client,load,execute};

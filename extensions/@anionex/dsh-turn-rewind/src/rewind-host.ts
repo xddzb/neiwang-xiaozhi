@@ -231,25 +231,34 @@ export class TurnCheckpointCoordinator {
     if (start === undefined) return
     const turn = start.data.turn
     if (!Number.isSafeInteger(turn) || (turn as number) < 0) return
+    const deadline = createDeadline(this.engine.config.turnCheckpointTimeoutMs)
     try {
-      const opening = await this.engine.findTurnCheckpoint({ cwd, sessionId: agent.id, turn: turn as number })
-      if (opening === undefined) return
-      const points = await this.engine.list({ cwd, includeTurnCheckpoints: true })
-      const closed = points.some(point => point.kind === 'turn'
-        && point.phase === 'end'
-        && point.sessionId === agent.id
-        && point.turn === turn)
-      if (closed) return
-      await this.engine.createTurnCheckpoint({
-        cwd,
-        sessionId: agent.id,
-        turn: turn as number,
-        turnStartSeq: start.seq,
-        phase: 'end',
-        ...(opening.roundId === undefined ? {} : { roundId: opening.roundId }),
+      const workspace = await discoverWorkspaceRoot(cwd, deadline.signal)
+      // Closing snapshots share the same queue as opening snapshots. Otherwise
+      // a quick followup can collide with the closing snapshot's workspace lock.
+      await this.serializeWorkspace(workspace, deadline.signal, async () => {
+        const opening = await this.engine.findTurnCheckpoint({ cwd: workspace, sessionId: agent.id, turn: turn as number, signal: deadline.signal })
+        if (opening === undefined) return
+        const points = await this.engine.list({ cwd: workspace, includeTurnCheckpoints: true, signal: deadline.signal })
+        const closed = points.some(point => point.kind === 'turn'
+          && point.phase === 'end'
+          && point.sessionId === agent.id
+          && point.turn === turn)
+        if (closed) return
+        await this.engine.createTurnCheckpoint({
+          cwd: workspace,
+          sessionId: agent.id,
+          turn: turn as number,
+          turnStartSeq: start.seq,
+          phase: 'end',
+          signal: deadline.signal,
+          ...(opening.roundId === undefined ? {} : { roundId: opening.roundId }),
+        })
       })
     } catch {
       // Sidecar capture: a failure here must not surface in the conversation.
+    } finally {
+      deadline.cancel()
     }
   }
 

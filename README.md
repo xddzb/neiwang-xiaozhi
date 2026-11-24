@@ -1,6 +1,6 @@
 # 内网小智
 
-支持 **麒麟 ARM64** 与 **Windows 10/11 x64**。本次版本 **R11.6 / DSH 0.2.1-rc.3**，恢复检索增强、侧边栏、消息回退与精简工具提示词；不包含PDF解析大师。下载与发布状态以 [R11.6 Release](https://github.com/xddzb/neiwang-xiaozhi/releases/tag/r11.6) 为准，每次语义化修改见 [详细技术交接](docs/HANDOVER.md)。
+支持 **麒麟 ARM64** 与 **Windows 10/11 x64**。当前源码 **R11.6 / DSH 0.2.2-rc.5**（核心升级尚未生成新安装包，已交付包仍为 0.2.1-rc.3），恢复检索增强、侧边栏、消息回退与精简工具提示词；不包含PDF解析大师。下载与发布状态以 [R11.6 Release](https://github.com/xddzb/neiwang-xiaozhi/releases/tag/r11.6) 为准，每次语义化修改见 [详细技术交接](docs/HANDOVER.md)。
 
 提供模型对话、RAG、业务接口、钉钉机器人与 AI 表格、原生定时任务、技能孵化器、Playwright 浏览器，以及独立离线插件安装/升级/回退。首页和加载页显示“内网小智 / 你说我做”，移除“预览版”和编辑菜单；工具参数按需发现以精简系统提示词。钉钉仍需组织网络和授权；APP关闭时定时任务不执行。
 
@@ -94,7 +94,7 @@ Set-Location .\R11.6\Neiwang-Xiaozhi-Win10-x64-R11.6
 | `private-docs/` | 公开空白模板；真实文档由本地加入、不入库 | `private-docs/` 或 `offline-api-tool/` |
 | `config/workspace-rules.md` | APP统一中文与授权规则模板 | 随新构建发布 |
 
-**官方内核在 APP 的 `core/0.2.1-rc.3/node_modules/`。** `runtime/` 提供平台运行库，`launcher/electron/` 是桌面运行时；定制代码在内核外。`data/` 保存模型/RAG、用户profile、机器人绑定等私有配置；`workspace/` 是用户文件。两者不得被升级覆盖或提交 Git。
+**官方内核在 APP 的 `core/0.2.2-rc.5/node_modules/`。** `runtime/` 提供平台运行库，`launcher/electron/` 是桌面运行时；定制代码在内核外。`data/` 保存模型/RAG、用户profile、机器人绑定等私有配置；`workspace/` 是用户文件。两者不得被升级覆盖或提交 Git。
 
 ## 从源码构建和验证
 

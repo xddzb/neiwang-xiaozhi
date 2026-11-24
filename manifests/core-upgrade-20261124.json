@@ -1,0 +1,84 @@
+{
+  "checkedDate": "2026-11-24",
+  "registry": "https://registry.npmjs.org/@deepseek-ai%2Fdsh",
+  "releaseNotes": "https://github.com/deepseek-ai/deepseek-harness/releases",
+  "productionCore": "0.2.1-rc.3",
+  "npmLatest": "0.2.2-rc.5",
+  "npmAlpha": "0.2.3-alpha.2",
+  "alphaNodeRequirement": "^24.22.3 || >=26.13.1",
+  "decision": "Source pinned to 0.2.2-rc.5 with deployment-only compatibility adaptations. Existing delivered apps and preview-notice patch remain on 0.2.1-rc.3; no core-upgrade installer is included. Linux verification uses an ARM64 Ubuntu QEMU guest, not a physical Kylin desktop.",
+  "previousProductionCore": "0.2.1-rc.3",
+  "sourceUpgrade": {
+    "core": "0.2.2-rc.5",
+    "node": "24.9.0",
+    "officialCoreModified": false,
+    "trialPackagesMatchSourceLockVersionAndIntegrity": true,
+    "unitTests": {
+      "passed": 51,
+      "skipped": 2,
+      "failed": 0
+    },
+    "buildInputAndOldCoreGuardTests": 2,
+    "syntheticKylinArchiveTest": "PASS",
+    "windowsHostAgentFreshUiRestartChangesModelForm": "PASS",
+    "windowsNativeModules": "PASS",
+    "arm64HostAgent": "PASS",
+    "arm64NativeModules": "PASS",
+    "arm64DesktopUi": "PASS",
+    "physicalKylinTested": false,
+    "newOfflineReleaseBuilt": false,
+    "existingPreviewPatchUpgradesCore": false,
+    "arm64RestartChangesModelForm": "PASS",
+    "arm64ActualRequest": {
+      "maxOutputTokens": 8192,
+      "wireToolCount": 1,
+      "systemCharacters": 9778,
+      "containsFullSdkMap": false
+    },
+    "nativeChecks": [
+      "sharp image processing",
+      "koffi native loader",
+      "builtin addon loader",
+      "ripgrep executable",
+      "PTY shell execution"
+    ],
+    "sourceFilesChecked": 355,
+    "promotedToSource": true
+  },
+  "sourceCore": "0.2.2-rc.5",
+  "initialWindowsTrial": {
+    "core": "0.2.2-rc.5",
+    "platform": "win32-x64",
+    "node": "24.9.0",
+    "directReplacementPassed": false,
+    "initialFailures": [
+      "tools.mode=ptc is obsolete",
+      "local rewind peer range does not include this core"
+    ],
+    "isolatedAdaptations": [
+      "Remove obsolete tools.mode from source defaults and normalize inherited deployment mode at startup for 0.2.2-rc.5",
+      "Disable tool-executor-native and enable tool-executor-ptc in deployment templates",
+      "Add tested 0.2.2-rc.5 to rewind peer and compatibility metadata",
+      "Retain welcomeNoticeVersion 2026-09-28.1"
+    ],
+    "checksPassed": [
+      "Host and actual Agent tool loop",
+      "Python execution and tool discovery",
+      "Checkpoint preview and messages-only fork",
+      "Unconfirmed file restore rejected",
+      "RAG disabled prevents retrieval and child reuses parent material",
+      "No duplicate tools",
+      "No preview notice observed with a fresh user profile",
+      "Restarted changes pane and custom model API editable form"
+    ],
+    "actualRequest": {
+      "maxOutputTokens": 8192,
+      "wireToolCount": 1,
+      "systemCharacters": 9945,
+      "containsFullSdkMap": false
+    },
+    "linuxArm64CoreTested": false,
+    "physicalKylinTested": false,
+    "promotedToProduction": false
+  }
+}
