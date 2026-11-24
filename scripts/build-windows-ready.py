@@ -80,7 +80,7 @@ def build(baseline,output,date,page_url):
             if logical.startswith('extensions/') and not logical.startswith(('extensions/node_modules/@neiwang/brand/','extensions/node_modules/@neiwang/deployment/')):
                 emit(PAYLOAD+logical,data);payload[logical]={'path':logical,'sha256':sha(data),'mode':420}
         pack['files']=list(payload.values());emit('plugin-pack/pack.json',encode(pack))
-        app.update(edition='full',buildId='Win10-x64-'+date+'-Full',buildDate=date,browserPluginVersion='1.4.1',bundles=list(dict.fromkeys(app['bundles']+pack['bundles'])))
+        app.update(edition='full',buildId='Win10-x64-'+date+'-Full',buildDate=date,browserPluginVersion=json.loads((ROOT/'extensions/@neiwang/browser-automation/package.json').read_text(encoding='utf-8'))['version'],bundles=list(dict.fromkeys(app['bundles']+pack['bundles'])))
         emit('config/app.json',encode(app))
         emit('config/feature-pack.json',encode({'version':pack['release'],'platform':pack['platform'],'bundles':pack['bundles'],'preinstalled':True}))
         emit('最新版使用说明.txt','Windows 10/11 x64 内网完整包。双击 start.cmd 或 内网小智.exe 启动。\n插件已经预装，不需要安装或下载依赖。请使用新目录，不覆盖旧应用。\n'.encode('utf-8'))

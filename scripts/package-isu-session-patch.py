@@ -17,6 +17,8 @@ GROUPS = {
 
 
 def build(output, baseline_core=None, page_url=None):
+    if json.loads((ROOT/'extensions/@neiwang/browser-automation/package.json').read_text(encoding='utf-8'))['version'] != '1.4.1':
+        raise ValueError('This packager targets the frozen ISU 1.4.1 patch; use its reviewed historical commit, not a newer browser plugin')
     output = Path(output).resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     if output.exists():

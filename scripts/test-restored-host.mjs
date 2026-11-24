@@ -19,7 +19,9 @@ export function apply(ctx){ctx.webServer.register({kind:'prefix',path:'/restored
   const agent=handle.agent;await agent.whenIdle();
   await ctx.workspaceRegistry.get(workspace.id).attachSession(agent.id);
   const names=ctx.tools.schemas(agent).map(t=>t.name);
-  for(const n of ['knowledge_query','knowledge_materials','business_api','tool_catalog','local_python','python_package','mcp__browser__automation'])assert.equal(names.filter(x=>x===n).length,1,'missing or duplicate '+n);
+  const missingCatalog=process.env.NEIWANG_TEST_CATALOG_MISSING==='1';
+  assert.equal(names.includes('tool_catalog'),!missingCatalog);
+  for(const n of ['knowledge_query','knowledge_materials','business_api',...(missingCatalog?[]:['tool_catalog']),'local_python','python_package','mcp__browser__automation'])assert.equal(names.filter(x=>x===n).length,1,'missing or duplicate '+n);
   const base=join(process.env.NEIWANG_APP_ROOT,'extensions/node_modules/@deepseek-ai/neiwang-business');
   const rag=await import(pathToFileURL(join(base,'rag-scheduler.mjs'))),policy=(await import(pathToFileURL(join(base,'rag-policy.cjs')))).default;
   let calls=0;const run=async()=>{calls++;return JSON.stringify({ok:true,answer:'synthetic evidence',citations:[]})},exec={agent,signal:new AbortController().signal};
@@ -35,7 +37,7 @@ export function apply(ctx){ctx.webServer.register({kind:'prefix',path:'/restored
   }
   const events=agent.session.snapshotEvents(0),target=events.find(e=>e.type==='user/message'&&JSON.stringify(e.data).includes('BASELINE_REMOVE'));
   assert(target,'second turn absent');assert(events.some(e=>e.type==='assistant/message'),'model response absent');
-  assert(JSON.stringify(events).includes('knowledge_gap'),'real Agent catalog/tool loop absent');
+  if(!missingCatalog)assert(JSON.stringify(events).includes('knowledge_gap'),'real Agent catalog/tool loop absent');
   assert(JSON.stringify(events).includes('PYTHON_RUNTIME_OK'),'bundled Python was not executed through the real Agent');
   const turn=events.findLast(e=>e.type==='turn/start'&&e.seq<target.seq).data.turn;
   let checkpoint;const deadline=Date.now()+60000;

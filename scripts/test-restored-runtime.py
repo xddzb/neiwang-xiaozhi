@@ -10,6 +10,7 @@ if not sources.is_dir():sources=APP/'plugin-pack/payload/extensions/apis/sources
 os.environ.setdefault('NEIWANG_EXPECTED_SOURCES',str(len(list(sources.glob('*.json')))))
 os.environ.setdefault('NEIWANG_EXPECT_SIDEBAR','1')
 sys.path.insert(0,str(APP/'tools'));import model_config
+missing_catalog=os.environ.get('NEIWANG_TEST_CATALOG_MISSING')=='1'
 observed={}
 class Mock(BaseHTTPRequestHandler):
  def log_message(self,*args):pass
@@ -18,7 +19,8 @@ class Mock(BaseHTTPRequestHandler):
   if request.get('tools') and not any(m['role']=='tool' for m in messages[last+1:]):
    system='\n'.join(str(m['content']) for m in messages if m['role']=='system');observed[label]={'systemChars':len(system),'systemUtf8Bytes':len(system.encode()),'wireToolCount':len(request['tools']),'containsFullSdkMap':'interface ToolArgsMap' in system,'containsLazyCatalog':'工具按需发现' in system,'maxOutputTokens':request.get('max_tokens',request.get('max_completion_tokens'))}
   if request.get('tools') and not any(m['role']=='tool' for m in messages[last+1:]):
-   code="console.log(await tools.local_python({script:'python-runtime-fixture.py'}));console.log(await tools.tool_catalog({operation:'describe',name:'knowledge_query'}));console.log(await tools.knowledge_materials({operation:'inspect'}));console.log(await tools.mcp__browser__automation({operation:'help'}));console.log(await tools.business_api({operation:'list'}));"
+   code="console.log(await tools.local_python({script:'python-runtime-fixture.py'}));const description=JSON.parse(await tools.tool_catalog({operation:'describe',name:'knowledge_query'}));if(description.tool.output.type!=='string')throw Error('catalog output schema absent');console.log(description);console.log(await tools.knowledge_materials({operation:'inspect'}));console.log(await tools.mcp__browser__automation({operation:'help'}));console.log(await tools.business_api({operation:'list'}));"
+   if missing_catalog:code=code.replace("const description=JSON.parse(await tools.tool_catalog({operation:'describe',name:'knowledge_query'}));if(description.tool.output.type!=='string')throw Error('catalog output schema absent');console.log(description);",'')
    chunks=[({'role':'assistant','tool_calls':[{'index':0,'id':'browser-fixture-'+uuid.uuid4().hex,'type':'function','function':{'name':'run_code','arguments':json.dumps({'code':code,'description':'Inspect offline tools and registered local sources'})}}]},None),({},'tool_calls')]
   else:chunks=[({'role':'assistant','content':'BROWSER_PATCH_DONE'},None),({},'stop')]
   self.send_response(200);self.send_header('Content-Type','text/event-stream');self.end_headers()
@@ -57,8 +59,9 @@ try:
  fixture=open_json(origin+'/restored-test/prepare')
  assert fixture['status']=='PASS'
  for sample in observed.values():
-  assert sample['systemChars']<16000 and not sample['containsFullSdkMap'],sample
-  assert sample['containsLazyCatalog'] and sample['wireToolCount']<=2,sample
+  if missing_catalog:assert sample['containsFullSdkMap'] and not sample['containsLazyCatalog'],sample
+  else:assert sample['systemChars']<16000 and not sample['containsFullSdkMap'] and sample['containsLazyCatalog'],sample
+  assert sample['wireToolCount']<=2,sample
   assert sample['maxOutputTokens']==8192,sample
  assert observed, 'No actual model request captured'
  print('PASS actual Agent tools and durable checkpoint',flush=True)
@@ -81,8 +84,13 @@ try:
  except urllib.error.HTTPError as e:assert e.code==409
  assert Path(fixture['userFile']).read_text()=='synthetic current'
  report={'status':'PASS','version':json.loads((APP/'config/app.json').read_text(encoding='utf8'))['version'],'actualHostAndAgent':True,'messagesOnlyForkPreservesOriginal':True,'unconfirmedFileRestoreRejected':True,'checkpointPreview':True,'ragDisabledMakesNoRequest':True,'childReusesParentMaterials':True,'noDuplicateTools':True,'physicalKylinTested':False}
+ status=rpc('status',{})['result']['value']
+ assert status['toolCatalogRegistered'] is not missing_catalog,status
+ assert status['promptMetrics']['compacted'] is not missing_catalog,status
+ report['catalogMissingFallbackVerified']=missing_catalog
  report['actualRequestBudgets']=observed
  (WORK/'restored-result.json').write_text(json.dumps(report,indent=2));print(json.dumps(report),flush=True)
+ if os.environ.get('NEIWANG_TEST_NO_UI')=='1':sys.exit(0)
  ui_env={**env,'DSH_URL':url,'BROWSER_UI_OUTPUT':str(WORK/'browser-settings.png'),'NEIWANG_REWIND_UI':'1'}
  if os.name!='nt':
   from xml.sax.saxutils import escape
