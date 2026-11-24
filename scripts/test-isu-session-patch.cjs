@@ -8,7 +8,12 @@ function fixture(t){
  const root=path.join(home,'app'),kit=path.join(home,'kit'),put=(base,rel,data)=>{const p=path.join(base,rel);fs.mkdirSync(path.dirname(p),{recursive:true});fs.writeFileSync(p,data);fs.chmodSync(p,0o640)};
  const rows=[],originals=new Map(),files=[];
  for(const rel of FILES){
-  const source=rel.replace('extensions/node_modules/','extensions/'),data=fs.readFileSync(path.join(repo,source));put(kit,'payload/'+rel,data);
+  const source=rel.replace('extensions/node_modules/','extensions/');let data=fs.readFileSync(path.join(repo,source));
+  // This transaction suite targets the frozen 1.4.1 ISU patch, not today's plugin release.
+  if([prefix(NAME)+'package.json',prefix(NAME)+'package-lock.json'].includes(rel)){
+   const pkg=JSON.parse(data);pkg.version='1.4.1';if(pkg.packages?.[''])pkg.packages[''].version='1.4.1';data=Buffer.from(JSON.stringify(pkg));
+  }
+  put(kit,'payload/'+rel,data);
   const row={path:rel,sha256:hash(data)};let before=Buffer.from('// original '+rel+'\n');
   if(rel===prefix(NAME)+'package.json')before=Buffer.from(JSON.stringify({name:NAME,version:'1.0.1'}));
   if(rel.startsWith('tools/'))row.allowedBefore=[hash(before),hash(data)];files.push(row);
