@@ -4,7 +4,7 @@ import {randomUUID} from 'node:crypto';
 import {readFileSync,writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
-export const inject=['webServer','agents','agentPresets','agentDefaultModel','tools','workspaceController','workspaceRegistry','sessionQuery','changeLedger'];
+export const inject=['webServer','agents','agentPresets','agentDefaultModel','tools','workspaceController','workspaceRegistry','sessionQuery','changeLedger','compaction'];
 export function apply(ctx){ctx.webServer.register({kind:'prefix',path:'/restored-test',handler:async(req,res)=>{
  res.setHeader('Content-Type','application/json');let handle;
  try{
@@ -17,6 +17,12 @@ export function apply(ctx){ctx.webServer.register({kind:'prefix',path:'/restored
   const workspace=ctx.workspaceRegistry.list()[0];assert(workspace,'default workspace absent');const cwd=workspace.path;
   handle=await ctx.agents.create({sessionId:randomUUID(),meta:{cwd,agentPreset:'standard'},agentOptions:ctx.agentDefaultModel.currentSelection(),setup:async c=>{await ctx.agentPresets.mount(c,'standard')}});
   const agent=handle.agent;await agent.whenIdle();
+  if(process.env.NEIWANG_TEST_LEGACY_CONTEXT==='1'){
+   const policy=ctx.compaction.config;
+   assert.equal(policy.headroomTokens,16384);assert.equal(policy.thresholdRatio,0.9);
+   assert.equal(policy.modelPolicies.find(p=>p.provider==='neiwang'&&p.model==='fixture').headroomTokens,16384);
+   assert.equal(Math.min(128000*policy.thresholdRatio,128000-8192-policy.headroomTokens),103424);
+  }
   await ctx.workspaceRegistry.get(workspace.id).attachSession(agent.id);
   const names=ctx.tools.schemas(agent).map(t=>t.name);
   const missingCatalog=process.env.NEIWANG_TEST_CATALOG_MISSING==='1';

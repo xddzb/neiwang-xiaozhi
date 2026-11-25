@@ -23,6 +23,7 @@ function fixture(){
  const root=fs.mkdtempSync(path.join(parent,'dev-test-'));
  fs.mkdirSync(path.join(root,'launcher'));fs.copyFileSync(path.join(repo,'launcher/bootstrap.cjs'),path.join(root,'launcher/bootstrap.cjs'));
  fs.copyFileSync(path.join(repo,'launcher/plugin-profile.cjs'),path.join(root,'launcher/plugin-profile.cjs'));
+ fs.copyFileSync(path.join(repo,'launcher/context-policy.cjs'),path.join(root,'launcher/context-policy.cjs'));
  fs.mkdirSync(path.join(root,'config'));for(const name of ['app.json','overrides.json'])fs.copyFileSync(path.join(repo,'config',name),path.join(root,'config',name));
  const app=JSON.parse(fs.readFileSync(path.join(root,'config/app.json')));app.bundles=[];fs.writeFileSync(path.join(root,'config/app.json'),JSON.stringify(app));
  fs.mkdirSync(path.join(root,'core',app.coreVersion,'node_modules'),{recursive:true});fs.mkdirSync(path.join(root,'extensions/node_modules'),{recursive:true});
@@ -57,7 +58,7 @@ test('legacy offline compaction defaults migrate without changing user settings'
  Object.assign(legacy.find(row=>row.id==='compaction-basic'),{disabled:true,config:{headroomTokens:65536}});
  fs.writeFileSync(file,JSON.stringify(legacy));
  const p=bootstrap.prepare(),profileFile=path.join(p.profile,'cordis.patch.yml');
- const custom=fs.readFileSync(profileFile,'utf8')+'- id: compaction-basic\n  config: {"thresholdRatio":0.85}\n';
+ const custom=fs.readFileSync(profileFile,'utf8')+'- id: unrelated-user-plugin\n  config: {"keep":true}\n';
  fs.writeFileSync(profileFile,custom);bootstrap.prepare();
  const policy=JSON.parse(fs.readFileSync(p.patchFile)).find(row=>row.id==='compaction-basic');
  assert.deepEqual(policy,JSON.parse(fs.readFileSync(path.join(repo,'config/overrides.json'))).find(row=>row.id==='compaction-basic'));

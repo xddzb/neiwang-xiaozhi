@@ -4,7 +4,7 @@ const repo=path.resolve(__dirname,'..');
 function fixture(){
  const base=path.join(repo,'tmp');fs.mkdirSync(base,{recursive:true});const root=fs.mkdtempSync(path.join(base,'feature-boot-'));
  for(const d of ['launcher','config','extensions/node_modules','core/0.2.1-rc.3/node_modules','plugin-pack/payload/extensions/node_modules/fixture'])fs.mkdirSync(path.join(root,d),{recursive:true});
- for(const n of ['bootstrap.cjs','plugin-profile.cjs'])fs.copyFileSync(path.join(repo,'launcher',n),path.join(root,'launcher',n));
+ for(const n of ['bootstrap.cjs','plugin-profile.cjs','context-policy.cjs'])fs.copyFileSync(path.join(repo,'launcher',n),path.join(root,'launcher',n));
  fs.copyFileSync(path.join(repo,'config/overrides.json'),path.join(root,'config/overrides.json'));
  const app={version:'fixture',platform:process.platform,coreVersion:'0.2.1-rc.3',edition:'core',bundles:[]};fs.writeFileSync(path.join(root,'config/app.json'),JSON.stringify(app));
  const bytes=Buffer.from('{"name":"fixture","version":"1.0.0"}'),rel='extensions/node_modules/fixture/package.json';fs.writeFileSync(path.join(root,'plugin-pack/payload',rel),bytes);
