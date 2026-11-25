@@ -39,7 +39,16 @@ class ContextToolsPatch extends ToolDiscoveryPatch{
   const existing=deploy.match(re)?.[0].trim();
   const accepted=[block.trim(),block.split('\n').filter(line=>!line.startsWith('  config:')).join('\n').trim(),'- id: compaction-basic\n  disabled: false','- id: compaction-basic\n  disabled: true'];
   if(existing&&!accepted.includes(existing))throw Error('部署压缩项包含其他定制，未覆盖');
-  add(DEPLOY,re.test(deploy)?deploy.replace(re,block):deploy+(deploy.endsWith('\n')?'':'\n')+block);
+  let deployment=re.test(deploy)?deploy.replace(re,block):deploy+(deploy.endsWith('\n')?'':'\n')+block;
+  const modelsBlock='- id: ui-settings-models\n  disabled: false\n';
+  const modelsRe=/^- id: ui-settings-models\n(?:(?!^- id:)[\s\S])*/m;
+  const existingModels=deployment.match(modelsRe)?.[0].trim();
+  if((deployment.match(/^- id: ui-settings-models$/gm)||[]).length>1)throw Error('重复的模型设置部署项');
+  if(existingModels&&!/^\- id: ui-settings-models\n  disabled: (?:true|false|!!js "JSON\.parse\(process\.env\.NEIWANG_DEPLOYMENT_CONFIG\).*\.disabled")$/.test(existingModels))throw Error('模型设置部署项包含其他定制，未覆盖');
+  deployment=modelsRe.test(deployment)?deployment.replace(modelsRe,modelsBlock):deployment+(deployment.endsWith('\n')?'':'\n')+modelsBlock;
+  // Enabling Models must not reintroduce the upstream preview welcome dialog.
+  if(!/^- id: ui-settings-general\s*$/m.test(deployment))deployment+='- id: ui-settings-general\n  config:\n    welcomeNoticeVersion: "2026-09-28.1"\n';
+  add(DEPLOY,deployment);
   const profile=this.current(PROFILE);
   if(profile!==null){const {normalize}=require(safe(this.kit,'context-policy.cjs'));add(PROFILE,normalize(Buffer.from(profile,'base64').toString('utf8'),path.join(this.root,'core/0.2.1-rc.3/node_modules')));}
   if(new Set(changes.map(r=>r.path)).size!==changes.length)throw Error('补丁重复写入目标');

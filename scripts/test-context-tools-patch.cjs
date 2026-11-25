@@ -10,9 +10,10 @@ test('profile and exact-model policy repair preserves providers; dynamic setting
  assert.deepEqual(parsed[0],before[0]);assert.equal(parsed[1].config.headroomTokens,16384);assert.equal(parsed[1].config.modelPolicies[0].headroomTokens,16384);assert.equal(parsed[1].config.retainTokens,undefined);assert.equal(normalize(after,modules),after);
  assert.throws(()=>normalize('- id: compaction-basic\n  config: !!js "expression"\n',modules),/动态/);
  assert.throws(()=>normalize('- id: compaction-basic\n  config: &shared {headroomTokens: 65536}\n- id: other\n  config: *shared\n',modules),/共享锚点/);
+ assert.equal(YAML.parse(normalize('- id: ui-settings-models\n  disabled: true\n',modules))[0].disabled,false);
 });
 function fixture(t){
- const home=fs.mkdtempSync(path.join(os.tmpdir(),'context-tools-')),root=path.join(home,'app'),kit=path.join(home,'kit');t.after(()=>fs.rmSync(home,{recursive:true,force:true}));fs.mkdirSync(kit);
+ const home=fs.mkdtempSync(path.join(os.tmpdir(),'context-tools-')),root=path.join(home,'app 中文 & test'),kit=path.join(home,'kit');t.after(()=>fs.rmSync(home,{recursive:true,force:true}));fs.mkdirSync(kit);
  const put=(rel,data)=>{const p=path.join(root,rel);fs.mkdirSync(path.dirname(p),{recursive:true});fs.writeFileSync(p,data);};
  let r=cp.spawnSync('python',[path.join(repo,'scripts/package-context-tools-patch.py'),'--output',path.join(home,'kit.tar.gz')],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);
  r=cp.spawnSync('tar',['-xzf',path.join(home,'kit.tar.gz'),'-C',kit,'--strip-components=1'],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);
@@ -51,4 +52,20 @@ test('combined patch layers over previous tool/context patches and preserves the
  const names=['context-models','tool-discovery'],backups=names.map(n=>fs.readFileSync(path.join(f.root,'config/'+n+'-patch-backup.json')));
  const j=f.p().plan();f.p().run();f.p().run('rollback');for(const row of j.changes)assert.equal(f.p().current(row.path),row.before);
  names.forEach((n,i)=>assert.deepEqual(fs.readFileSync(path.join(f.root,'config/'+n+'-patch-backup.json')),backups[i]));
+});
+test('Windows ZIP double-click entry installs, repeats and rolls back without touching encrypted defaults',{skip:process.platform!=='win32'},t=>{
+ const f=fixture(t),archive=path.join(f.root,'patch.zip');
+ for(const rel of ['config/defaults/model.enc','config/defaults/.local-key','data/config/.local-key'])f.put(rel,'synthetic encrypted original');
+ if(modules)f.put('data/dsh/profiles/web/cordis.patch.yml',oldProfile+'- id: ui-settings-models\n  disabled: true\n');
+ let r=cp.spawnSync('python',[path.join(repo,'scripts/package-windows-context-tools-patch.py'),'--output',archive],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);
+ r=cp.spawnSync('python',['-m','zipfile','-e',archive,f.root],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);
+ const installer=path.join(f.root,'WindowsPatch/install-windows-context-tools-patch.cjs');
+ const {WindowsContextToolsPatch}=require(installer),patch=new WindowsContextToolsPatch(f.root,path.dirname(installer),{stopped:()=>{}}),plan=patch.plan();
+ f.put('runtime/node/node.exe',fs.readFileSync(process.execPath));
+ const run=name=>{const result=cp.spawnSync('cmd.exe',['/d','/c',name],{cwd:path.join(f.root,'WindowsPatch'),input:'\r\n',encoding:'utf8'});assert.equal(result.status,0,result.stdout+'\n'+result.stderr);return result.stdout;};
+ assert.match(run('CheckPatch.cmd'),/ready/);assert.match(run('InstallPatch.cmd'),/installed/);assert.match(run('InstallPatch.cmd'),/unchanged/);
+ for(const rel of ['config/defaults/model.enc','config/defaults/.local-key','data/config/.local-key'])assert.equal(fs.readFileSync(path.join(f.root,rel),'utf8'),'synthetic encrypted original');
+ assert.match(fs.readFileSync(path.join(f.root,'extensions/node_modules/@neiwang/deployment/cordis.patch.yml'),'utf8'),/ui-settings-models\n  disabled: false/);
+ if(modules){const YAML=require(path.join(modules,'yaml')),rows=YAML.parse(fs.readFileSync(path.join(f.root,'data/dsh/profiles/web/cordis.patch.yml'),'utf8'));assert.equal(rows.find(r=>r.id==='ui-settings-models').disabled,false);assert.deepEqual(rows.find(r=>r.id==='llm-pi-ai'),YAML.parse(oldProfile)[0]);}
+ assert.match(run('RollbackPatch.cmd'),/rolled-back/);for(const row of plan.changes)assert.equal(patch.current(row.path),row.before);
 });
