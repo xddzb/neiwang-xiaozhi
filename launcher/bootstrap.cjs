@@ -126,7 +126,12 @@ function prepare(){
   userPatchText+=`- id: ${id}\n  config: ${JSON.stringify(patches.find(row=>row.id===id).config)}\n`;
  }
  fs.writeFileSync(userPatch,userPatchText||'[]\n');
- // Profile user changes must win over deployment defaults, especially DingTalk account policies.
+ // Repair legacy profile/model-specific compaction budgets after user-layer merge.
+ // Other user settings (especially credentials and DingTalk policy) remain owned by users.
+ const contextPolicy=require('./context-policy.cjs');
+ const contextRepaired=contextPolicy.apply(userPatch,modules);
+ fs.writeFileSync(path.join(data,'runtime/context-policy.json'),JSON.stringify({version:'20261125',profileBudgetRepaired:contextRepaired,policy:contextPolicy.POLICY,defaultModelContextWindow:deployment.contextWindow,defaultModelOutputLimit:deployment.maxOutputTokens,note:'Default budget only; routed model capacity and service overflow may differ.'},null,2),{mode:0o600});
+ // Profile user changes otherwise win over deployment defaults.
  const patchFile=path.join(data,'runtime/deployment.patch.json');
  fs.writeFileSync(patchFile,JSON.stringify(patches,null,2),{mode:0o600});
  env.NEIWANG_DEPLOYMENT_PATCH=patchFile;

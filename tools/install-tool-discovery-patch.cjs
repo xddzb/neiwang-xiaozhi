@@ -9,10 +9,10 @@ const destinations=p=>[p,'plugin-pack/payload/'+p];
 const ALLOWED=new Set([...FILES.flatMap(destinations),'config/app.json','plugin-pack/pack.json','config/plugin-manager.json']);
 const read=p=>JSON.parse(fs.readFileSync(p,'utf8').replace(/^\uFEFF/,''));
 class ToolDiscoveryPatch{
- constructor(root,kit=__dirname,options={}){this.manager=new Manager(root,options);this.root=this.manager.root;this.kit=fs.realpathSync(kit);this.fault=options.fault||(()=>{});this.record=safe(this.root,'config/tool-discovery-patch-backup.json');}
+ constructor(root,kit=__dirname,options={}){this.manager=new Manager(root,options);this.root=this.manager.root;this.kit=fs.realpathSync(kit);this.fault=options.fault||(()=>{});this.allowed=ALLOWED;this.record=safe(this.root,'config/tool-discovery-patch-backup.json');}
  current(rel){const p=safe(this.root,rel);if(!fs.existsSync(p))return null;const s=fs.lstatSync(p);if(!s.isFile()||s.nlink>1)throw Error('拒绝非普通文件或硬链接：'+rel);return fs.readFileSync(p).toString('base64');}
  save(j){atomic(this.record,JSON.stringify(j,null,2)+'\n');}
- load(){if(!fs.existsSync(this.record))return null;const j=read(this.record);if(j.version!==1||!Array.isArray(j.changes)||new Set(j.changes.map(r=>r.path)).size!==j.changes.length||j.changes.some(r=>!ALLOWED.has(r.path)||!Number.isInteger(r.mode))||hash(JSON.stringify(j.changes))!==j.sha256)throw Error('补丁备份损坏');return j;}
+ load(){if(!fs.existsSync(this.record))return null;const j=read(this.record);if(j.version!==1||!Array.isArray(j.changes)||new Set(j.changes.map(r=>r.path)).size!==j.changes.length||j.changes.some(r=>!this.allowed.has(r.path)||!Number.isInteger(r.mode))||hash(JSON.stringify(j.changes))!==j.sha256)throw Error('补丁备份损坏');return j;}
  write(row,side){const p=safe(this.root,row.path),value=row[side];if(value===null){if(fs.existsSync(p))fs.unlinkSync(p);}else{atomic(p,Buffer.from(value,'base64'));fs.chmodSync(p,row.mode);}}
  compatible(){const app=read(this.manager.appFile);if(app.version!=='R11.6'||app.coreVersion!=='0.2.1-rc.3')throw Error('仅支持 R11.6 / 0.2.1-rc.3，未修改文件');return app;}
  plan(){
