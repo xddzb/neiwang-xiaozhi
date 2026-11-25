@@ -2,7 +2,7 @@
 
 ## 浏览器参数离线补丁
 
-`Neiwang-Kylin-ARM64-Browser-Fix-1.0.1.tar.gz` 是已有APP的增量补丁，不是Core/Plugins首次安装包。适用于麒麟Linux ARM64、随包Node 24、DSH 0.2.1-rc.3，要求浏览器插件已安装、Playwright 1.56.1已随包存在，并保留 `plugin-pack/payload` 和 `pack.json`。无需联网、sudo、npm、Python或重装APP。不适用旧内核0.2.0-rc.2；兼容检查失败时不会覆盖文件。
+`Neiwang-Kylin-ARM64-Browser-Fix-1.0.1.tar.gz` 是已有APP的增量补丁，不是完整 APP 安装包。适用于麒麟Linux ARM64、随包Node 24、DSH 0.2.1-rc.3，要求浏览器插件已安装、Playwright 1.56.1已随包存在，并保留 `plugin-pack/payload` 和 `pack.json`。无需联网、sudo、npm、Python或重装APP。不适用旧内核0.2.0-rc.2；兼容检查失败时不会覆盖文件。
 
 1. 完全退出APP及业务浏览器（定时任务也会随APP停止），将tar.gz和对应sha256文件放在同一目录。
 2. 在普通用户终端运行，示例中的APP路径替换为你原来实际使用的目录：
@@ -30,60 +30,31 @@ sh 回退补丁.sh "/原来使用的内网小智APP目录"
 
 断电/终端被强制关闭后，先退出APP，运行 `sh 恢复补丁.sh "/原来使用的内网小智APP目录"`，它恢复本次修改前的字节与清单；然后重新检查和安装。普通安装错误会自动尝试还原。补丁完成后若又改动了受保护文件或升级了其他插件，回退将拒绝覆盖，须先还原后续改动。本补丁使用随包的回退脚本，不使用通用插件管理器的rollback来撤销此增量事务。
 
-R11.6为本次构建版本，提供麒麟 ARM64 和 Windows 10/11 x64。每个平台分为 Core 核心包与 Plugins 插件包：**内网钉钉只允许上传 500MB 以内的文件**，所以拆成两包。它们是同一个 APP 的两个部分，必须匹配平台、版本和 Public/Internal 版本类型；不是分卷压缩，不能用 `cat` 拼接。
+## 当前完整 APP：连续分卷交付
 
-Core 包含未修改的 DSH 0.2.1-rc.3 内核、桌面壳、Node/Python、模型/RAG配置入口和迁移工具；Plugins 包含业务接口、钉钉机器人、AI表格、better-sidebar、技能孵化器和 Playwright。原生定时任务随内核提供；APP关闭、休眠或关机时不执行，不保证补投递业务恰好一次。
+麒麟 ARM64 和 Windows 10/11 x64 均以预装插件的完整应用交付，再将压缩文件切为连续分卷。每卷最大 480,000,000 字节，低于 500 MB；不再要求用户分别安装 Core 和 Plugins。
 
-内网 Internal 交付版已内置固定模型、RAG和接口资料，不需要旧APP、迁移或首次配置。直接安装步骤见 [本文内网安装步骤](#内网固定配置版安装)。下文首次配置和迁移步骤用于 Public 包或明确需要导入旧设置的场景。
+### Windows
 
-## 内网固定配置版安装
+将同一批 `.zip.001`、`.zip.002` 等全部分卷，以及 `volumes.json`、`Extract.ps1`、`DoubleClickExtract.cmd` 放在同一目录。双击 `DoubleClickExtract.cmd`，等待校验、合并和解压完成。进入 `ExtractedApp` 下的应用目录，双击 `start.cmd` 或“内网小智.exe”。请预留至少 8 GB 空间；目标目录必须是新目录，不覆盖旧 APP。单独一卷不是完整 ZIP。
 
-Internal包已预置模型、RAG、本地接口文档和接口源，不需要旧APP、迁移或首次配置。将两包和合并脚本放在同一目录，执行：
+### 麒麟
 
-```sh
-sh 合并安装R11.6.sh "/data/内网小智R11.6"
-sh "/data/内网小智R11.6/Neiwang-Xiaozhi-Kylin-ARM64-R11.6/start.sh"
-```
+将全部 `.tar.gz.001`、`.tar.gz.002` 等连续分卷、`SHA256SUMS.txt` 和 `解压.sh` 放在同一目录。在麒麟执行 `sh 解压.sh`，完成后进入生成的应用目录运行 `bash start.sh`。脚本按顺序合并压缩数据并解压，保留权限和链接；不要先在 Windows 展开目录再逐文件搬运。
 
-钉钉绑定/组织账号授权仍由本人完成。以下为R11.6交付命令；GitHub已发布旧包的安装应将版本号统一换成对应发行版本，不能混用新旧Core/Plugins。
+Internal 包已预置加密的默认模型/RAG 配置及接口资料，可直接启动；新 API 通过“设置 → 模型 → 添加提供商”新增，不替换原内网加密默认 API。Public 包不含组织凭据，需自行配置服务。不要混用平台、日期或 Public/Internal 分卷。
 
-## 麒麟Public包：本地合并两包
+### 历史 Core / Plugins 归档
 
-将两包放入同一个目录。在终端执行，以下示例为 GitHub Public 包：
+历史 Release 中带 `Core` 和 `Plugins` 的 ZIP/tar.gz 是两个独立归档，须同版本、同平台、同类型，分别解压到同一新父目录，再按旧包说明安装本地插件。**不能将这种历史归档按字节拼接。** 它们仍可作为构建材料；GitHub 文档更新不表示历史 Release 已替换。
 
-```sh
-mkdir -p R11.6
-tar -xzf Neiwang-Xiaozhi-Kylin-ARM64-R11.6-Public-Core.tar.gz -C R11.6
-tar -xzf Neiwang-Xiaozhi-Kylin-ARM64-R11.6-Public-Plugins.tar.gz -C R11.6
-cd R11.6/Neiwang-Xiaozhi-Kylin-ARM64-R11.6
-sh plugin-pack/安装插件.sh
-# 首次使用公开包，配置自己的模型和知识库；从旧版迁移则用下一节命令。
-sh 配置模型.sh
-sh 配置RAG.sh
-sh start.sh
-```
+## Windows 上下文、工具调用与新增模型 API 补丁
 
-内网交付包将上面两个文件名中的 `Public` 换成 `Internal`，其余命令相同。Internal 包已保留构建电脑现有的模型、RAG 加密默认配置、本地接口文档和恢复的接口定义，可跳过首次配置步骤。它不预置 Windows 机器人的绑定，原麒麟绑定通过旧目录迁移保留。
+适用于 R11.6 / DSH 0.2.1-rc.3 / Windows x64 / 浏览器 1.4.1 或 1.4.2，要求保留完整离线载荷及默认 APP/data。
 
-用旧 APP 所属用户执行，不要 sudo。解压到新目录，**不要覆盖旧 APP，也不要把新旧 `data/` 或 `config/` 互相覆盖**。插件安装器验证版本、平台和文件散列；重复安装同一包不改已有配置，有冲突时停止。
+退出 APP，将 ZIP 解压后的整个 `WindowsPatch` 文件夹放到 APP 内，与 `start.cmd` 同级。双击 `InstallPatch.cmd`，显示 `installed` 后重启；`CheckPatch.cmd` 只检查，`RollbackPatch.cmd` 回退，`RecoverPatch.cmd` 恢复中断事务。
 
-## Windows：本地合并两包
-
-在 PowerShell 中执行：
-
-```powershell
-New-Item -ItemType Directory -Path .\R11.6 -ErrorAction Stop
-Expand-Archive -LiteralPath .\Neiwang-Xiaozhi-Win10-x64-R11.6-Public-Core.zip -DestinationPath .\R11.6
-Expand-Archive -LiteralPath .\Neiwang-Xiaozhi-Win10-x64-R11.6-Public-Plugins.zip -DestinationPath .\R11.6
-Set-Location .\R11.6\Neiwang-Xiaozhi-Win10-x64-R11.6
-& .\runtime\node\node.exe .\plugin-pack\install.cjs
-# 首次使用公开包时配置；旧版迁移见下方。
-& .\配置模型.cmd
-& .\配置RAG.cmd
-& .\start.cmd
-```
-
-Windows 包不适用 Windows 7、Windows ARM64 或麒麟。不要将两个平台的包混装。
+本补丁包含工具目录与调用说明修复、上下文预算修复、模型设置入口启用。原 `model.enc`、`.local-key` 及随包加密默认配置不改写，不导出明文；新增 API 按应用原有用户模型设置机制保存，不宣称新增 API 使用同一加密格式。支持叠加此前补丁，保留备份并按后装先退顺序回退。补丁很小，单个 ZIP 即可传入内网。
 
 ## 从旧目录保留配置
 
@@ -111,7 +82,7 @@ Neiwang-Xiaozhi-<平台>-R11.6/
 ├─ launcher/              桌面壳、品牌与启动适配
 ├─ runtime/               当前平台的 Node、Python、Electron 配套资源
 ├─ config/                发行配置；Internal 的 defaults/ 仅用于首次初始化
-├─ plugin-pack/           本次 Plugins 解压得到的离线安装载荷
+├─ plugin-pack/           完整 APP 内保留的离线插件载荷
 ├─ extensions/            安装后的独立插件、业务接口源/连接
 ├─ tools/                 配置入口、离线插件管理、配置迁移
 ├─ offline-api-tool/      Internal 中的本地接口文档与查看工具
@@ -119,17 +90,17 @@ Neiwang-Xiaozhi-<平台>-R11.6/
 └─ workspace/             用户工作区，升级不得覆盖
 ```
 
-本版包含“内网小智”32px /“你说我做”18px 品牌层级、隐藏首页预览版徽标、工具参数按需发现，减少系统提示词的重复声明。后续独立插件可以通过 `tools/offline-plugin-manager.cjs` 安装、升级、回退，不必重装 APP。初始 Core/Plugins 组合包用于新安装；后续插件升级使用独立格式，见 `DEVELOPMENT.md`。
+本版包含“内网小智”32px /“你说我做”18px 品牌层级、隐藏首页预览版徽标、工具参数按需发现，减少系统提示词的重复声明。后续独立插件可以通过 `tools/offline-plugin-manager.cjs` 安装、升级、回退，不必重装 APP。完整 APP 分卷用于新安装；后续插件升级使用独立格式，见 `DEVELOPMENT.md`。
 
-GitHub 公开包不含组织凭据、内部接口定义或真实本地文档。Internal 两包仅在组织内传递，不上传公开仓库。SHA256 见本地同名 `.sha256` 文件或 GitHub Release 描述。发布验证不替代原生麒麟桌面、组织 SSO、证书和实际业务现场验收。
+GitHub 公开包不含组织凭据、内部接口定义或真实本地文档。Internal 分卷及补丁仅在组织内传递，不上传公开仓库。SHA256 见本地同名 `.sha256` 文件或 GitHub Release 描述。发布验证不替代原生麒麟桌面、组织 SSO、证书和实际业务现场验收。
 
 ## R11.6 功能检查
 
-两包必须同版本、同平台并解压到同一目录；启动器会校验本地插件包后安装，不在线下载。缺包时补齐Plugins后重新启动。手动插件安装入口仍可用。
+全部分卷必须来自同一批完整构建；缺卷或散列不匹配时补齐原分卷后重新解压。当前完整包已预装插件，不需首次再装。历史 Core/Plugins 才使用首次插件安装入口。
 
 打开首页后，左侧底部应有“检索增强开关”，侧边栏可打开文件和工作台；发出一条用户消息后，消息操作区应有回退按钮。仅消息回退保留原聊天并创建分支；涉及文件恢复时核对预览与确认，远端接口、已发送消息和表格修改不会随本地回退而撤销。系统提示词精简开关位于设置中的“业务浏览器与接口”。
 
-回退插件的文件检查点需要系统Git在PATH中；仅回溯消息不依赖Git。首次安装会校验并复制本地插件，请等待完成后再启动其他实例。
+回退插件的文件检查点需要系统Git在PATH中；仅回溯消息不依赖Git。历史包首次安装会校验并复制本地插件，请等待完成后再启动其他实例。
 
 若首次插件安装被中断：先关闭该APP所有进程，再在APP根目录运行 `./runtime/node/bin/node plugin-pack/install.cjs --recover`（Windows使用 `& .\runtime\node\node.exe .\plugin-pack\install.cjs --recover`）。它重新校验已有文件后续装，不删除用户文件；仍在运行的安装器或损坏的锁记录会被拒绝。增量插件管理器中断仍使用 `管理插件.sh recover`，两种恢复入口不能混用。
 
@@ -140,6 +111,6 @@ GitHub 公开包不含组织凭据、内部接口定义或真实本地文档。I
 
 仅针对已有ISU接口监听，不新增接口登记、通用抓包、控制台或任意JS执行操作。其他已登记只读接口只复用Cookie和固定认证字段映射。Token来源不是推测的存储键，而是实际发出的已知ISU连接参数。
 
-此功能需要同时更新浏览器插件、业务插件及配套Python工具，使用本次完整Core/Plugins两包安装到新目录，不覆盖旧APP。内网固定配置、接口资料及安装包仅在组织内交付，GitHub只包含源码和合成测试。
+此功能需要同时更新浏览器插件、业务插件及配套Python工具，使用当前完整 APP 的全部分卷安装到新目录，不覆盖旧APP。内网固定配置、接口资料及安装包仅在组织内交付，GitHub只包含源码和合成测试。
 
 同一站点多标签页使用不同Token时会拒绝选择；关闭旧账号标签页后刷新当前实时值页面。session-check只检查本地登录态可用，不证明服务端查询权限。返回的数据仍需核对PN/GN、DS、TM及是否存在多个匹配。

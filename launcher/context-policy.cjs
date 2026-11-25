@@ -1,14 +1,19 @@
 'use strict';
-// Only the compaction budget is deployment-owned. Never rewrite model providers.
+// Deployment owns compaction budgets and Models visibility, never provider credentials.
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const POLICY={thresholdRatio:0.9,headroomTokens:16384,retainRatio:0.2,maxTokens:8192};
 function normalize(text,modules){
- if(!text.includes('compaction-basic'))return text;
+ if(!text.includes('compaction-basic')&&!text.includes('ui-settings-models'))return text;
  const YAML=require(path.join(modules,'yaml'));
  const doc=YAML.parseDocument(text,{keepSourceTokens:true});
  if(doc.errors.length||!YAML.isSeq(doc.contents))throw Error('上下文配置不是有效 YAML 列表，未覆盖');
  let changed=false;
  for(const row of doc.contents.items){
+  if(YAML.isMap(row)&&row.get('id')==='ui-settings-models'){
+   YAML.visit(row,{Node(_key,node){if(YAML.isAlias(node)||node.anchor)throw Error('模型设置入口含共享锚点，无法安全迁移');}});
+   if(row.get('disabled')!==false){row.set('disabled',false);changed=true;}
+   continue;
+  }
   if(!YAML.isMap(row)||row.get('id')!=='compaction-basic')continue;
   let config=row.get('config');
   if(config===undefined){config=doc.createNode({});row.set('config',config);}

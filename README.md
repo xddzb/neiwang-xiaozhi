@@ -13,58 +13,29 @@
 ## 本版恢复的功能
 
 - 检索增强开关放在侧边栏底部；全应用持久化，关闭后主、子智能体均不新增RAG请求，原有材料可复用。
-- better-sidebar 0.28.0 的文件、预览与工作台入口随插件包完整启用。
+- better-sidebar 0.28.0 的文件、预览与工作台入口随完整应用预装启用。
 - 用户消息旁的回退入口支持保留原聊天并创建分支；涉及文件恢复先预览并由用户确认，不自动撤销远端接口、钉钉消息或表格操作。
 - 工具通过 run_code 按需查询目录与参数，精简SDK系统提示词，保留授权和安全规则。
-- 两包缺失或损坏时明确报错，避免静默启动为缺功能状态。
+- 分卷缺失或损坏时明确报错，避免静默启动为缺功能状态。
 
-## 下载与拆包原因
+## 下载与分卷安装
 
-从 [GitHub Releases](https://github.com/xddzb/neiwang-xiaozhi/releases/latest) 下载与系统对应的两包：
+**当前完整 APP 按压缩文件分卷交付，不再按 Core / Plugins 功能拆包。** 插件已预装，解压后直接启动。每卷为 480,000,000 字节以内，低于内网 500 MB 限制；卷数随完整包大小变化。
 
-| 平台 | 核心包 | 插件包 |
+| 平台 | 分卷格式 | 安装入口 |
 | --- | --- | --- |
-| 麒麟 ARM64 | `Neiwang-Xiaozhi-Kylin-ARM64-R11.6-Public-Core.tar.gz` | `Neiwang-Xiaozhi-Kylin-ARM64-R11.6-Public-Plugins.tar.gz` |
-| Windows 10/11 x64 | `Neiwang-Xiaozhi-Win10-x64-R11.6-Public-Core.zip` | `Neiwang-Xiaozhi-Win10-x64-R11.6-Public-Plugins.zip` |
+| 麒麟 ARM64 | 同一 `.tar.gz` 的 `.001`、`.002` 等连续分卷 | 将全部分卷、`SHA256SUMS.txt`、`解压.sh` 放在一起，运行 `sh 解压.sh` |
+| Windows 10/11 x64 | 同一 `.zip` 的 `.001`、`.002` 等连续分卷 | 将全部分卷、`volumes.json`、`Extract.ps1`、`DoubleClickExtract.cmd` 放在一起，双击 `DoubleClickExtract.cmd` |
 
-**内网钉钉只允许上传 500MB 以内文件，所以每个平台拆成 Core、Plugins 两包。** 两包解压到同一个新目录，首次启动自动校验并安装本地插件，也可先手动运行安装器；不能用 `cat` 拼接。各包 SHA256 和已验证范围见 Release 描述。
+脚本先校验分卷，再按顺序合并并解压到新目录。不要只解压某一卷，不要混用不同日期、平台或 Public/Internal 的分卷。Windows 完成后进入 `ExtractedApp` 下的应用目录，运行 `start.cmd`；麒麟进入解压后的应用目录运行 `bash start.sh`。无需再次安装插件。
 
-GitHub 只发布 Public 包，不含组织模型/RAG凭据、内部接口定义或真实接口文档。供本组织内传递的 Internal 麒麟包单独在本地生成，保留当前模型、RAG加密默认配置、本地接口文档和接口源，禁止上传公开仓库。不要把 Public 和 Internal 两类包混用。
+Internal 内网交付包保留默认模型/RAG 的加密配置和内部接口资料，仅在组织内传递，禁止上传 GitHub。默认内网 API 保持加密；用户仍可在“设置 → 模型 → 添加提供商”新增自己的模型 API。公开 Public 包不含组织凭据或资料。
 
-## 本地合并安装代码
-
-麒麟：
-
-```sh
-mkdir -p R11.6
-tar -xzf Neiwang-Xiaozhi-Kylin-ARM64-R11.6-Public-Core.tar.gz -C R11.6
-tar -xzf Neiwang-Xiaozhi-Kylin-ARM64-R11.6-Public-Plugins.tar.gz -C R11.6
-cd R11.6/Neiwang-Xiaozhi-Kylin-ARM64-R11.6
-sh plugin-pack/安装插件.sh
-# 首次使用 Public 包需配置；迁移旧配置见下方。
-sh 配置模型.sh
-sh 配置RAG.sh
-sh start.sh
-```
-
-Internal 内网交付版已内置固定模型、RAG和接口资料，不需要旧 APP、迁移或首次配置。请直接按 [内网版安装说明](docs/INSTALL.md) 合并安装并启动；上面的首次配置步骤仅用于 Public 包。
-
-Windows PowerShell：
-
-```powershell
-New-Item -ItemType Directory -Path .\R11.6 -ErrorAction Stop
-Expand-Archive -LiteralPath .\Neiwang-Xiaozhi-Win10-x64-R11.6-Public-Core.zip -DestinationPath .\R11.6
-Expand-Archive -LiteralPath .\Neiwang-Xiaozhi-Win10-x64-R11.6-Public-Plugins.zip -DestinationPath .\R11.6
-Set-Location .\R11.6\Neiwang-Xiaozhi-Win10-x64-R11.6
-& .\runtime\node\node.exe .\plugin-pack\install.cjs
-& .\配置模型.cmd
-& .\配置RAG.cmd
-& .\start.cmd
-```
+[GitHub Releases](https://github.com/xddzb/neiwang-xiaozhi/releases) 中历史 R11.6 资产可能仍命名为 `Public-Core` / `Public-Plugins`，它们是旧的独立归档，不是连续分卷，不能按字节拼接。文档更新不会自动替换历史 Release 资产；本次内网补丁仅本地交付。旧包用法及当前分卷步骤见 [安装说明](docs/INSTALL.md)。
 
 ## 升级并保留旧配置
 
-关闭新旧 APP，将新版解压到独立新目录并安装插件。不要覆盖旧目录。在新 APP 根目录、首次启动前运行：
+关闭新旧 APP，将全部新版分卷解压到独立新目录。不要覆盖旧目录。在新 APP 根目录、首次启动前运行：
 
 ```sh
 # 麒麟：只读取旧目录，补充新版缺失的配置，保留新版已修改设置
@@ -78,7 +49,7 @@ Set-Location .\R11.6\Neiwang-Xiaozhi-Win10-x64-R11.6
 
 可迁移模型、RAG和开关、钉钉绑定、DWS设置、用户profile配置、业务接口源/连接、本地接口文档。旧版加密模型与RAG按新安装的本地密钥重新加密，不输出明文；原目录保持不动；与随包散列相同的未修改模板可由旧配置替换，已修改的新配置保留。它不复制聊天、整个工作区或浏览器缓存；跨电脑的系统密钥/登录状态可能需要重新授权。自定义数据目录及迁移边界见 [R11.6 安装与配置保留说明](docs/INSTALL.md)。
 
-后续仅新增或升级插件，使用 [独立离线插件管理器](docs/DEVELOPMENT.md)，无需重装 APP。初始 Core/Plugins 组合包和后续独立插件包是两种格式，不能混用。
+后续仅新增或升级插件，使用 [独立离线插件管理器](docs/DEVELOPMENT.md)，无需重装 APP。完整 APP 的连续分卷与后续独立插件包是两种格式，不能混用。
 
 ## 项目目录和内核位置
 
@@ -100,7 +71,7 @@ Set-Location .\R11.6\Neiwang-Xiaozhi-Win10-x64-R11.6
 
 当前普通开发构建见 [BUILD_AND_RUN](docs/DEVELOPMENT.md)：安装 Node 24.x（至少24.9）、Git、Python 3.10+，在目标平台执行 `npm ci`、`npm run prepare:runtime`、`npm run prepare:plugins`、`npm run build`。这些准备步骤在联网构建机完成，APP运行和插件安装不联网补下载。
 
-R11.6 已审查发行基线组合与公开/内部包分离流程见 [R11.6 发布交接](docs/HANDOVER.md)，使用 `scripts/build-r114-release.py`，需显式提供本地平台基线及私有输入。它不把组织资料提交到仓库，也不修改旧 APP。
+完整预装包使用 `scripts/build-kylin-ready.py`（含分卷）或 `scripts/build-windows-ready.py` 加 `scripts/split-windows-ready.py`。这些工具可读取历史 Core/Plugins 作为构建材料，输出交付形式是完整应用的连续分卷。历史基线与 Public/Internal 隔离流程见 [交接文档](docs/HANDOVER.md)，禁止上传内部配置或覆盖旧 APP。
 
 ```sh
 python scripts/check_source.py

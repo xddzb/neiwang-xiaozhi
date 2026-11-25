@@ -33,7 +33,7 @@ data=WORK/'data';(data/'config').mkdir(parents=True,exist_ok=True);workspace=WOR
 (data/'config/.local-key').write_bytes(model_config.KEY)
 if os.environ.get('NEIWANG_TEST_LEGACY_CONTEXT')=='1':
  profile=data/'dsh/profiles/web';profile.mkdir(parents=True,exist_ok=True)
- (profile/'cordis.patch.yml').write_text('- id: compaction-basic\n  config:\n    headroomTokens: 65536\n    thresholdRatio: 0.8\n    modelPolicies:\n      - provider: neiwang\n        model: fixture\n        headroomTokens: 65536\n',encoding='utf8')
+ (profile/'cordis.patch.yml').write_text('- id: ui-settings-models\n  disabled: true\n- id: compaction-basic\n  config:\n    headroomTokens: 65536\n    thresholdRatio: 0.8\n    modelPolicies:\n      - provider: neiwang\n        model: fixture\n        headroomTokens: 65536\n',encoding='utf8')
 (WORK/'patch.json').write_text(json.dumps([{'insert':[{'id':'browser-addon-test','name':(HERE/'test-restored-host.mjs').as_uri()}]}]))
 env={**os.environ,'NEIWANG_APP_ROOT':str(APP),'NEIWANG_DATA_DIR':str(data),'NEIWANG_WORKSPACE_DIR':str(workspace),'NEIWANG_TEST_PATCH':str(WORK/'patch.json')}
 proc=subprocess.Popen([str(APP/('runtime/node/node.exe' if os.name=='nt' else 'runtime/node/bin/node')),str(HERE/'r113-entry.cjs')],cwd=APP,env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,start_new_session=True)
